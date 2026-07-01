@@ -39,6 +39,27 @@ docs/      Especificação e documentação de arquitetura
 
 🚧 Em desenvolvimento — ver [issues](../../issues) para o roadmap atual.
 
+## Como rodar localmente
+
+### Backend
+
+```
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+### Frontend
+
+```
+cd frontend
+npm install
+npm start
+```
+
+A aplicação Angular espera a API rodando em `http://localhost:3000` (ver `api.service.ts`).
+
 ## Stack
 
 - **Backend:** Node.js, Express, PostgreSQL, JWT

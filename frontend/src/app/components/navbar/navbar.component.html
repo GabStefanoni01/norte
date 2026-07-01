@@ -1,0 +1,12 @@
+<nav class="flex items-center justify-between px-6 py-4 border-b border-norte-800">
+  <a routerLink="/dashboard" class="font-display text-xl text-norte-accent-light">Norte</a>
+
+  <div class="flex items-center gap-6 text-sm text-white/70">
+    <a routerLink="/dashboard" routerLinkActive="text-white" class="hover:text-white">Dashboard</a>
+    <a routerLink="/plano" routerLinkActive="text-white" class="hover:text-white">Meu plano</a>
+    <a routerLink="/chat" routerLinkActive="text-white" class="hover:text-white">Mentor IA</a>
+    <a routerLink="/oportunidades" routerLinkActive="text-white" class="hover:text-white">Oportunidades</a>
+    <a routerLink="/perfil" routerLinkActive="text-white" class="hover:text-white">Perfil</a>
+    <button (click)="auth.logout()" class="text-white/50 hover:text-white">Sair</button>
+  </div>
+</nav>

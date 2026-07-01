@@ -41,6 +41,16 @@ docs/      Especificação e documentação de arquitetura
 
 ## Como rodar localmente
 
+### Banco de dados (PostgreSQL via Docker)
+
+```
+docker compose up -d
+```
+
+Isso sobe um PostgreSQL em `localhost:5432` (usuário `norte`, senha `norte`, banco `norte`)
+e já executa a migration inicial automaticamente. Sem Docker, instale o PostgreSQL
+localmente e ajuste `DATABASE_URL` no `.env` do backend.
+
 ### Backend
 
 ```

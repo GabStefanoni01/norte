@@ -1,0 +1,81 @@
+<main class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-10">
+      <p class="font-display text-4xl text-norte-accent-light">Norte</p>
+      <p class="text-white/60 mt-2">Crie sua conta e trace seu caminho.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="criarConta()" class="space-y-4">
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
+        <input
+          id="nome"
+          type="text"
+          formControlName="nome"
+          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          placeholder="Seu nome"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          placeholder="voce@exemplo.com"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
+        <input
+          id="senha"
+          type="password"
+          formControlName="senha"
+          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          placeholder="Mínimo 6 caracteres"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="idade">Idade</label>
+          <input
+            id="idade"
+            type="number"
+            formControlName="idade"
+            class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
+          <input
+            id="cidade"
+            type="text"
+            formControlName="cidade"
+            class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          />
+        </div>
+      </div>
+
+      @if (erro()) {
+        <p class="text-sm text-red-400">{{ erro() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="carregando()"
+        class="w-full rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold py-2.5 disabled:opacity-60"
+      >
+        {{ carregando() ? 'Criando conta...' : 'Criar conta' }}
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-white/50 mt-6">
+      Já tem conta?
+      <a routerLink="/" class="text-norte-accent-light hover:underline">Entrar</a>
+    </p>
+  </div>
+</main>

@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
@@ -11,6 +11,10 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
   erro = signal<string | null>(null);
   carregando = signal(false);
 
@@ -21,12 +25,6 @@ export class RegisterComponent {
     idade: [null as number | null],
     cidade: [''],
   });
-
-  constructor(
-    private fb: FormBuilder,
-    private auth: AuthService,
-    private router: Router
-  ) {}
 
   criarConta() {
     if (this.form.invalid) {

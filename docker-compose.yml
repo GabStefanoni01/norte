@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: norte-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: norte
+      POSTGRES_PASSWORD: norte
+      POSTGRES_DB: norte
+    ports:
+      - "5432:5432"
+    volumes:
+      - norte-postgres-data:/var/lib/postgresql/data
+      - ./backend/src/database/migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  norte-postgres-data:

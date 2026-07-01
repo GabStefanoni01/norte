@@ -1,4 +1,6 @@
-# Mentor Jovem IA
+# Norte
+
+**Encontre seu norte.**
 
 Plataforma de mentoria para jovens em início de carreira, combinando um plano
 de evolução personalizado com um mentor baseado em IA.

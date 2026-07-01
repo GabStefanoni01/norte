@@ -1,7 +1,7 @@
 {
-  "name": "mentor-jovem-ia-backend",
+  "name": "norte-backend",
   "version": "0.1.0",
-  "description": "API do Mentor Jovem IA - Node.js + Express + PostgreSQL",
+  "description": "API do Norte - Node.js + Express + PostgreSQL",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

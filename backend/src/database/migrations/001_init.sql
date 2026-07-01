@@ -1,4 +1,4 @@
--- Initial schema for Mentor Jovem IA
+-- Initial schema for Norte
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,

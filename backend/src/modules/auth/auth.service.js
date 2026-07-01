@@ -2,17 +2,19 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../../database/pool');
 const env = require('../../config/env');
+const { calcularIdade } = require('../../utils/date');
 
 const SALT_ROUNDS = 10;
 
-async function register({ nome, email, senha, idade, cidade }) {
+async function register({ nome, email, senha, dataNascimento, estado, cidade }) {
   const hashed = await bcrypt.hash(senha, SALT_ROUNDS);
+  const idade = calcularIdade(dataNascimento);
 
   const result = await pool.query(
-    `INSERT INTO users (nome, email, senha, idade, cidade)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, nome, email, idade, cidade`,
-    [nome, email, hashed, idade, cidade]
+    `INSERT INTO users (nome, email, senha, idade, cidade, data_nascimento, estado)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, nome, email, idade, cidade, data_nascimento, estado`,
+    [nome, email, hashed, idade, cidade, dataNascimento, estado]
   );
 
   return result.rows[0];

@@ -94,7 +94,7 @@ export class RegisterComponent implements OnInit {
       .subscribe({
         next: () => {
           this.carregando.set(false);
-          this.router.navigate(['/']);
+          this.router.navigate(['/entrar']);
         },
         error: () => {
           this.carregando.set(false);

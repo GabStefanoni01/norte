@@ -43,6 +43,20 @@
         </div>
 
         <div>
+          <label class="block text-sm text-white/70 mb-1" for="confirmarSenha">Confirmar senha</label>
+          <input
+            id="confirmarSenha"
+            type="password"
+            formControlName="confirmarSenha"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Repita a senha"
+          />
+          @if (form.errors?.['senhasDiferentes'] && form.get('confirmarSenha')?.touched) {
+            <p class="text-xs text-red-400 mt-1">As senhas não coincidem.</p>
+          }
+        </div>
+
+        <div>
           <label class="block text-sm text-white/70 mb-1" for="dataNascimento">Data de nascimento</label>
           <input
             id="dataNascimento"

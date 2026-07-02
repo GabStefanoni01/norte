@@ -39,7 +39,7 @@ html, body {
 }
 
 .north-star {
-  animation: pulse-star 2.6s ease-in-out infinite;
+  animation: pulse-star 2.6s ease-in-out infinite, float 6s ease-in-out infinite;
 }
 
 .compass-rotate {
@@ -64,8 +64,94 @@ html, body {
 .stagger > *:nth-child(8) { animation-delay: 0.54s; }
 .stagger > *:nth-child(9) { animation-delay: 0.61s; }
 
+/* ---- Revelar ao rolar (usado com [norteReveal]) ---- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- Cards com hover mais vivo ---- */
+
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  border-color: rgba(224, 169, 68, 0.45);
+}
+
+/* ---- Botões com brilho passando (shine sweep) ---- */
+
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.btn-shine:hover::before {
+  left: 125%;
+}
+
+/* ---- Flutuação suave (elementos decorativos) ---- */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* ---- Gradiente animado no texto de destaque ---- */
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.text-gradient-gold {
+  background: linear-gradient(90deg, #f2c979, #e0a944, #f2c979);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .star, .north-star, .compass-rotate, .card-glow, .stagger > * {
+  .star, .north-star, .compass-rotate, .card-glow, .stagger > *, .float, .text-gradient-gold {
     animation: none !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .card-hover:hover {
+    transform: none !important;
+  }
+  .btn-shine::before {
+    display: none !important;
   }
 }

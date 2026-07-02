@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'norte-home',
   standalone: true,
-  imports: [RouterLink, StarfieldComponent],
+  imports: [RouterLink, StarfieldComponent, RevealOnScrollDirective],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {

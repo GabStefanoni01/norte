@@ -33,7 +33,23 @@ export class AuthService {
     estado: string;
     cidade: string;
   }) {
-    return this.api.post<Usuario>('/auth/register', dados);
+    return this.api.post<{ message: string; user: Usuario }>('/auth/register', dados);
+  }
+
+  verificarEmail(email: string, codigo: string) {
+    return this.api.post<{ message: string }>('/auth/verificar-email', { email, codigo });
+  }
+
+  reenviarCodigoVerificacao(email: string) {
+    return this.api.post<{ message: string }>('/auth/reenviar-codigo', { email });
+  }
+
+  esqueciSenha(email: string) {
+    return this.api.post<{ message: string }>('/auth/esqueci-senha', { email });
+  }
+
+  redefinirSenha(email: string, codigo: string, novaSenha: string) {
+    return this.api.post<{ message: string }>('/auth/redefinir-senha', { email, codigo, novaSenha });
   }
 
   logout() {

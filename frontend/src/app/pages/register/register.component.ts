@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations.service';
 import { Estado, Cidade } from '../../models/location.model';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
 
 @Component({
   selector: 'norte-register',
@@ -27,14 +28,18 @@ export class RegisterComponent implements OnInit {
 
   hoje = new Date().toISOString().slice(0, 10);
 
-  form = this.fb.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(6)]],
-    dataNascimento: ['', [Validators.required]],
-    estado: ['', [Validators.required]],
-    cidade: [{ value: '', disabled: true }, [Validators.required]],
-  });
+  form = this.fb.group(
+    {
+      nome: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      senha: ['', [Validators.required, Validators.minLength(6)]],
+      confirmarSenha: ['', [Validators.required]],
+      dataNascimento: ['', [Validators.required]],
+      estado: ['', [Validators.required]],
+      cidade: [{ value: '', disabled: true }, [Validators.required]],
+    },
+    { validators: senhasIguaisValidator() }
+  );
 
   ngOnInit() {
     this.locations.getEstados().subscribe({
@@ -94,7 +99,7 @@ export class RegisterComponent implements OnInit {
       .subscribe({
         next: () => {
           this.carregando.set(false);
-          this.router.navigate(['/entrar']);
+          this.router.navigate(['/verificar-email'], { queryParams: { email: dados.email } });
         },
         error: () => {
           this.carregando.set(false);

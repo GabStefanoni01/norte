@@ -1,45 +1,49 @@
-<main class="min-h-screen flex items-center justify-center px-4">
-  <div class="w-full max-w-sm">
+<main class="relative min-h-screen overflow-hidden flex items-center justify-center px-4">
+  <norte-starfield />
+
+  <div class="stagger relative z-10 w-full max-w-sm">
     <div class="text-center mb-10">
       <p class="font-display text-4xl text-norte-accent-light">Norte</p>
       <p class="text-white/60 mt-2">Encontre seu norte.</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="entrar()" class="space-y-4">
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="voce@exemplo.com"
-        />
-      </div>
+    <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
+      <form [formGroup]="form" (ngSubmit)="entrar()" class="stagger space-y-4">
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 transition-shadow focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="voce@exemplo.com"
+          />
+        </div>
 
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
-        <input
-          id="senha"
-          type="password"
-          formControlName="senha"
-          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="••••••••"
-        />
-      </div>
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
+          <input
+            id="senha"
+            type="password"
+            formControlName="senha"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 transition-shadow focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="••••••••"
+          />
+        </div>
 
-      @if (erro()) {
-        <p class="text-sm text-red-400">{{ erro() }}</p>
-      }
+        @if (erro()) {
+          <p class="text-sm text-red-400">{{ erro() }}</p>
+        }
 
-      <button
-        type="submit"
-        [disabled]="carregando()"
-        class="w-full rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold py-2.5 disabled:opacity-60"
-      >
-        {{ carregando() ? 'Entrando...' : 'Entrar' }}
-      </button>
-    </form>
+        <button
+          type="submit"
+          [disabled]="carregando()"
+          class="w-full rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold py-2.5 disabled:opacity-60 disabled:hover:shadow-none active:scale-[0.98]"
+        >
+          {{ carregando() ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    </div>
 
     <p class="text-center text-sm text-white/50 mt-6">
       Ainda não tem conta?

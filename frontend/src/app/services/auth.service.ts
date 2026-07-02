@@ -25,7 +25,14 @@ export class AuthService {
     );
   }
 
-  registrar(dados: { nome: string; email: string; senha: string; idade?: number; cidade?: string }) {
+  registrar(dados: {
+    nome: string;
+    email: string;
+    senha: string;
+    dataNascimento: string;
+    estado: string;
+    cidade: string;
+  }) {
     return this.api.post<Usuario>('/auth/register', dados);
   }
 

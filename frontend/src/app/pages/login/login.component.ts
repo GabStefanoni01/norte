@@ -3,11 +3,12 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
+import { StarfieldComponent } from '../../components/starfield/starfield.component';
 
 @Component({
   selector: 'norte-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {

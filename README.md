@@ -93,6 +93,14 @@ UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
 
 A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
 
+### E-mail (verificação de conta e redefinição de senha)
+
+Sem `SMTP_HOST` configurado no `.env`, os códigos de confirmação e redefinição de senha
+aparecem no **console do backend** em vez de serem enviados por e-mail de verdade — útil
+para testar o fluxo localmente sem configurar um provedor de e-mail. Para envio real,
+preencha `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `SMTP_FROM` no `.env`
+(qualquer provedor SMTP funciona: Gmail com senha de app, Resend, Mailtrap, etc.).
+
 ## Stack
 
 - **Backend:** Node.js, Express, PostgreSQL, JWT

@@ -6,3 +6,66 @@ html, body {
   height: 100%;
   margin: 0;
 }
+
+/* ---- Animações da atmosfera "Norte" (tela de login/cadastro) ---- */
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.85); }
+  50% { opacity: 0.95; transform: scale(1); }
+}
+
+@keyframes drift-compass {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-star {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 201, 121, 0.55); opacity: 0.8; }
+  50% { box-shadow: 0 0 16px 6px rgba(242, 201, 121, 0.35); opacity: 1; }
+}
+
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes card-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 169, 68, 0.12); }
+  50% { box-shadow: 0 0 40px 6px rgba(224, 169, 68, 0.14); }
+}
+
+.star {
+  animation: twinkle ease-in-out infinite;
+}
+
+.north-star {
+  animation: pulse-star 2.6s ease-in-out infinite;
+}
+
+.compass-rotate {
+  animation: drift-compass 140s linear infinite;
+}
+
+.card-glow {
+  animation: card-glow 5s ease-in-out infinite;
+}
+
+.stagger > * {
+  animation: fade-slide-up 0.6s ease both;
+}
+
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.12s; }
+.stagger > *:nth-child(3) { animation-delay: 0.19s; }
+.stagger > *:nth-child(4) { animation-delay: 0.26s; }
+.stagger > *:nth-child(5) { animation-delay: 0.33s; }
+.stagger > *:nth-child(6) { animation-delay: 0.40s; }
+.stagger > *:nth-child(7) { animation-delay: 0.47s; }
+.stagger > *:nth-child(8) { animation-delay: 0.54s; }
+.stagger > *:nth-child(9) { animation-delay: 0.61s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .star, .north-star, .compass-rotate, .card-glow, .stagger > * {
+    animation: none !important;
+  }
+}

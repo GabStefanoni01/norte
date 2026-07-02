@@ -1,0 +1,35 @@
+<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+  <!-- Rosa dos ventos girando lentamente ao fundo -->
+  <svg
+    class="compass-rotate absolute -right-40 -top-40 h-[520px] w-[520px] opacity-[0.07] md:h-[640px] md:w-[640px]"
+    viewBox="0 0 200 200"
+    fill="none"
+  >
+    <circle cx="100" cy="100" r="96" stroke="white" stroke-width="0.6" />
+    <circle cx="100" cy="100" r="70" stroke="white" stroke-width="0.4" />
+    <path d="M100 4 L106 90 L100 100 L94 90 Z" fill="white" />
+    <path d="M100 196 L106 110 L100 100 L94 110 Z" fill="white" opacity="0.6" />
+    <path d="M4 100 L90 94 L100 100 L90 106 Z" fill="white" opacity="0.6" />
+    <path d="M196 100 L110 94 L100 100 L110 106 Z" fill="white" opacity="0.6" />
+    <text x="100" y="20" fill="white" font-size="10" text-anchor="middle" font-family="serif">N</text>
+    <text x="100" y="188" fill="white" font-size="10" text-anchor="middle" font-family="serif">S</text>
+    <text x="14" y="104" fill="white" font-size="10" text-anchor="middle" font-family="serif">O</text>
+    <text x="186" y="104" fill="white" font-size="10" text-anchor="middle" font-family="serif">L</text>
+  </svg>
+
+  <!-- Estrela guia -->
+  <div class="north-star absolute left-1/2 top-[12%] h-2 w-2 -translate-x-1/2 rounded-full bg-norte-accent-light"></div>
+
+  <!-- Campo de estrelas -->
+  @for (estrela of estrelas; track $index) {
+    <span
+      class="star absolute rounded-full bg-white"
+      [style.top.%]="estrela.top"
+      [style.left.%]="estrela.left"
+      [style.width.px]="estrela.size"
+      [style.height.px]="estrela.size"
+      [style.animation-delay.s]="estrela.delay"
+      [style.animation-duration.s]="estrela.duration"
+    ></span>
+  }
+</div>

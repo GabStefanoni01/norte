@@ -1,77 +1,103 @@
-<main class="min-h-screen flex items-center justify-center px-4 py-12">
-  <div class="w-full max-w-sm">
-    <div class="text-center mb-10">
+<main class="relative min-h-screen overflow-hidden flex items-center justify-center px-4 py-12">
+  <norte-starfield />
+
+  <div class="stagger relative z-10 w-full max-w-sm">
+    <div class="text-center mb-8">
       <p class="font-display text-4xl text-norte-accent-light">Norte</p>
       <p class="text-white/60 mt-2">Crie sua conta e trace seu caminho.</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="criarConta()" class="space-y-4">
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
-        <input
-          id="nome"
-          type="text"
-          formControlName="nome"
-          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="Seu nome"
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="voce@exemplo.com"
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
-        <input
-          id="senha"
-          type="password"
-          formControlName="senha"
-          class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="Mínimo 6 caracteres"
-        />
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
+    <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
+      <form [formGroup]="form" (ngSubmit)="criarConta()" class="stagger space-y-4">
         <div>
-          <label class="block text-sm text-white/70 mb-1" for="idade">Idade</label>
+          <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
           <input
-            id="idade"
-            type="number"
-            formControlName="idade"
-            class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          />
-        </div>
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
-          <input
-            id="cidade"
+            id="nome"
             type="text"
-            formControlName="cidade"
-            class="w-full rounded-md bg-norte-900 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            formControlName="nome"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Seu nome"
           />
         </div>
-      </div>
 
-      @if (erro()) {
-        <p class="text-sm text-red-400">{{ erro() }}</p>
-      }
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="voce@exemplo.com"
+          />
+        </div>
 
-      <button
-        type="submit"
-        [disabled]="carregando()"
-        class="w-full rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold py-2.5 disabled:opacity-60"
-      >
-        {{ carregando() ? 'Criando conta...' : 'Criar conta' }}
-      </button>
-    </form>
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
+          <input
+            id="senha"
+            type="password"
+            formControlName="senha"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="dataNascimento">Data de nascimento</label>
+          <input
+            id="dataNascimento"
+            type="date"
+            formControlName="dataNascimento"
+            [max]="hoje"
+            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent [color-scheme:dark]"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-white/70 mb-1" for="estado">Estado</label>
+            <select
+              id="estado"
+              formControlName="estado"
+              class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
+            >
+              <option value="" disabled>UF</option>
+              @for (estado of estados(); track estado.id) {
+                <option [value]="estado.sigla">{{ estado.sigla }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
+            <select
+              id="cidade"
+              formControlName="cidade"
+              class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
+            >
+              <option value="" disabled>
+                {{ carregandoCidades() ? 'Carregando...' : 'Cidade' }}
+              </option>
+              @for (cidade of cidades(); track cidade.id) {
+                <option [value]="cidade.nome">{{ cidade.nome }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (erro()) {
+          <p class="text-sm text-red-400">{{ erro() }}</p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="carregando()"
+          class="w-full rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold py-2.5 disabled:opacity-60 disabled:hover:shadow-none active:scale-[0.98]"
+        >
+          {{ carregando() ? 'Criando conta...' : 'Criar conta' }}
+        </button>
+      </form>
+    </div>
 
     <p class="text-center text-sm text-white/50 mt-6">
       Já tem conta?

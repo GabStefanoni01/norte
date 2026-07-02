@@ -81,6 +81,18 @@ npm start
 
 A aplicação Angular espera a API rodando em `http://localhost:3000` (ver `api.service.ts`).
 
+### Criando o primeiro administrador
+
+Por segurança, não existe autopromoção a admin pelo próprio site. Depois de criar sua conta
+normalmente pelo cadastro, promova-a rodando esta query diretamente no banco (via SQL editor
+do Neon, ou `psql`):
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
+```
+
+A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
+
 ## Stack
 
 - **Backend:** Node.js, Express, PostgreSQL, JWT

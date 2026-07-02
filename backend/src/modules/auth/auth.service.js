@@ -37,13 +37,13 @@ async function login({ email, senha }) {
     throw err;
   }
 
-  const token = jwt.sign({ sub: user.id, email: user.email }, env.jwtSecret, {
+  const token = jwt.sign({ sub: user.id, email: user.email, role: user.role }, env.jwtSecret, {
     expiresIn: env.jwtExpiresIn,
   });
 
   return {
     token,
-    user: { id: user.id, nome: user.nome, email: user.email },
+    user: { id: user.id, nome: user.nome, email: user.email, role: user.role },
   };
 }
 

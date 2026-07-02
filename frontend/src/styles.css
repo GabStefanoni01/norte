@@ -39,7 +39,7 @@ html, body {
 }
 
 .north-star {
-  animation: pulse-star 2.6s ease-in-out infinite;
+  animation: pulse-star 2.6s ease-in-out infinite, float 6s ease-in-out infinite;
 }
 
 .compass-rotate {

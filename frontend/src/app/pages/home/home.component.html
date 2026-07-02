@@ -5,7 +5,7 @@
     <a routerLink="/entrar" class="text-white/70 hover:text-white transition-colors px-3 py-2">Entrar</a>
     <a
       routerLink="/cadastro"
-      class="rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2"
+      class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_18px_rgba(224,169,68,0.4)] transition-all duration-200 text-norte-950 font-semibold px-4 py-2 active:scale-95"
     >
       Criar conta
     </a>
@@ -18,7 +18,9 @@
 
   <div class="stagger relative z-10 mx-auto max-w-2xl text-center">
     <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80">Mentoria de carreira para jovens</p>
-    <h1 class="font-display text-4xl md:text-6xl mt-4 leading-tight">Encontre seu norte.</h1>
+    <h1 class="font-display text-4xl md:text-6xl mt-4 leading-tight">
+      Encontre seu <span class="text-gradient-gold">norte</span>.
+    </h1>
     <p class="text-white/60 text-lg mt-6 max-w-xl mx-auto">
       Um plano de evolução feito pra você, com um mentor de IA que conhece sua história — pra quem está começando
       a carreira e não sabe bem por onde ir.
@@ -26,13 +28,13 @@
     <div class="flex flex-col sm:flex-row gap-3 justify-center mt-8">
       <a
         routerLink="/cadastro"
-        class="rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-3"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_24px_rgba(224,169,68,0.45)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-3 active:scale-95"
       >
         Começar agora, é grátis
       </a>
       <a
         routerLink="/entrar"
-        class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white px-6 py-3"
+        class="rounded-md border border-norte-700 hover:border-norte-accent-light/70 hover:-translate-y-0.5 transition-all duration-200 text-white px-6 py-3 active:scale-95"
       >
         Já tenho conta
       </a>
@@ -42,7 +44,7 @@
 
 <!-- O que é -->
 <section class="relative px-6 py-20 md:px-12 bg-norte-900/40 border-y border-norte-800">
-  <div class="mx-auto max-w-3xl text-center">
+  <div norteReveal class="mx-auto max-w-3xl text-center">
     <h2 class="font-display text-3xl mb-4">O que é o Norte</h2>
     <p class="text-white/60 leading-relaxed">
       A maioria dos jovens não sabe por onde começar — e os conselhos genéricos ("faça um curso", "monte um
@@ -56,10 +58,14 @@
 <!-- Como funciona -->
 <section class="px-6 py-20 md:px-12">
   <div class="mx-auto max-w-5xl">
-    <h2 class="font-display text-3xl text-center mb-12">Como funciona</h2>
+    <h2 norteReveal class="font-display text-3xl text-center mb-12">Como funciona</h2>
     <div class="grid gap-6 md:grid-cols-4">
       @for (etapa of etapas; track etapa.titulo; let i = $index) {
-        <div class="rounded-xl border border-norte-800 bg-norte-900/60 p-6">
+        <div
+          norteReveal
+          [revealDelay]="i * 0.1"
+          class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-6"
+        >
           <span class="font-display text-2xl text-norte-accent-light">{{ i + 1 }}</span>
           <h3 class="font-semibold mt-3 mb-2">{{ etapa.titulo }}</h3>
           <p class="text-sm text-white/55 leading-relaxed">{{ etapa.texto }}</p>
@@ -72,11 +78,15 @@
 <!-- Benefícios -->
 <section class="px-6 py-20 md:px-12 bg-norte-900/40 border-y border-norte-800">
   <div class="mx-auto max-w-5xl">
-    <h2 class="font-display text-3xl text-center mb-12">Por que o Norte</h2>
+    <h2 norteReveal class="font-display text-3xl text-center mb-12">Por que o Norte</h2>
     <div class="grid gap-6 md:grid-cols-2">
-      @for (beneficio of beneficios; track beneficio.titulo) {
-        <div class="flex gap-4">
-          <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-norte-accent-light"></span>
+      @for (beneficio of beneficios; track beneficio.titulo; let i = $index) {
+        <div
+          norteReveal
+          [revealDelay]="i * 0.08"
+          class="card-hover flex gap-4 rounded-xl border border-transparent hover:border-norte-800 p-4 -m-4"
+        >
+          <span class="float mt-1 h-2 w-2 shrink-0 rounded-full bg-norte-accent-light"></span>
           <div>
             <h3 class="font-semibold mb-1">{{ beneficio.titulo }}</h3>
             <p class="text-sm text-white/55 leading-relaxed">{{ beneficio.texto }}</p>
@@ -89,7 +99,7 @@
 
 <!-- Sobre -->
 <section class="px-6 py-20 md:px-12">
-  <div class="mx-auto max-w-2xl text-center">
+  <div norteReveal class="mx-auto max-w-2xl text-center">
     <h2 class="font-display text-3xl mb-4">Sobre o projeto</h2>
     <p class="text-white/60 leading-relaxed">
       O Norte é desenvolvido por <span class="text-white">Gabriel Stefanoni</span>, desenvolvedor fullstack,
@@ -100,7 +110,7 @@
       href="https://github.com/GabStefanoni01"
       target="_blank"
       rel="noopener noreferrer"
-      class="inline-block mt-4 text-sm text-norte-accent-light hover:underline"
+      class="inline-block mt-4 text-sm text-norte-accent-light hover:underline transition-transform hover:translate-x-0.5"
     >
       Veja o projeto no GitHub ↗
     </a>
@@ -111,6 +121,8 @@
 <footer class="px-6 py-10 md:px-12 border-t border-norte-800">
   <div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/40">
     <span>© {{ anoAtual }} Norte — encontre seu norte.</span>
-    <a routerLink="/cadastro" class="text-norte-accent-light hover:underline">Comece agora</a>
+    <a routerLink="/cadastro" class="text-norte-accent-light hover:underline transition-transform hover:translate-x-0.5 inline-block">
+      Comece agora →
+    </a>
   </div>
 </footer>

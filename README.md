@@ -41,7 +41,18 @@ docs/      Especificação e documentação de arquitetura
 
 ## Como rodar localmente
 
-### Banco de dados (PostgreSQL via Docker)
+### Banco de dados
+
+Duas opções — escolha uma e ajuste `DATABASE_URL` no `.env` do backend de acordo:
+
+**Opção A — Nuvem com Neon (recomendado, não usa recursos da sua máquina):**
+
+1. Crie uma conta gratuita em https://neon.tech e um novo projeto
+2. Copie a *connection string* do painel (formato `postgres://usuario:senha@ep-xxxx.neon.tech/norte?sslmode=require`)
+3. Cole em `DATABASE_URL` no `.env` do backend
+4. Rode as migrations: `cd backend && npm run migrate`
+
+**Opção B — Local com Docker:**
 
 ```
 docker compose up -d

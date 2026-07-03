@@ -1,6 +1,80 @@
 <norte-navbar />
 
-<main class="max-w-4xl mx-auto px-6 py-10">
-  <h1 class="font-display text-2xl mb-2">Perfil</h1>
-  <p class="text-white/50">Esta tela será implementada em uma próxima etapa.</p>
+<main class="max-w-2xl mx-auto px-6 py-10">
+  <h1 class="font-display text-3xl mb-2">Seu perfil</h1>
+  <p class="text-white/60 mb-8">
+    Essas informações ajudam a IA a personalizar seu plano de evolução.
+  </p>
+
+  @if (carregando()) {
+    <p class="text-white/50">Carregando...</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="salvar()" class="stagger space-y-6">
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="escolaridade">Escolaridade</label>
+        <select
+          id="escolaridade"
+          formControlName="escolaridade"
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        >
+          <option value="" disabled>Selecione</option>
+          @for (opcao of escolaridades; track opcao) {
+            <option [value]="opcao">{{ opcao }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm text-white/70 mb-2">Áreas de interesse</label>
+        <div class="grid grid-cols-2 gap-2" formArrayName="interesses">
+          @for (interesse of interessesDisponiveis; track interesse; let i = $index) {
+            <label class="flex items-center gap-2 rounded-md border border-norte-800 bg-norte-900/40 px-3 py-2 text-sm cursor-pointer hover:border-norte-700">
+              <input type="checkbox" [formControlName]="i" class="accent-norte-accent" />
+              {{ interesse }}
+            </label>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="objetivos">Seus objetivos</label>
+        <textarea
+          id="objetivos"
+          formControlName="objetivos"
+          rows="3"
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          placeholder="Ex: entrar na área de tecnologia, conseguir meu primeiro estágio..."
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm text-white/70 mb-1" for="habilidades">
+          Habilidades ou cursos que você já tem <span class="text-white/40">(opcional, separe por vírgula)</span>
+        </label>
+        <input
+          id="habilidades"
+          type="text"
+          formControlName="habilidadesTexto"
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          placeholder="Ex: Excel, inglês básico, curso de lógica"
+        />
+      </div>
+
+      @if (erro()) {
+        <p class="text-sm text-red-400">{{ erro() }}</p>
+      }
+
+      @if (sucesso()) {
+        <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="salvando()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+      >
+        {{ salvando() ? 'Salvando...' : jaTemPerfil() ? 'Atualizar perfil' : 'Salvar e continuar' }}
+      </button>
+    </form>
+  }
 </main>

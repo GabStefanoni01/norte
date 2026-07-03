@@ -7,13 +7,9 @@ function listarPerguntas(req, res) {
 async function enviarRespostas(req, res, next) {
   try {
     const resultado = discoveryService.calcularResultado(req.body.respostas);
-    const perfilAtualizado = await discoveryService.salvarResultado(req.user.sub, resultado);
-    res.json({
-      perfilDominante: resultado.perfilDominante,
-      descricao: resultado.descricao,
-      areasSugeridas: resultado.areasSugeridas,
-      perfil: perfilAtualizado,
-    });
+    await discoveryService.salvarResultado(req.user.sub, resultado);
+    const resultadoSalvo = await discoveryService.buscarResultado(req.user.sub);
+    res.json(resultadoSalvo);
   } catch (err) {
     next(err);
   }

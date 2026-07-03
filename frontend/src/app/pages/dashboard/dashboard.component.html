@@ -6,10 +6,52 @@
   </h1>
   <p class="text-white/60 mb-8">Este é o seu ponto de partida no Norte.</p>
 
+  @if (!carregando()) {
+    @if (!perfil()) {
+      <div class="card-hover rounded-lg border border-norte-accent/40 bg-norte-accent/10 p-6 mb-6">
+        <p class="font-semibold mb-1">Complete seu perfil</p>
+        <p class="text-sm text-white/60 mb-4">
+          Conte um pouco sobre você pra gente montar seu plano de evolução e sugerir áreas com o teste de
+          descoberta.
+        </p>
+        <a
+          routerLink="/perfil"
+          class="inline-block rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2 text-sm"
+        >
+          Completar perfil
+        </a>
+      </div>
+    } @else if (!perfil()?.perfil_dominante) {
+      <div class="card-hover rounded-lg border border-norte-accent/40 bg-norte-accent/10 p-6 mb-6">
+        <p class="font-semibold mb-1">Faça o teste de descoberta</p>
+        <p class="text-sm text-white/60 mb-4">
+          Perfil salvo! Agora faça o teste rápido pra descobrirmos as áreas que mais combinam com você.
+        </p>
+        <a
+          routerLink="/descoberta"
+          class="inline-block rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2 text-sm"
+        >
+          Fazer o teste
+        </a>
+      </div>
+    } @else {
+      <div class="rounded-lg border border-norte-800 bg-norte-900 p-6 mb-6">
+        <p class="text-sm text-white/50 mb-1">Seu perfil</p>
+        <p class="font-semibold text-lg mb-3">{{ perfil()!.perfil_dominante }}</p>
+        <div class="flex flex-wrap gap-2">
+          @for (area of perfil()!.areas_sugeridas; track area) {
+            <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-xs px-2.5 py-1">
+              {{ area }}
+            </span>
+          }
+        </div>
+      </div>
+    }
+  }
+
   <div class="rounded-lg border border-norte-800 bg-norte-900 p-6">
     <p class="text-sm text-white/50">
-      O dashboard completo (progresso do plano, próximo passo e recomendação da IA) será implementado na próxima
-      etapa.
+      O plano de evolução (progresso, próximo passo e recomendação da IA) será implementado na próxima etapa.
     </p>
   </div>
 </main>

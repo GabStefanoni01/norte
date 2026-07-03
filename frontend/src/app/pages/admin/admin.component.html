@@ -41,10 +41,11 @@
               <td class="px-4 py-3">
                 <span
                   class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  [class.bg-norte-accent]="usuario.role === 'admin'"
-                  [class.text-norte-950]="usuario.role === 'admin'"
-                  [class.bg-norte-800]="usuario.role !== 'admin'"
-                  [class.text-white/70]="usuario.role !== 'admin'"
+                  [class]="
+                    usuario.role === 'admin'
+                      ? 'bg-norte-accent text-norte-950'
+                      : 'bg-norte-800 text-white/70'
+                  "
                 >
                   {{ usuario.role }}
                 </span>

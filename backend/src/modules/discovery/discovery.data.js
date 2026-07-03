@@ -67,6 +67,46 @@ const PERGUNTAS = [
       { id: 'd', texto: 'Monta uma lista de prioridades', categoria: 'organizador' },
     ],
   },
+  {
+    id: 'p7',
+    texto: 'Qual dessas tarefas te dá mais satisfação?',
+    opcoes: [
+      { id: 'a', texto: 'Deixar algo com uma cara melhor, mais bonito', categoria: 'criativo' },
+      { id: 'b', texto: 'Descobrir por que algo não está funcionando', categoria: 'analitico' },
+      { id: 'c', texto: 'Ver alguém entender algo graças à sua explicação', categoria: 'social' },
+      { id: 'd', texto: 'Riscar itens de uma lista bem organizada', categoria: 'organizador' },
+    ],
+  },
+  {
+    id: 'p8',
+    texto: 'Se você fosse escolher uma matéria/curso extra amanhã, seria...',
+    opcoes: [
+      { id: 'a', texto: 'Design ou produção de conteúdo', categoria: 'criativo' },
+      { id: 'b', texto: 'Programação ou matemática', categoria: 'analitico' },
+      { id: 'c', texto: 'Comunicação ou psicologia', categoria: 'social' },
+      { id: 'd', texto: 'Gestão de projetos ou administração', categoria: 'organizador' },
+    ],
+  },
+  {
+    id: 'p9',
+    texto: 'Quando algo dá errado, sua primeira reação é...',
+    opcoes: [
+      { id: 'a', texto: 'Pensar numa forma diferente de tentar de novo', categoria: 'criativo' },
+      { id: 'b', texto: 'Investigar a causa raiz com calma', categoria: 'analitico' },
+      { id: 'c', texto: 'Conversar com alguém pra desabafar e pensar junto', categoria: 'social' },
+      { id: 'd', texto: 'Reorganizar o plano e ajustar os próximos passos', categoria: 'organizador' },
+    ],
+  },
+  {
+    id: 'p10',
+    texto: 'O que te deixaria mais orgulhoso daqui a 1 ano?',
+    opcoes: [
+      { id: 'a', texto: 'Ter criado algo original que as pessoas notaram', categoria: 'criativo' },
+      { id: 'b', texto: 'Dominar uma habilidade técnica difícil', categoria: 'analitico' },
+      { id: 'c', texto: 'Ter ajudado várias pessoas a crescerem', categoria: 'social' },
+      { id: 'd', texto: 'Ter montado um processo que funciona sozinho', categoria: 'organizador' },
+    ],
+  },
 ];
 
 const CATEGORIAS = {

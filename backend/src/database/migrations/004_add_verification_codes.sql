@@ -14,7 +14,12 @@ CREATE TABLE IF NOT EXISTS verification_codes (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-ALTER TABLE verification_codes
-  ADD CONSTRAINT chk_verification_codes_tipo CHECK (tipo IN ('verificacao_email', 'redefinicao_senha'));
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_verification_codes_tipo') THEN
+    ALTER TABLE verification_codes
+      ADD CONSTRAINT chk_verification_codes_tipo CHECK (tipo IN ('verificacao_email', 'redefinicao_senha'));
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_verification_codes_user_tipo ON verification_codes (user_id, tipo);

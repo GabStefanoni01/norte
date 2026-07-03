@@ -1,0 +1,68 @@
+<norte-navbar />
+
+<main class="max-w-2xl mx-auto px-6 py-10">
+  @if (carregando()) {
+    <p class="text-white/50">Carregando...</p>
+  } @else if (resultado()) {
+    <!-- Tela de resultado -->
+    <div class="stagger">
+      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Resultado</p>
+      <h1 class="font-display text-3xl mb-4">Seu perfil é {{ resultado()!.perfilDominante }}</h1>
+      <p class="text-white/70 leading-relaxed mb-8">{{ resultado()!.descricao }}</p>
+
+      <p class="text-sm text-white/50 mb-3">Áreas sugeridas pra você explorar:</p>
+      <div class="flex flex-wrap gap-2 mb-10">
+        @for (area of resultado()!.areasSugeridas; track area) {
+          <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-sm px-3 py-1">
+            {{ area }}
+          </span>
+        }
+      </div>
+
+      <button
+        (click)="irParaDashboard()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+      >
+        Ir para o dashboard
+      </button>
+    </div>
+  } @else if (perguntaAtual()) {
+    <!-- Quiz -->
+    <div class="mb-8">
+      <div class="flex justify-between text-xs text-white/40 mb-2">
+        <span>Pergunta {{ passoAtual() + 1 }} de {{ perguntas().length }}</span>
+        <span>{{ progresso() }}%</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-norte-800 overflow-hidden">
+        <div
+          class="h-full bg-norte-accent transition-all duration-500 ease-out"
+          [style.width.%]="progresso()"
+        ></div>
+      </div>
+    </div>
+
+    <h1 class="font-display text-2xl mb-6">{{ perguntaAtual()!.texto }}</h1>
+
+    <div class="stagger space-y-3">
+      @for (opcao of perguntaAtual()!.opcoes; track opcao.id) {
+        <button
+          (click)="escolher(opcao.id)"
+          [disabled]="enviando()"
+          class="card-hover w-full text-left rounded-xl border border-norte-800 bg-norte-900/60 px-5 py-4 text-white/80 hover:text-white transition-colors disabled:opacity-50"
+        >
+          {{ opcao.texto }}
+        </button>
+      }
+    </div>
+
+    @if (passoAtual() > 0) {
+      <button (click)="voltar()" class="mt-6 text-sm text-white/40 hover:text-white/70">
+        ← Voltar
+      </button>
+    }
+
+    @if (erro()) {
+      <p class="text-sm text-red-400 mt-4">{{ erro() }}</p>
+    }
+  }
+</main>

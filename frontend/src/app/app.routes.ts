@@ -40,6 +40,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
   },
   {
+    path: 'descoberta',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/discovery/discovery.component').then((m) => m.DiscoveryComponent),
+  },
+  {
     path: 'chat',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/chat/chat.component').then((m) => m.ChatComponent),

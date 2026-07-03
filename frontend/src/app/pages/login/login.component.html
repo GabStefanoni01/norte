@@ -21,7 +21,10 @@
         </div>
 
         <div>
-          <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm text-white/70" for="senha">Senha</label>
+            <a routerLink="/esqueci-senha" class="text-xs text-norte-accent-light hover:underline">Esqueci minha senha</a>
+          </div>
           <input
             id="senha"
             type="password"
@@ -31,8 +34,21 @@
           />
         </div>
 
+        @if (sucesso()) {
+          <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
+        }
+
         @if (erro()) {
           <p class="text-sm text-red-400">{{ erro() }}</p>
+          @if (emailNaoVerificado()) {
+            <a
+              routerLink="/verificar-email"
+              [queryParams]="{ email: form.value.email }"
+              class="block text-xs text-norte-accent-light hover:underline"
+            >
+              Confirmar e-mail agora
+            </a>
+          }
         }
 
         <button

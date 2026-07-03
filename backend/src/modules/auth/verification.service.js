@@ -57,20 +57,33 @@ async function validarCodigo(userId, tipo, codigoInformado) {
 
 async function enviarCodigoVerificacaoEmail(user) {
   const codigo = await criarCodigo(user.id, 'verificacao_email');
-  await enviarEmail({
-    para: user.email,
-    assunto: 'Confirme seu e-mail no Norte',
-    texto: `Olá, ${user.nome}!\n\nSeu código de confirmação é: ${codigo}\n\nEle expira em ${VALIDADE_MINUTOS} minutos.`,
-  });
+
+  try {
+    await enviarEmail({
+      para: user.email,
+      assunto: 'Confirme seu e-mail no Norte',
+      texto: `Olá, ${user.nome}!\n\nSeu código de confirmação é: ${codigo}\n\nEle expira em ${VALIDADE_MINUTOS} minutos.`,
+    });
+  } catch (err) {
+    // Não deixa uma falha no envio de e-mail impedir a criação da conta —
+    // o usuário ainda pode pedir um novo código pelo endpoint de reenvio
+    // assim que o SMTP for corrigido.
+    console.error(`Não foi possível enviar o código de verificação para ${user.email}.`);
+  }
 }
 
 async function enviarCodigoRedefinicaoSenha(user) {
   const codigo = await criarCodigo(user.id, 'redefinicao_senha');
-  await enviarEmail({
-    para: user.email,
-    assunto: 'Redefinição de senha — Norte',
-    texto: `Olá, ${user.nome}!\n\nUse o código abaixo para redefinir sua senha: ${codigo}\n\nEle expira em ${VALIDADE_MINUTOS} minutos. Se você não pediu isso, ignore este e-mail.`,
-  });
+
+  try {
+    await enviarEmail({
+      para: user.email,
+      assunto: 'Redefinição de senha — Norte',
+      texto: `Olá, ${user.nome}!\n\nUse o código abaixo para redefinir sua senha: ${codigo}\n\nEle expira em ${VALIDADE_MINUTOS} minutos. Se você não pediu isso, ignore este e-mail.`,
+    });
+  } catch (err) {
+    console.error(`Não foi possível enviar o código de redefinição para ${user.email}.`);
+  }
 }
 
 module.exports = {

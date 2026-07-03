@@ -4,6 +4,7 @@ export interface Usuario {
   email: string;
   idade?: number;
   cidade?: string;
+  role?: 'usuario' | 'admin';
 }
 
 export interface LoginResponse {

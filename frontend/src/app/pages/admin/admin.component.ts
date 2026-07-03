@@ -1,0 +1,55 @@
+import { Component, OnInit, signal, inject } from '@angular/core';
+import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { AdminService } from '../../services/admin.service';
+import { UsuarioAdmin } from '../../models/admin-user.model';
+
+@Component({
+  selector: 'norte-admin',
+  standalone: true,
+  imports: [NavbarComponent],
+  templateUrl: './admin.component.html',
+})
+export class AdminComponent implements OnInit {
+  private admin = inject(AdminService);
+
+  usuarios = signal<UsuarioAdmin[]>([]);
+  carregando = signal(true);
+  erro = signal<string | null>(null);
+  atualizandoId = signal<number | null>(null);
+
+  ngOnInit() {
+    this.carregarUsuarios();
+  }
+
+  carregarUsuarios() {
+    this.carregando.set(true);
+    this.admin.listarUsuarios().subscribe({
+      next: (usuarios) => {
+        this.usuarios.set(usuarios);
+        this.carregando.set(false);
+      },
+      error: () => {
+        this.erro.set('Não foi possível carregar os usuários.');
+        this.carregando.set(false);
+      },
+    });
+  }
+
+  alternarRole(usuario: UsuarioAdmin) {
+    const novaRole = usuario.role === 'admin' ? 'usuario' : 'admin';
+    this.atualizandoId.set(usuario.id);
+
+    this.admin.atualizarRole(usuario.id, novaRole).subscribe({
+      next: (atualizado) => {
+        this.usuarios.update((lista) =>
+          lista.map((u) => (u.id === atualizado.id ? { ...u, role: atualizado.role } : u))
+        );
+        this.atualizandoId.set(null);
+      },
+      error: () => {
+        this.erro.set('Não foi possível atualizar o papel deste usuário.');
+        this.atualizandoId.set(null);
+      },
+    });
+  }
+}

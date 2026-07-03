@@ -7,6 +7,14 @@ import { LoginResponse, Usuario } from '../models/user.model';
 
 const TOKEN_KEY = 'norte_token';
 
+interface TokenPayload {
+  sub: number;
+  email: string;
+  nome: string;
+  role: 'usuario' | 'admin';
+  exp?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   usuarioAtual = signal<Usuario | null>(null);
@@ -14,7 +22,40 @@ export class AuthService {
   constructor(
     private api: ApiService,
     private router: Router
-  ) {}
+  ) {
+    this.restaurarSessao();
+  }
+
+  private restaurarSessao() {
+    const token = this.getToken();
+    if (!token) return;
+
+    const payload = this.decodificarToken(token);
+    if (!payload) return;
+
+    // Token expirado — limpa em vez de manter um estado inconsistente.
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      this.logout();
+      return;
+    }
+
+    this.usuarioAtual.set({
+      id: payload.sub,
+      nome: payload.nome,
+      email: payload.email,
+      role: payload.role,
+    });
+  }
+
+  private decodificarToken(token: string): TokenPayload | null {
+    try {
+      const [, payloadBase64] = token.split('.');
+      const json = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
 
   login(email: string, senha: string) {
     return this.api.post<LoginResponse>('/auth/login', { email, senha }).pipe(
@@ -64,5 +105,9 @@ export class AuthService {
 
   estaAutenticado(): boolean {
     return !!this.getToken();
+  }
+
+  ehAdmin(): boolean {
+    return this.usuarioAtual()?.role === 'admin';
   }
 }

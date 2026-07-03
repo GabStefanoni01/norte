@@ -37,12 +37,23 @@ async function enviarEmail({ para, assunto, texto }) {
     return;
   }
 
-  await transporter.sendMail({
-    from: env.smtp.from,
-    to: para,
-    subject: assunto,
-    text: texto,
-  });
+  try {
+    await transporter.sendMail({
+      from: env.smtp.from,
+      to: para,
+      subject: assunto,
+      text: texto,
+    });
+  } catch (err) {
+    // Loga o motivo real (ex: remetente não verificado no provedor) em vez
+    // de deixar o erro genérico do nodemailer se perder no meio do log.
+    console.error('Falha ao enviar e-mail via SMTP:', err.message);
+    console.error(
+      'Dica: se o provedor for a Brevo, confira se SMTP_FROM usa um remetente ' +
+        'verificado no painel (Senders) — o login SMTP não pode ser usado como From.'
+    );
+    throw err;
+  }
 }
 
 module.exports = { enviarEmail };

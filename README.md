@@ -101,6 +101,12 @@ para testar o fluxo localmente sem configurar um provedor de e-mail. Para envio 
 preencha `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `SMTP_FROM` no `.env`
 (qualquer provedor SMTP funciona: Gmail com senha de app, Resend, Mailtrap, etc.).
 
+**Usando Brevo:** `SMTP_FROM` precisa ser um e-mail verificado como *sender* no painel
+(Settings → Senders, Domains, IPs → Senders) — **não** o mesmo endereço de `SMTP_USER`
+(que é só a credencial de login, a Brevo rejeita o envio se ele for usado como remetente).
+Se os e-mails não chegarem, confira o log do backend: a falha de envio é registrada lá
+sem impedir a criação da conta (o usuário pode pedir um novo código depois).
+
 ## Stack
 
 - **Backend:** Node.js, Express, PostgreSQL, JWT

@@ -7,7 +7,7 @@ function listarPerguntas(req, res) {
 async function enviarRespostas(req, res, next) {
   try {
     const resultado = discoveryService.calcularResultado(req.body.respostas);
-    await discoveryService.salvarResultado(req.user.sub, resultado);
+    await discoveryService.salvarResultado(req.user.sub, resultado, req.body.reflexao);
     const resultadoSalvo = await discoveryService.buscarResultado(req.user.sub);
     res.json(resultadoSalvo);
   } catch (err) {

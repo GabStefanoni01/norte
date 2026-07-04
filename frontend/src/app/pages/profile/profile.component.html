@@ -1,80 +1,266 @@
 <norte-navbar />
 
 <main class="max-w-2xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-2">Seu perfil</h1>
-  <p class="text-white/60 mb-8">
-    Essas informações ajudam a IA a personalizar seu plano de evolução.
-  </p>
+  <h1 class="font-display text-3xl mb-6">Seu perfil</h1>
 
-  @if (carregando()) {
-    <p class="text-white/50">Carregando...</p>
-  } @else {
-    <form [formGroup]="form" (ngSubmit)="salvar()" class="stagger space-y-6">
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="escolaridade">Escolaridade</label>
-        <select
-          id="escolaridade"
-          formControlName="escolaridade"
-          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+  <div class="flex gap-1 border-b border-norte-800 mb-8 text-sm">
+    <button
+      (click)="mudarAba('profissional')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'profissional' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Perfil profissional
+    </button>
+    <button
+      (click)="mudarAba('pessoal')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'pessoal' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Dados pessoais
+    </button>
+    <button
+      (click)="mudarAba('seguranca')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'seguranca' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Segurança
+    </button>
+  </div>
+
+  @if (abaAtiva() === 'profissional') {
+    <p class="text-white/60 mb-8">Essas informações ajudam a IA a personalizar seu plano de evolução.</p>
+
+    @if (carregando()) {
+      <p class="text-white/50">Carregando...</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="salvar()" class="stagger space-y-6">
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="escolaridade">Escolaridade</label>
+          <select
+            id="escolaridade"
+            formControlName="escolaridade"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          >
+            <option value="" disabled>Selecione</option>
+            @for (opcao of escolaridades; track opcao) {
+              <option [value]="opcao">{{ opcao }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-2">Áreas de interesse</label>
+          <div class="grid grid-cols-2 gap-2" formArrayName="interesses">
+            @for (interesse of interessesDisponiveis; track interesse; let i = $index) {
+              <label class="flex items-center gap-2 rounded-md border border-norte-800 bg-norte-900/40 px-3 py-2 text-sm cursor-pointer hover:border-norte-700">
+                <input type="checkbox" [formControlName]="i" class="accent-norte-accent" />
+                {{ interesse }}
+              </label>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="objetivos">Seus objetivos</label>
+          <textarea
+            id="objetivos"
+            formControlName="objetivos"
+            rows="3"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Ex: entrar na área de tecnologia, conseguir meu primeiro estágio..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="habilidades">
+            Habilidades ou cursos que você já tem <span class="text-white/40">(opcional, separe por vírgula)</span>
+          </label>
+          <input
+            id="habilidades"
+            type="text"
+            formControlName="habilidadesTexto"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Ex: Excel, inglês básico, curso de lógica"
+          />
+        </div>
+
+        @if (erro()) {
+          <p class="text-sm text-red-400">{{ erro() }}</p>
+        }
+
+        @if (sucesso()) {
+          <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="salvando()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
         >
-          <option value="" disabled>Selecione</option>
-          @for (opcao of escolaridades; track opcao) {
-            <option [value]="opcao">{{ opcao }}</option>
-          }
-        </select>
-      </div>
+          {{ salvando() ? 'Salvando...' : jaTemPerfil() ? 'Atualizar perfil' : 'Salvar e continuar' }}
+        </button>
+      </form>
+    }
+  }
 
-      <div>
-        <label class="block text-sm text-white/70 mb-2">Áreas de interesse</label>
-        <div class="grid grid-cols-2 gap-2" formArrayName="interesses">
-          @for (interesse of interessesDisponiveis; track interesse; let i = $index) {
-            <label class="flex items-center gap-2 rounded-md border border-norte-800 bg-norte-900/40 px-3 py-2 text-sm cursor-pointer hover:border-norte-700">
-              <input type="checkbox" [formControlName]="i" class="accent-norte-accent" />
-              {{ interesse }}
-            </label>
+  @if (abaAtiva() === 'pessoal') {
+    <p class="text-white/60 mb-8">Seus dados de identificação. O e-mail de login não pode ser alterado por aqui.</p>
+
+    @if (carregandoDados()) {
+      <p class="text-white/50">Carregando...</p>
+    } @else {
+      <form [formGroup]="formDados" (ngSubmit)="salvarDadosPessoais()" class="stagger space-y-4">
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
+          <input
+            id="nome"
+            type="text"
+            formControlName="nome"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="dataNascimento">Data de nascimento</label>
+          <input
+            id="dataNascimento"
+            type="date"
+            formControlName="dataNascimento"
+            [max]="hoje"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent [color-scheme:dark]"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-white/70 mb-1" for="estado">Estado</label>
+            <select
+              id="estado"
+              formControlName="estado"
+              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
+            >
+              <option value="" disabled>UF</option>
+              @for (estado of estados(); track estado.id) {
+                <option [value]="estado.sigla">{{ estado.sigla }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
+            <select
+              id="cidade"
+              formControlName="cidade"
+              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
+            >
+              <option value="" disabled>
+                {{ carregandoCidades() ? 'Carregando...' : 'Cidade' }}
+              </option>
+              @for (cidade of cidades(); track cidade.id) {
+                <option [value]="cidade.nome">{{ cidade.nome }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (erroDados()) {
+          <p class="text-sm text-red-400">{{ erroDados() }}</p>
+        }
+
+        @if (sucessoDados()) {
+          <p class="text-sm text-emerald-400">{{ sucessoDados() }}</p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="salvandoDados()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+        >
+          {{ salvandoDados() ? 'Salvando...' : 'Salvar dados' }}
+        </button>
+      </form>
+    }
+  }
+
+  @if (abaAtiva() === 'seguranca') {
+    <p class="text-white/60 mb-8">Por segurança, alterar sua senha exige confirmar um código enviado ao seu e-mail.</p>
+
+    @if (etapaSenha() === 'inicial') {
+      <button
+        (click)="solicitarCodigoSenha()"
+        [disabled]="enviandoCodigoSenha()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+      >
+        {{ enviandoCodigoSenha() ? 'Enviando...' : 'Alterar minha senha' }}
+      </button>
+
+      @if (erroSenha()) {
+        <p class="text-sm text-red-400 mt-4">{{ erroSenha() }}</p>
+      }
+    } @else {
+      <p class="text-sm text-white/60 mb-6">
+        Enviamos um código de 6 dígitos para <span class="text-white">{{ auth.usuarioAtual()?.email }}</span>.
+      </p>
+
+      <form [formGroup]="formSenha" (ngSubmit)="confirmarNovaSenha()" class="stagger space-y-4 max-w-sm">
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="codigoSenha">Código</label>
+          <input
+            id="codigoSenha"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            formControlName="codigo"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-3 text-white text-center text-2xl tracking-[0.4em] placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="000000"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="novaSenha">Nova senha</label>
+          <input
+            id="novaSenha"
+            type="password"
+            formControlName="novaSenha"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-white/70 mb-1" for="confirmarSenhaSeg">Confirmar nova senha</label>
+          <input
+            id="confirmarSenhaSeg"
+            type="password"
+            formControlName="confirmarSenha"
+            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          />
+          @if (formSenha.errors?.['senhasDiferentes'] && formSenha.get('confirmarSenha')?.touched) {
+            <p class="text-xs text-red-400 mt-1">As senhas não coincidem.</p>
           }
         </div>
-      </div>
 
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="objetivos">Seus objetivos</label>
-        <textarea
-          id="objetivos"
-          formControlName="objetivos"
-          rows="3"
-          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="Ex: entrar na área de tecnologia, conseguir meu primeiro estágio..."
-        ></textarea>
-      </div>
+        @if (erroSenha()) {
+          <p class="text-sm text-red-400">{{ erroSenha() }}</p>
+        }
 
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="habilidades">
-          Habilidades ou cursos que você já tem <span class="text-white/40">(opcional, separe por vírgula)</span>
-        </label>
-        <input
-          id="habilidades"
-          type="text"
-          formControlName="habilidadesTexto"
-          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="Ex: Excel, inglês básico, curso de lógica"
-        />
-      </div>
-
-      @if (erro()) {
-        <p class="text-sm text-red-400">{{ erro() }}</p>
-      }
-
-      @if (sucesso()) {
-        <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
-      }
-
-      <button
-        type="submit"
-        [disabled]="salvando()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-      >
-        {{ salvando() ? 'Salvando...' : jaTemPerfil() ? 'Atualizar perfil' : 'Salvar e continuar' }}
-      </button>
-    </form>
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            [disabled]="confirmandoSenha()"
+            class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+          >
+            {{ confirmandoSenha() ? 'Confirmando...' : 'Confirmar nova senha' }}
+          </button>
+          <button
+            type="button"
+            (click)="cancelarTrocaSenha()"
+            class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-6 py-2.5"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    }
   }
 </main>

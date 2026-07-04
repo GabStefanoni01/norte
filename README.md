@@ -98,8 +98,16 @@ A partir daí, fazer login com esse e-mail concede acesso à área administrativ
 O resultado é calculado por regras (sem depender de nenhuma API externa) — funciona
 sempre. Se `AI_API_KEY` estiver configurada no `.env` (mesma chave usada pelo mentor IA
 no chat), a descrição do resultado é enriquecida com um texto personalizado gerado pela
-IA, cruzando o perfil dominante com os interesses/objetivos da pessoa. Sem a chave, usa
-a descrição padrão — o teste continua funcionando normalmente.
+IA, cruzando o perfil dominante com os interesses/objetivos da pessoa e com as respostas
+reflexivas abertas do final do teste. Sem a chave, usa a descrição padrão — o teste
+continua funcionando normalmente.
+
+### Perfil do usuário
+
+A página `/perfil` tem três abas: **Perfil profissional** (escolaridade, interesses,
+objetivos), **Dados pessoais** (nome, data de nascimento, estado/cidade) e **Segurança**.
+Trocar a senha exige confirmar um código de 6 dígitos enviado por e-mail — reaproveita o
+mesmo fluxo de "esqueci minha senha", só que disparado a partir da própria conta logada.
 
 ### E-mail (verificação de conta e redefinição de senha)
 

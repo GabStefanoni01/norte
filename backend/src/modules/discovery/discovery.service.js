@@ -55,10 +55,10 @@ function calcularResultado(respostas) {
   };
 }
 
-async function salvarResultado(userId, resultado) {
+async function salvarResultado(userId, resultado, reflexao) {
   // Tenta enriquecer com uma descrição personalizada via IA. Se não der
   // (sem chave configurada, ou erro na chamada), segue com o texto padrão.
-  const descricaoIA = await gerarDescricaoPersonalizada(userId, resultado);
+  const descricaoIA = await gerarDescricaoPersonalizada(userId, resultado, reflexao);
   const descricaoFinal = descricaoIA || resultado.descricao;
 
   const valores = [
@@ -68,6 +68,7 @@ async function salvarResultado(userId, resultado) {
     JSON.stringify(resultado.pontuacao),
     resultado.areasSecundarias,
     Boolean(descricaoIA),
+    reflexao || null,
   ];
 
   const result = await pool.query(
@@ -77,8 +78,9 @@ async function salvarResultado(userId, resultado) {
          areas_sugeridas = $3,
          pontuacao_descoberta = $4,
          areas_secundarias = $5,
-         descricao_gerada_por_ia = $6
-     WHERE user_id = $7
+         descricao_gerada_por_ia = $6,
+         reflexao_descoberta = $7
+     WHERE user_id = $8
      RETURNING *`,
     [...valores, userId]
   );
@@ -89,8 +91,8 @@ async function salvarResultado(userId, resultado) {
   // de perfil) — cria uma já com o resultado da descoberta.
   const inserted = await pool.query(
     `INSERT INTO profiles
-       (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas, pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas, pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia, reflexao_descoberta)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [userId, ...valores]
   );
@@ -101,7 +103,8 @@ async function salvarResultado(userId, resultado) {
 async function buscarResultado(userId) {
   const result = await pool.query(
     `SELECT perfil_dominante, resultado_descoberta, areas_sugeridas,
-            pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia
+            pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia,
+            reflexao_descoberta
      FROM profiles WHERE user_id = $1`,
     [userId]
   );
@@ -116,6 +119,7 @@ async function buscarResultado(userId) {
     pontuacao: linha.pontuacao_descoberta,
     areasSecundarias: linha.areas_secundarias,
     geradoPorIA: linha.descricao_gerada_por_ia,
+    reflexao: linha.reflexao_descoberta,
   };
 }
 

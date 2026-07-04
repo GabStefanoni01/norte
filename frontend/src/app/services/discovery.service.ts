@@ -11,8 +11,8 @@ export class DiscoveryService {
     return this.api.get<PerguntaDescoberta[]>('/discovery/perguntas');
   }
 
-  enviarRespostas(respostas: RespostaDescoberta[]) {
-    return this.api.post<ResultadoDescoberta>('/discovery/respostas', { respostas });
+  enviarRespostas(respostas: RespostaDescoberta[], reflexao?: string) {
+    return this.api.post<ResultadoDescoberta>('/discovery/respostas', { respostas, reflexao });
   }
 
   buscarResultado() {

@@ -16,4 +16,5 @@ export interface ResultadoDescoberta {
   pontuacao?: Record<string, number>;
   areasSecundarias?: string[];
   geradoPorIA?: boolean;
+  reflexao?: string;
 }

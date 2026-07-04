@@ -13,4 +13,7 @@ export interface ResultadoDescoberta {
   perfilDominante: string;
   descricao: string;
   areasSugeridas: string[];
+  pontuacao?: Record<string, number>;
+  areasSecundarias?: string[];
+  geradoPorIA?: boolean;
 }

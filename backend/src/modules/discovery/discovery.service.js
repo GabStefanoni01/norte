@@ -1,5 +1,6 @@
 const pool = require('../../database/pool');
 const { PERGUNTAS, CATEGORIAS } = require('./discovery.data');
+const { gerarDescricaoPersonalizada } = require('./discovery.ai');
 
 function listarPerguntas() {
   // Não expõe a categoria de cada opção — senão dava pra "forçar" o resultado.
@@ -37,27 +38,49 @@ function calcularResultado(respostas) {
     pontuacao[opcao.categoria] += 1;
   }
 
-  const perfilDominante = Object.keys(pontuacao).reduce((maiorAtual, categoria) =>
-    pontuacao[categoria] > pontuacao[maiorAtual] ? categoria : maiorAtual
-  );
+  const categoriasOrdenadas = Object.keys(pontuacao).sort((a, b) => pontuacao[b] - pontuacao[a]);
+  const perfilDominante = categoriasOrdenadas[0];
+  const perfilSecundario = categoriasOrdenadas[1];
 
   const info = CATEGORIAS[perfilDominante];
+  const infoSecundaria = CATEGORIAS[perfilSecundario];
 
   return {
     perfilDominante,
+    perfilSecundario,
     descricao: info.descricao,
     areasSugeridas: info.areas,
+    areasSecundarias: infoSecundaria.areas,
     pontuacao,
   };
 }
 
 async function salvarResultado(userId, resultado) {
+  // Tenta enriquecer com uma descrição personalizada via IA. Se não der
+  // (sem chave configurada, ou erro na chamada), segue com o texto padrão.
+  const descricaoIA = await gerarDescricaoPersonalizada(userId, resultado);
+  const descricaoFinal = descricaoIA || resultado.descricao;
+
+  const valores = [
+    resultado.perfilDominante,
+    descricaoFinal,
+    resultado.areasSugeridas,
+    JSON.stringify(resultado.pontuacao),
+    resultado.areasSecundarias,
+    Boolean(descricaoIA),
+  ];
+
   const result = await pool.query(
     `UPDATE profiles
-     SET perfil_dominante = $1, resultado_descoberta = $2, areas_sugeridas = $3
-     WHERE user_id = $4
+     SET perfil_dominante = $1,
+         resultado_descoberta = $2,
+         areas_sugeridas = $3,
+         pontuacao_descoberta = $4,
+         areas_secundarias = $5,
+         descricao_gerada_por_ia = $6
+     WHERE user_id = $7
      RETURNING *`,
-    [resultado.perfilDominante, resultado.descricao, resultado.areasSugeridas, userId]
+    [...valores, userId]
   );
 
   if (result.rows[0]) return result.rows[0];
@@ -65,10 +88,11 @@ async function salvarResultado(userId, resultado) {
   // Usuário ainda não tem uma linha em profiles (não passou pelo cadastro
   // de perfil) — cria uma já com o resultado da descoberta.
   const inserted = await pool.query(
-    `INSERT INTO profiles (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO profiles
+       (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas, pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [userId, resultado.perfilDominante, resultado.descricao, resultado.areasSugeridas]
+    [userId, ...valores]
   );
 
   return inserted.rows[0];
@@ -76,7 +100,9 @@ async function salvarResultado(userId, resultado) {
 
 async function buscarResultado(userId) {
   const result = await pool.query(
-    'SELECT perfil_dominante, resultado_descoberta, areas_sugeridas FROM profiles WHERE user_id = $1',
+    `SELECT perfil_dominante, resultado_descoberta, areas_sugeridas,
+            pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia
+     FROM profiles WHERE user_id = $1`,
     [userId]
   );
 
@@ -87,6 +113,9 @@ async function buscarResultado(userId) {
     perfilDominante: linha.perfil_dominante,
     descricao: linha.resultado_descoberta,
     areasSugeridas: linha.areas_sugeridas,
+    pontuacao: linha.pontuacao_descoberta,
+    areasSecundarias: linha.areas_secundarias,
+    geradoPorIA: linha.descricao_gerada_por_ia,
   };
 }
 

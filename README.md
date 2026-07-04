@@ -93,6 +93,14 @@ UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
 
 A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
 
+### Teste de descoberta pessoal
+
+O resultado é calculado por regras (sem depender de nenhuma API externa) — funciona
+sempre. Se `AI_API_KEY` estiver configurada no `.env` (mesma chave usada pelo mentor IA
+no chat), a descrição do resultado é enriquecida com um texto personalizado gerado pela
+IA, cruzando o perfil dominante com os interesses/objetivos da pessoa. Sem a chave, usa
+a descrição padrão — o teste continua funcionando normalmente.
+
 ### E-mail (verificação de conta e redefinição de senha)
 
 Sem `SMTP_HOST` configurado no `.env`, os códigos de confirmação e redefinição de senha

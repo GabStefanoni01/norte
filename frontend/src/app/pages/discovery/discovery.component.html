@@ -8,10 +8,36 @@
     <div class="stagger">
       <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Resultado</p>
       <h1 class="font-display text-3xl mb-4">Seu perfil é {{ resultado()!.perfilDominante }}</h1>
-      <p class="text-white/70 leading-relaxed mb-8">{{ resultado()!.descricao }}</p>
+      <p class="text-white/70 leading-relaxed mb-2">{{ resultado()!.descricao }}</p>
+
+      @if (resultado()!.geradoPorIA) {
+        <p class="text-xs text-white/30 mb-8">✦ Descrição personalizada pelo mentor IA com base no seu perfil.</p>
+      } @else {
+        <div class="mb-8"></div>
+      }
+
+      @if (breakdown().length) {
+        <p class="text-sm text-white/50 mb-3">Como ficou sua pontuação:</p>
+        <div class="space-y-3 mb-8">
+          @for (item of breakdown(); track item.categoria) {
+            <div>
+              <div class="flex justify-between text-xs text-white/50 mb-1">
+                <span>{{ item.nome }}</span>
+                <span>{{ item.percentual }}%</span>
+              </div>
+              <div class="h-2 rounded-full bg-norte-800 overflow-hidden">
+                <div
+                  class="h-full bg-norte-accent transition-all duration-700 ease-out"
+                  [style.width.%]="item.percentual"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       <p class="text-sm text-white/50 mb-3">Áreas sugeridas pra você explorar:</p>
-      <div class="flex flex-wrap gap-2 mb-10">
+      <div class="flex flex-wrap gap-2 mb-6">
         @for (area of resultado()!.areasSugeridas; track area) {
           <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-sm px-3 py-1">
             {{ area }}
@@ -19,12 +45,33 @@
         }
       </div>
 
-      <button
-        (click)="irParaDashboard()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
-      >
-        Ir para o dashboard
-      </button>
+      @if (resultado()!.areasSecundarias?.length) {
+        <p class="text-sm text-white/40 mb-3">Vale explorar também:</p>
+        <div class="flex flex-wrap gap-2 mb-10">
+          @for (area of resultado()!.areasSecundarias; track area) {
+            <span class="rounded-full border border-norte-800 bg-norte-900/40 text-white/50 text-sm px-3 py-1">
+              {{ area }}
+            </span>
+          }
+        </div>
+      } @else {
+        <div class="mb-10"></div>
+      }
+
+      <div class="flex flex-wrap gap-3">
+        <button
+          (click)="irParaDashboard()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+        >
+          Ir para o dashboard
+        </button>
+        <button
+          (click)="refazerTeste()"
+          class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-6 py-2.5"
+        >
+          Refazer teste
+        </button>
+      </div>
     </div>
   } @else if (perguntaAtual()) {
     <!-- Quiz -->

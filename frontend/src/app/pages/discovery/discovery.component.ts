@@ -5,6 +5,13 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { DiscoveryService } from '../../services/discovery.service';
 import { PerguntaDescoberta, RespostaDescoberta, ResultadoDescoberta } from '../../models/discovery.model';
 
+const NOMES_CATEGORIA: Record<string, string> = {
+  criativo: 'Criativo',
+  analitico: 'Analítico',
+  social: 'Social',
+  organizador: 'Organizador',
+};
+
 @Component({
   selector: 'norte-discovery',
   standalone: true,
@@ -29,7 +36,27 @@ export class DiscoveryComponent implements OnInit {
 
   perguntaAtual = computed(() => this.perguntas()[this.passoAtual()] ?? null);
 
+  breakdown = computed(() => {
+    const pontuacao = this.resultado()?.pontuacao;
+    if (!pontuacao) return [];
+
+    const total = Object.values(pontuacao).reduce((soma, v) => soma + v, 0) || 1;
+
+    return Object.entries(pontuacao)
+      .map(([categoria, valor]) => ({
+        categoria,
+        nome: NOMES_CATEGORIA[categoria] ?? categoria,
+        valor,
+        percentual: Math.round((valor / total) * 100),
+      }))
+      .sort((a, b) => b.valor - a.valor);
+  });
+
   ngOnInit() {
+    this.carregarResultadoOuQuiz();
+  }
+
+  private carregarResultadoOuQuiz() {
     // Se a pessoa já fez o teste antes, mostra o resultado direto.
     this.discovery.buscarResultado().subscribe((resultado) => {
       if (resultado) {
@@ -38,17 +65,29 @@ export class DiscoveryComponent implements OnInit {
         return;
       }
 
-      this.discovery.listarPerguntas().subscribe({
-        next: (perguntas) => {
-          this.perguntas.set(perguntas);
-          this.carregando.set(false);
-        },
-        error: () => {
-          this.erro.set('Não foi possível carregar o teste.');
-          this.carregando.set(false);
-        },
-      });
+      this.carregarPerguntas();
     });
+  }
+
+  private carregarPerguntas() {
+    this.carregando.set(true);
+    this.discovery.listarPerguntas().subscribe({
+      next: (perguntas) => {
+        this.perguntas.set(perguntas);
+        this.carregando.set(false);
+      },
+      error: () => {
+        this.erro.set('Não foi possível carregar o teste.');
+        this.carregando.set(false);
+      },
+    });
+  }
+
+  refazerTeste() {
+    this.resultado.set(null);
+    this.respostas.set([]);
+    this.passoAtual.set(0);
+    this.carregarPerguntas();
   }
 
   escolher(opcaoId: string) {

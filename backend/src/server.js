@@ -1,5 +1,6 @@
 const app = require('./app');
 const env = require('./config/env');
+const { iniciarAgendadorSeHabilitado } = require('./jobs/scheduler');
 
 app.listen(env.port, () => {
   console.log(`Norte API rodando na porta ${env.port}`);
@@ -13,4 +14,6 @@ app.listen(env.port, () => {
         '(2) o backend foi reiniciado depois da edição, (3) não há aspas/espaços extras nas variáveis.'
     );
   }
+
+  iniciarAgendadorSeHabilitado();
 });

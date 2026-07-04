@@ -25,7 +25,8 @@ async function atualizarItem(req, res, next) {
       req.user.sub,
       req.params.planId,
       req.params.itemId,
-      req.body.status
+      req.body.status,
+      req.body.reflexao
     );
     res.json(plano);
   } catch (err) {

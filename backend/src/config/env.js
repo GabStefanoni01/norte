@@ -15,4 +15,5 @@ module.exports = {
     pass: process.env.SMTP_PASS,
     from: process.env.SMTP_FROM || 'Norte <no-reply@norte.app>',
   },
+  enableCron: process.env.ENABLE_CRON === 'true',
 };

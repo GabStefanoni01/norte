@@ -4,8 +4,9 @@ const authGuard = require('../../middlewares/authGuard');
 
 const router = Router();
 
-router.get('/:userId', authGuard, controller.get);
-router.post('/', authGuard, controller.create);
-router.patch('/:id/progress', authGuard, controller.updateProgress);
+router.use(authGuard);
+router.post('/gerar', controller.gerar);
+router.get('/me', controller.buscarAtual);
+router.patch('/:planId/itens/:itemId', controller.atualizarItem);
 
 module.exports = router;

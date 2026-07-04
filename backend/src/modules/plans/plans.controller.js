@@ -1,31 +1,36 @@
 const plansService = require('./plans.service');
 
-async function get(req, res, next) {
+async function gerar(req, res, next) {
   try {
-    const plan = await plansService.getPlan(req.params.userId);
-    if (!plan) return res.status(404).json({ error: 'Plano não encontrado' });
-    res.json(plan);
+    const plano = await plansService.gerarPlano(req.user.sub);
+    res.status(201).json(plano);
   } catch (err) {
     next(err);
   }
 }
 
-async function create(req, res, next) {
+async function buscarAtual(req, res, next) {
   try {
-    const plan = await plansService.createPlan(req.user.sub, req.body.etapas);
-    res.status(201).json(plan);
+    const plano = await plansService.buscarPlanoAtual(req.user.sub);
+    if (!plano) return res.status(404).json({ error: 'Você ainda não tem um plano de evolução.' });
+    res.json(plano);
   } catch (err) {
     next(err);
   }
 }
 
-async function updateProgress(req, res, next) {
+async function atualizarItem(req, res, next) {
   try {
-    const plan = await plansService.updateProgress(req.params.id, req.body.progresso);
-    res.json(plan);
+    const plano = await plansService.atualizarStatusItem(
+      req.user.sub,
+      req.params.planId,
+      req.params.itemId,
+      req.body.status
+    );
+    res.json(plano);
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { get, create, updateProgress };
+module.exports = { gerar, buscarAtual, atualizarItem };

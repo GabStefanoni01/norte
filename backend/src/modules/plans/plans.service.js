@@ -22,11 +22,40 @@ function calcularProximoPasso(etapas) {
   return null; // Plano inteiro concluído!
 }
 
+const DIAS_PARA_RENOVAR = 90; // ~3 meses
+
 function enriquecer(plano) {
   if (!plano) return null;
   return {
     ...plano,
     proximoPasso: calcularProximoPasso(plano.etapas),
+  };
+}
+
+function diasDesde(data) {
+  return Math.floor((Date.now() - new Date(data).getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Acrescenta flags de "frescor" do plano: se o perfil dominante da
+ * descoberta mudou desde que esse plano foi gerado (a pessoa refez o
+ * teste), e se já passou tempo suficiente pra sugerir uma renovação.
+ * Nunca decide sozinho por trocar o plano — só sinaliza pro frontend
+ * oferecer a opção, preservando o progresso que a pessoa já tem.
+ */
+async function comFrescor(plano, userId) {
+  if (!plano) return null;
+
+  const perfilAtual = await buscarPerfilDominante(userId);
+  const diasDesdeCriacao = diasDesde(plano.created_at);
+
+  return {
+    ...plano,
+    perfilDesatualizado: Boolean(
+      plano.perfil_dominante_base && perfilAtual && plano.perfil_dominante_base !== perfilAtual
+    ),
+    precisaRenovar: diasDesdeCriacao >= DIAS_PARA_RENOVAR,
+    diasDesdeCriacao,
   };
 }
 
@@ -38,18 +67,19 @@ async function buscarPerfilDominante(userId) {
 async function gerarPlano(userId) {
   const etapasIA = await gerarPlanoComIA(userId);
   const geradoPorIA = Boolean(etapasIA);
+  const perfilDominante = await buscarPerfilDominante(userId);
 
-  const etapas = etapasIA || buildTemplatePlan(await buscarPerfilDominante(userId));
+  const etapas = etapasIA || buildTemplatePlan(perfilDominante);
   const progresso = calcularProgresso(etapas);
 
   const result = await pool.query(
-    `INSERT INTO plans (user_id, etapas, progresso, gerado_por_ia)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO plans (user_id, etapas, progresso, gerado_por_ia, perfil_dominante_base)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [userId, JSON.stringify(etapas), progresso, geradoPorIA]
+    [userId, JSON.stringify(etapas), progresso, geradoPorIA, perfilDominante]
   );
 
-  return enriquecer(result.rows[0]);
+  return comFrescor(enriquecer(result.rows[0]), userId);
 }
 
 async function buscarPlanoAtual(userId) {
@@ -57,10 +87,10 @@ async function buscarPlanoAtual(userId) {
     'SELECT * FROM plans WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
     [userId]
   );
-  return enriquecer(result.rows[0] || null);
+  return comFrescor(enriquecer(result.rows[0] || null), userId);
 }
 
-async function atualizarStatusItem(userId, planId, itemId, status) {
+async function atualizarStatusItem(userId, planId, itemId, status, reflexao) {
   if (!STATUS_VALIDOS.includes(status)) {
     const err = new Error(`Status inválido. Use um de: ${STATUS_VALIDOS.join(', ')}`);
     err.status = 400;
@@ -82,11 +112,26 @@ async function atualizarStatusItem(userId, planId, itemId, status) {
   const etapas = plano.etapas.map((mes) => ({
     ...mes,
     itens: mes.itens.map((item) => {
-      if (item.id === itemId) {
-        itemEncontrado = true;
-        return { ...item, status };
+      if (item.id !== itemId) return item;
+
+      itemEncontrado = true;
+      const itemAtualizado = { ...item, status };
+
+      if (status === 'concluido') {
+        itemAtualizado.concluidoEm = new Date().toISOString();
+        if (reflexao) {
+          itemAtualizado.reflexao = {
+            dificuldade: reflexao.dificuldade ?? null,
+            aprendizado: reflexao.aprendizado?.trim() || null,
+          };
+        }
+      } else {
+        // Voltar o status desfaz a marca de conclusão e a reflexão associada.
+        delete itemAtualizado.concluidoEm;
+        delete itemAtualizado.reflexao;
       }
-      return item;
+
+      return itemAtualizado;
     }),
   }));
 
@@ -103,7 +148,7 @@ async function atualizarStatusItem(userId, planId, itemId, status) {
     [JSON.stringify(etapas), progresso, planId]
   );
 
-  return enriquecer(atualizado.rows[0]);
+  return comFrescor(enriquecer(atualizado.rows[0]), userId);
 }
 
-module.exports = { gerarPlano, buscarPlanoAtual, atualizarStatusItem };
+module.exports = { gerarPlano, buscarPlanoAtual, atualizarStatusItem, calcularProximoPasso };

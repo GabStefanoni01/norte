@@ -26,5 +26,13 @@ export interface Plano {
   progresso: number;
   gerado_por_ia: boolean;
   proximoPasso: ProximoPasso | null;
+  perfilDesatualizado?: boolean;
+  precisaRenovar?: boolean;
+  diasDesdeCriacao?: number;
   created_at: string;
+}
+
+export interface ReflexaoConclusao {
+  dificuldade?: number;
+  aprendizado?: string;
 }

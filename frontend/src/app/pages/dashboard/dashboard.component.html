@@ -69,6 +69,12 @@
         <p class="font-medium mb-4">🎉 Plano concluído! Bora gerar um novo?</p>
       }
 
+      @if (plano()!.perfilDesatualizado) {
+        <p class="text-xs text-norte-accent-light mb-3">🔄 Seu perfil mudou — atualize seu plano</p>
+      } @else if (plano()!.precisaRenovar) {
+        <p class="text-xs text-white/40 mb-3">📅 Esse plano já pode ser renovado</p>
+      }
+
       <a routerLink="/plano" class="text-sm text-norte-accent-light hover:underline">Ver plano completo →</a>
     } @else if (!carregando() && !plano() && perfil()?.perfil_dominante) {
       <p class="font-semibold mb-1">Gere seu plano de evolução</p>

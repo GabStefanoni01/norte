@@ -1,20 +1,15 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { PlansService } from '../../services/plans.service';
 import { Plano, StatusItem, ItemPlano } from '../../models/plan.model';
 
-const PROXIMO_STATUS: Record<StatusItem, StatusItem> = {
-  pendente: 'em_andamento',
-  em_andamento: 'concluido',
-  concluido: 'pendente',
-};
-
 @Component({
   selector: 'norte-plans',
   standalone: true,
-  imports: [NavbarComponent, RouterLink],
+  imports: [NavbarComponent, RouterLink, FormsModule],
   templateUrl: './plans.component.html',
 })
 export class PlansComponent implements OnInit {
@@ -25,6 +20,11 @@ export class PlansComponent implements OnInit {
   atualizandoItemId = signal<string | null>(null);
   erro = signal<string | null>(null);
   plano = signal<Plano | null>(null);
+
+  // Mini check-in ao concluir um item
+  itemEmCheckin = signal<ItemPlano | null>(null);
+  dificuldadeCheckin = 3;
+  aprendizadoCheckin = '';
 
   ngOnInit() {
     this.carregarPlano();
@@ -54,14 +54,52 @@ export class PlansComponent implements OnInit {
     });
   }
 
-  avancarStatus(item: ItemPlano) {
+  clicarItem(item: ItemPlano) {
+    if (this.atualizandoItemId()) return;
+
+    if (item.status === 'concluido') {
+      // Desfazer conclusão: volta pro início do ciclo, sem precisar de check-in.
+      this.aplicarStatus(item, 'pendente');
+      return;
+    }
+
+    if (item.status === 'pendente') {
+      this.aplicarStatus(item, 'em_andamento');
+      return;
+    }
+
+    // em_andamento -> abre o mini check-in antes de marcar como concluído.
+    this.dificuldadeCheckin = 3;
+    this.aprendizadoCheckin = '';
+    this.itemEmCheckin.set(item);
+  }
+
+  confirmarCheckin() {
+    const item = this.itemEmCheckin();
+    if (!item) return;
+
+    this.aplicarStatus(item, 'concluido', {
+      dificuldade: this.dificuldadeCheckin,
+      aprendizado: this.aprendizadoCheckin.trim() || undefined,
+    });
+    this.itemEmCheckin.set(null);
+  }
+
+  cancelarCheckin() {
+    this.itemEmCheckin.set(null);
+  }
+
+  private aplicarStatus(
+    item: ItemPlano,
+    status: StatusItem,
+    reflexao?: { dificuldade?: number; aprendizado?: string }
+  ) {
     const plano = this.plano();
-    if (!plano || this.atualizandoItemId()) return;
+    if (!plano) return;
 
     this.atualizandoItemId.set(item.id);
-    const novoStatus = PROXIMO_STATUS[item.status];
 
-    this.plansService.atualizarStatusItem(plano.id, item.id, novoStatus).subscribe({
+    this.plansService.atualizarStatusItem(plano.id, item.id, status, reflexao).subscribe({
       next: (planoAtualizado) => {
         this.plano.set(planoAtualizado);
         this.atualizandoItemId.set(null);

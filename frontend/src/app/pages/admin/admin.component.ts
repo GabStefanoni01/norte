@@ -115,17 +115,29 @@ export class AdminComponent implements OnInit {
     this.erroOportunidade.set(null);
     this.salvandoOportunidade.set(true);
 
-    this.opportunitiesService.criar(this.formOportunidade.getRawValue()).subscribe({
-      next: (nova) => {
-        this.oportunidades.update((lista) => [nova, ...lista]);
-        this.formOportunidade.reset({ tipo: 'curso', gratuito: true });
-        this.salvandoOportunidade.set(false);
-      },
-      error: () => {
-        this.erroOportunidade.set('Não foi possível criar a oportunidade.');
-        this.salvandoOportunidade.set(false);
-      },
-    });
+    const valores = this.formOportunidade.getRawValue();
+
+    this.opportunitiesService
+      .criar({
+        titulo: valores.titulo!,
+        link: valores.link!,
+        empresa: valores.empresa || undefined,
+        tipo: (valores.tipo as Oportunidade['tipo']) || undefined,
+        interesse: valores.interesse || undefined,
+        descricao: valores.descricao || undefined,
+        gratuito: valores.gratuito ?? true,
+      })
+      .subscribe({
+        next: (nova) => {
+          this.oportunidades.update((lista) => [nova, ...lista]);
+          this.formOportunidade.reset({ tipo: 'curso', gratuito: true });
+          this.salvandoOportunidade.set(false);
+        },
+        error: () => {
+          this.erroOportunidade.set('Não foi possível criar a oportunidade.');
+          this.salvandoOportunidade.set(false);
+        },
+      });
   }
 
   removerOportunidade(oportunidade: Oportunidade) {

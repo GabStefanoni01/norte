@@ -7,8 +7,11 @@ const env = require('../../config/env');
  */
 async function askMentor({ systemPrompt, mensagem }) {
   if (!env.aiApiKey) {
-    const err = new Error('AI_API_KEY não configurada');
-    err.status = 500;
+    const err = new Error(
+      'Recurso de IA desativado: configure AI_API_KEY no .env para usar o mentor.'
+    );
+    err.status = 400;
+    err.code = 'IA_NAO_CONFIGURADA';
     throw err;
   }
 
@@ -48,8 +51,12 @@ async function askMentor({ systemPrompt, mensagem }) {
  */
 async function perguntarComBusca({ systemPrompt, mensagem }) {
   if (!env.aiApiKey) {
-    const err = new Error('AI_API_KEY não configurada');
-    err.status = 500;
+    const err = new Error(
+      'Busca automática desativada: configure AI_API_KEY no .env para usar este recurso opcional. ' +
+        'Sem isso, o cadastro manual de oportunidades continua funcionando normalmente.'
+    );
+    err.status = 400;
+    err.code = 'IA_NAO_CONFIGURADA';
     throw err;
   }
 

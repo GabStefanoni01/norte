@@ -134,10 +134,10 @@ export class AdminComponent implements OnInit {
           this.buscandoNaWeb.set(false);
           this.carregarOportunidades();
         },
-        error: () => {
+        error: (err) => {
           this.buscandoNaWeb.set(false);
           this.erroOportunidade.set(
-            'Não foi possível buscar na web. Confira se AI_API_KEY está configurada no backend.'
+            err?.error?.error ?? 'Não foi possível buscar na web. Tente novamente.'
           );
         },
       });

@@ -25,4 +25,22 @@ export class OpportunitiesService {
   remover(id: number) {
     return this.api.delete<void>(`/opportunities/${id}`);
   }
+
+  // ===== Admin =====
+
+  listarTodas(filtros: FiltrosOportunidade = {}) {
+    const params = Object.fromEntries(Object.entries(filtros).filter(([, v]) => !!v)) as Record<string, string>;
+    return this.api.get<Oportunidade[]>('/opportunities/todas', params);
+  }
+
+  buscarNaWeb(filtros: { interesse?: string; estado?: string } = {}) {
+    return this.api.post<{ encontradas: number; novas: number; duplicadas: number }>(
+      '/opportunities/buscar-na-web',
+      filtros
+    );
+  }
+
+  atualizarStatus(id: number, status: 'publicada' | 'pendente') {
+    return this.api.patch<Oportunidade>(`/opportunities/${id}/status`, { status });
+  }
 }

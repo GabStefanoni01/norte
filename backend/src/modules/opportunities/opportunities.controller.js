@@ -9,6 +9,15 @@ async function listar(req, res, next) {
   }
 }
 
+async function listarTodas(req, res, next) {
+  try {
+    const oportunidades = await opportunitiesService.listarTodas(req.query);
+    res.json(oportunidades);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function criar(req, res, next) {
   try {
     const oportunidade = await opportunitiesService.criar(req.body);
@@ -28,4 +37,22 @@ async function remover(req, res, next) {
   }
 }
 
-module.exports = { listar, criar, remover };
+async function atualizarStatus(req, res, next) {
+  try {
+    const oportunidade = await opportunitiesService.atualizarStatus(req.params.id, req.body.status);
+    res.json(oportunidade);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function buscarNaWeb(req, res, next) {
+  try {
+    const resultado = await opportunitiesService.sincronizarComWeb(req.body);
+    res.json(resultado);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listar, listarTodas, criar, remover, atualizarStatus, buscarNaWeb };

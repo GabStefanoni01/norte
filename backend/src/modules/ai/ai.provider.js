@@ -39,4 +39,49 @@ async function askMentor({ systemPrompt, mensagem }) {
   return textBlock?.text || '';
 }
 
-module.exports = { askMentor };
+/**
+ * Igual ao askMentor, mas habilita a ferramenta de busca na web da própria
+ * API da Anthropic — usado quando a resposta precisa de informação atual
+ * da internet (ex: buscar oportunidades reais). Custa mais caro que uma
+ * chamada de texto simples, por isso é usado só sob demanda, não em toda
+ * interação do mentor.
+ */
+async function perguntarComBusca({ systemPrompt, mensagem }) {
+  if (!env.aiApiKey) {
+    const err = new Error('AI_API_KEY não configurada');
+    err.status = 500;
+    throw err;
+  }
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.aiApiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: mensagem }],
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = new Error('Falha ao consultar o provedor de IA (com busca)');
+    err.status = 502;
+    throw err;
+  }
+
+  const data = await response.json();
+
+  // Com ferramentas, a resposta pode ter varios blocos (tool_use, tool_result,
+  // text) intercalados — o texto final costuma vir no(s) ultimo(s) bloco(s)
+  // de tipo "text", depois que o modelo ja processou os resultados da busca.
+  const textos = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text);
+  return textos.join('\n').trim();
+}
+
+module.exports = { askMentor, perguntarComBusca };

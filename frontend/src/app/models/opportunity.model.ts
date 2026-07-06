@@ -13,6 +13,8 @@ export interface Oportunidade {
   idade_minima: number | null;
   idade_maxima: number | null;
   link: string;
+  fonte: 'manual' | 'busca_automatica';
+  status: 'publicada' | 'pendente';
   created_at: string;
 }
 

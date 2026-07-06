@@ -95,7 +95,56 @@
   @if (abaAtiva() === 'oportunidades') {
     <p class="text-white/60 mb-6">Cadastre cursos, vagas, bolsas, eventos e programas pros usuários.</p>
 
+    <!-- Busca automática na web -->
+    <div class="card-hover rounded-xl border border-norte-accent/30 bg-norte-accent/5 p-5 mb-6">
+      <p class="font-semibold mb-1">✦ Buscar oportunidades na internet</p>
+      <p class="text-sm text-white/50 mb-4">
+        A IA busca oportunidades reais na web. Tudo entra como <strong>pendente</strong> — você revisa e aprova
+        antes de aparecer pros usuários.
+      </p>
+
+      <div class="flex flex-wrap gap-3 mb-4">
+        <select
+          [(ngModel)]="filtroInteresseBusca"
+          [ngModelOptions]="{ standalone: true }"
+          class="rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        >
+          <option value="">Qualquer interesse</option>
+          @for (interesse of interesses; track interesse) {
+            <option [value]="interesse">{{ interesse }}</option>
+          }
+        </select>
+
+        <select
+          [(ngModel)]="filtroEstadoBusca"
+          [ngModelOptions]="{ standalone: true }"
+          class="rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        >
+          <option value="">Brasil / remoto</option>
+          @for (estado of estados(); track estado.id) {
+            <option [value]="estado.sigla">{{ estado.sigla }}</option>
+          }
+        </select>
+
+        <button
+          (click)="buscarNaWeb()"
+          [disabled]="buscandoNaWeb()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-5 py-2 text-sm disabled:opacity-60"
+        >
+          {{ buscandoNaWeb() ? 'Buscando na web...' : 'Buscar agora' }}
+        </button>
+      </div>
+
+      @if (resultadoBusca()) {
+        <p class="text-sm text-emerald-400">
+          Encontradas {{ resultadoBusca()!.encontradas }}, {{ resultadoBusca()!.novas }} novas adicionadas como
+          pendentes ({{ resultadoBusca()!.duplicadas }} já existiam).
+        </p>
+      }
+    </div>
+
     <form [formGroup]="formOportunidade" (ngSubmit)="criarOportunidade()" class="rounded-xl border border-norte-800 bg-norte-900/40 p-5 mb-8 space-y-4">
+      <p class="text-sm text-white/50 -mt-1 mb-2">Ou cadastre manualmente:</p>
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm text-white/70 mb-1" for="titulo">Título</label>
@@ -192,16 +241,43 @@
         @for (op of oportunidades(); track op.id) {
           <div class="flex items-center justify-between gap-4 rounded-lg border border-norte-800 bg-norte-900/40 px-4 py-3">
             <div class="min-w-0">
-              <p class="font-medium truncate">{{ op.titulo }}</p>
+              <div class="flex items-center gap-2 mb-0.5">
+                <p class="font-medium truncate">{{ op.titulo }}</p>
+                @if (op.status === 'pendente') {
+                  <span class="shrink-0 text-xs rounded-full bg-norte-accent/20 text-norte-accent-light px-2 py-0.5">
+                    pendente
+                  </span>
+                }
+                @if (op.fonte === 'busca_automatica') {
+                  <span class="shrink-0 text-xs text-white/30">✦ IA</span>
+                }
+              </div>
               <p class="text-xs text-white/40">{{ op.tipo }} · {{ op.empresa || 'sem empresa' }}</p>
+              @if (op.descricao) {
+                <p class="text-xs text-white/40 mt-0.5 truncate">{{ op.descricao }}</p>
+              }
+              <a [href]="op.link" target="_blank" rel="noopener noreferrer" class="text-xs text-norte-accent-light hover:underline break-all">
+                {{ op.link }}
+              </a>
             </div>
-            <button
-              (click)="removerOportunidade(op)"
-              [disabled]="removendoId() === op.id"
-              class="shrink-0 text-xs text-red-400 hover:underline disabled:opacity-50"
-            >
-              {{ removendoId() === op.id ? 'Removendo...' : 'Remover' }}
-            </button>
+            <div class="shrink-0 flex items-center gap-3">
+              @if (op.status === 'pendente') {
+                <button
+                  (click)="aprovarOportunidade(op)"
+                  [disabled]="atualizandoStatusId() === op.id"
+                  class="text-xs text-emerald-400 hover:underline disabled:opacity-50"
+                >
+                  {{ atualizandoStatusId() === op.id ? 'Aprovando...' : 'Aprovar' }}
+                </button>
+              }
+              <button
+                (click)="removerOportunidade(op)"
+                [disabled]="removendoId() === op.id"
+                class="text-xs text-red-400 hover:underline disabled:opacity-50"
+              >
+                {{ removendoId() === op.id ? 'Removendo...' : 'Remover' }}
+              </button>
+            </div>
           </div>
         }
       </div>

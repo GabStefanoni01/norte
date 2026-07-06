@@ -1,24 +1,29 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { AdminService } from '../../services/admin.service';
 import { OpportunitiesService } from '../../services/opportunities.service';
+import { LocationsService } from '../../services/locations.service';
 import { UsuarioAdmin } from '../../models/admin-user.model';
 import { Oportunidade, TIPOS_OPORTUNIDADE } from '../../models/opportunity.model';
 import { INTERESSES_DISPONIVEIS } from '../../models/profile.model';
+import { Estado } from '../../models/location.model';
 
 type Aba = 'usuarios' | 'oportunidades';
 
 @Component({
   selector: 'norte-admin',
   standalone: true,
-  imports: [NavbarComponent, ReactiveFormsModule],
+  imports: [NavbarComponent, ReactiveFormsModule, FormsModule],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
   private admin = inject(AdminService);
   private opportunitiesService = inject(OpportunitiesService);
+  private locations = inject(LocationsService);
   private fb = inject(FormBuilder);
+
+  estados = signal<Estado[]>([]);
 
   abaAtiva = signal<Aba>('usuarios');
 
@@ -36,6 +41,12 @@ export class AdminComponent implements OnInit {
   salvandoOportunidade = signal(false);
   erroOportunidade = signal<string | null>(null);
   removendoId = signal<number | null>(null);
+  atualizandoStatusId = signal<number | null>(null);
+
+  buscandoNaWeb = signal(false);
+  resultadoBusca = signal<{ encontradas: number; novas: number; duplicadas: number } | null>(null);
+  filtroInteresseBusca = '';
+  filtroEstadoBusca = '';
 
   formOportunidade = this.fb.group({
     titulo: ['', [Validators.required]],
@@ -50,6 +61,7 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     this.carregarUsuarios();
     this.carregarOportunidades();
+    this.locations.getEstados().subscribe((estados) => this.estados.set(estados));
   }
 
   mudarAba(aba: Aba) {
@@ -94,7 +106,7 @@ export class AdminComponent implements OnInit {
 
   carregarOportunidades() {
     this.carregandoOportunidades.set(true);
-    this.opportunitiesService.listar().subscribe({
+    this.opportunitiesService.listarTodas().subscribe({
       next: (oportunidades) => {
         this.oportunidades.set(oportunidades);
         this.carregandoOportunidades.set(false);
@@ -102,6 +114,48 @@ export class AdminComponent implements OnInit {
       error: () => {
         this.erroOportunidade.set('Não foi possível carregar as oportunidades.');
         this.carregandoOportunidades.set(false);
+      },
+    });
+  }
+
+  buscarNaWeb() {
+    this.erroOportunidade.set(null);
+    this.resultadoBusca.set(null);
+    this.buscandoNaWeb.set(true);
+
+    this.opportunitiesService
+      .buscarNaWeb({
+        interesse: this.filtroInteresseBusca || undefined,
+        estado: this.filtroEstadoBusca || undefined,
+      })
+      .subscribe({
+        next: (resultado) => {
+          this.resultadoBusca.set(resultado);
+          this.buscandoNaWeb.set(false);
+          this.carregarOportunidades();
+        },
+        error: () => {
+          this.buscandoNaWeb.set(false);
+          this.erroOportunidade.set(
+            'Não foi possível buscar na web. Confira se AI_API_KEY está configurada no backend.'
+          );
+        },
+      });
+  }
+
+  aprovarOportunidade(oportunidade: Oportunidade) {
+    this.atualizandoStatusId.set(oportunidade.id);
+
+    this.opportunitiesService.atualizarStatus(oportunidade.id, 'publicada').subscribe({
+      next: (atualizada) => {
+        this.oportunidades.update((lista) =>
+          lista.map((o) => (o.id === atualizada.id ? atualizada : o))
+        );
+        this.atualizandoStatusId.set(null);
+      },
+      error: () => {
+        this.erroOportunidade.set('Não foi possível aprovar essa oportunidade.');
+        this.atualizandoStatusId.set(null);
       },
     });
   }

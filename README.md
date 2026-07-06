@@ -93,6 +93,18 @@ UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
 
 A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
 
+### Busca automática de oportunidades
+
+No painel admin, a aba Oportunidades tem um botão para buscar oportunidades reais na
+internet (cursos, vagas, bolsas) usando a IA com busca na web habilitada — reaproveita a
+mesma `AI_API_KEY` do mentor. **Duas coisas importantes:**
+
+- **Custo:** chamadas com busca na web custam mais caro que uma mensagem de texto simples
+  do mentor. Use sob demanda, não em loop.
+- **Sempre entra como "pendente"**: a IA pode errar ou trazer links desatualizados mesmo
+  buscando na web de verdade — por isso nada é publicado automaticamente. Um admin precisa
+  revisar e aprovar cada oportunidade encontrada antes dela aparecer pros usuários.
+
 ### Teste de descoberta pessoal
 
 O resultado é calculado por regras (sem depender de nenhuma API externa) — funciona

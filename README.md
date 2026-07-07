@@ -20,10 +20,9 @@ de evolução personalizado com um mentor baseado em IA.
 2. **Teste de descoberta pessoal** — IA mapeia perfil comportamental e sugere áreas
 3. **Plano de evolução** — roadmap mensal gerado pela IA, com etapas acompanháveis
 4. **Mentor IA** — chat especializado em orientação de carreira
-5. **Oportunidades** — cursos, vagas, bolsas e eventos filtráveis
-6. **Currículo inteligente** — geração de currículo e simulação de entrevista
-7. **Dashboard do jovem** — progresso, próximos passos e recomendações
-8. **Gamificação** — conquistas e níveis para manter engajamento
+5. **Currículo inteligente** — geração de currículo e simulação de entrevista
+6. **Dashboard do jovem** — progresso, próximos passos e recomendações
+7. **Gamificação** — conquistas e níveis para manter engajamento
 
 Detalhes completos da especificação em [`docs/specification.md`](docs/specification.md).
 
@@ -93,23 +92,15 @@ UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
 
 A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
 
-### IA (mentor, descoberta, plano de evolução, busca de oportunidades)
+### IA (mentor, descoberta, plano de evolução, currículo)
 
 O Norte usa a API do **Google Gemini** para todos os recursos de IA. Gere sua chave
 gratuita em https://aistudio.google.com/apikey (não pede cartão de crédito) e cole em
 `GEMINI_API_KEY` no `.env`. Sem essa chave, o app continua funcionando normalmente — só
-os recursos de IA ficam desativados (veja o que cada um faz sem ela, abaixo).
+os recursos de IA ficam desativados, caindo em templates/regras padrão.
 
 O modelo usado (`gemini-2.5-flash`) tem camada gratuita com limite de uso diário, o que é
-mais do que suficiente para uso pessoal/portfólio. A busca na web (usada só na sincronização
-de oportunidades) tem uma cota diária gratuita separada, também generosa para esse uso.
-
-**Sobre a busca automática de oportunidades:** o Gemini busca no índice público do Google,
-o que inclui páginas de vagas publicadas no LinkedIn, InfoJobs, Catho, Gupy e outros sites
-— sem precisar de acesso privado a nenhum deles (LinkedIn restringe a API de vagas a
-parceiros aprovados; o InfoJobs nem libera API pros próprios clientes). Tudo que a IA
-encontra entra como **pendente** até um admin revisar e aprovar — a IA pode errar ou trazer
-links desatualizados mesmo com busca real habilitada.
+mais do que suficiente para uso pessoal/portfólio.
 
 ### Teste de descoberta pessoal
 

@@ -55,12 +55,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/plans/plans.component').then((m) => m.PlansComponent),
   },
   {
-    path: 'oportunidades',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/opportunities/opportunities.component').then((m) => m.OpportunitiesComponent),
-  },
-  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/admin.component').then((m) => m.AdminComponent),

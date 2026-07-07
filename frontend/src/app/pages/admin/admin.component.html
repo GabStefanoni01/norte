@@ -1,287 +1,74 @@
 <norte-navbar />
 
 <main class="max-w-5xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-6">Painel administrativo</h1>
+  <h1 class="font-display text-3xl mb-2">Painel administrativo</h1>
+  <p class="text-white/60 mb-8">Gerencie os usuários cadastrados no Norte.</p>
 
-  <div class="flex gap-1 border-b border-norte-800 mb-8 text-sm">
-    <button
-      (click)="mudarAba('usuarios')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'usuarios' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Usuários
-    </button>
-    <button
-      (click)="mudarAba('oportunidades')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'oportunidades' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Oportunidades
-    </button>
-  </div>
-
-  @if (abaAtiva() === 'usuarios') {
-    <p class="text-white/60 mb-6">Gerencie os usuários cadastrados no Norte.</p>
-
-    @if (erro()) {
-      <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
-    }
-
-    @if (carregando()) {
-      <p class="text-white/50">Carregando usuários...</p>
-    } @else {
-      <div class="rounded-xl border border-norte-800 overflow-hidden">
-        <table class="w-full text-sm text-left">
-          <thead class="bg-norte-900/80 text-white/60 uppercase text-xs">
-            <tr>
-              <th class="px-4 py-3">Nome</th>
-              <th class="px-4 py-3">E-mail</th>
-              <th class="px-4 py-3">Cidade/UF</th>
-              <th class="px-4 py-3">E-mail verificado</th>
-              <th class="px-4 py-3">Papel</th>
-              <th class="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (usuario of usuarios(); track usuario.id) {
-              <tr class="border-t border-norte-800 hover:bg-norte-900/40 transition-colors">
-                <td class="px-4 py-3">{{ usuario.nome }}</td>
-                <td class="px-4 py-3 text-white/70">{{ usuario.email }}</td>
-                <td class="px-4 py-3 text-white/70">
-                  {{ usuario.cidade || '—' }}{{ usuario.estado ? ' / ' + usuario.estado : '' }}
-                </td>
-                <td class="px-4 py-3">
-                  @if (usuario.email_verificado) {
-                    <span class="text-emerald-400">Sim</span>
-                  } @else {
-                    <span class="text-white/40">Não</span>
-                  }
-                </td>
-                <td class="px-4 py-3">
-                  <span
-                    class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                    [class]="
-                      usuario.role === 'admin'
-                        ? 'bg-norte-accent text-norte-950'
-                        : 'bg-norte-800 text-white/70'
-                    "
-                  >
-                    {{ usuario.role }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <button
-                    (click)="alternarRole(usuario)"
-                    [disabled]="atualizandoId() === usuario.id"
-                    class="text-xs text-norte-accent-light hover:underline disabled:opacity-50"
-                  >
-                    {{
-                      atualizandoId() === usuario.id
-                        ? 'Atualizando...'
-                        : usuario.role === 'admin'
-                          ? 'Remover admin'
-                          : 'Tornar admin'
-                    }}
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
+  @if (erro()) {
+    <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
   }
 
-  @if (abaAtiva() === 'oportunidades') {
-    <p class="text-white/60 mb-6">Cadastre cursos, vagas, bolsas, eventos e programas pros usuários.</p>
-
-    <!-- Busca automática na web -->
-    <div class="card-hover rounded-xl border border-norte-accent/30 bg-norte-accent/5 p-5 mb-6">
-      <p class="font-semibold mb-1">✦ Buscar oportunidades na internet</p>
-      <p class="text-sm text-white/50 mb-4">
-        A IA busca oportunidades reais na web. Tudo entra como <strong>pendente</strong> — você revisa e aprova
-        antes de aparecer pros usuários.
-      </p>
-
-      <div class="flex flex-wrap gap-3 mb-4">
-        <select
-          [(ngModel)]="filtroInteresseBusca"
-          [ngModelOptions]="{ standalone: true }"
-          class="rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-        >
-          <option value="">Qualquer interesse</option>
-          @for (interesse of interesses; track interesse) {
-            <option [value]="interesse">{{ interesse }}</option>
-          }
-        </select>
-
-        <select
-          [(ngModel)]="filtroEstadoBusca"
-          [ngModelOptions]="{ standalone: true }"
-          class="rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-        >
-          <option value="">Brasil / remoto</option>
-          @for (estado of estados(); track estado.id) {
-            <option [value]="estado.sigla">{{ estado.sigla }}</option>
-          }
-        </select>
-
-        <button
-          (click)="buscarNaWeb()"
-          [disabled]="buscandoNaWeb()"
-          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-5 py-2 text-sm disabled:opacity-60"
-        >
-          {{ buscandoNaWeb() ? 'Buscando na web...' : 'Buscar agora' }}
-        </button>
-      </div>
-
-      @if (resultadoBusca()) {
-        <p class="text-sm text-emerald-400">
-          Encontradas {{ resultadoBusca()!.encontradas }}, {{ resultadoBusca()!.novas }} novas adicionadas como
-          pendentes ({{ resultadoBusca()!.duplicadas }} já existiam).
-        </p>
-      }
-    </div>
-
-    <form [formGroup]="formOportunidade" (ngSubmit)="criarOportunidade()" class="rounded-xl border border-norte-800 bg-norte-900/40 p-5 mb-8 space-y-4">
-      <p class="text-sm text-white/50 -mt-1 mb-2">Ou cadastre manualmente:</p>
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="titulo">Título</label>
-          <input
-            id="titulo"
-            type="text"
-            formControlName="titulo"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          />
-        </div>
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="empresa">Empresa/organização</label>
-          <input
-            id="empresa"
-            type="text"
-            formControlName="empresa"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          />
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="tipo">Tipo</label>
-          <select
-            id="tipo"
-            formControlName="tipo"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          >
-            @for (tipo of tipos; track tipo.valor) {
-              <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-            }
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="interesse">Interesse</label>
-          <select
-            id="interesse"
-            formControlName="interesse"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          >
-            <option value="">Não especificado</option>
-            @for (interesse of interesses; track interesse) {
-              <option [value]="interesse">{{ interesse }}</option>
-            }
-          </select>
-        </div>
-        <div class="flex items-end pb-2.5">
-          <label class="flex items-center gap-2 text-sm text-white/70">
-            <input type="checkbox" formControlName="gratuito" class="accent-norte-accent" />
-            Gratuito
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="descricao">Descrição</label>
-        <textarea
-          id="descricao"
-          formControlName="descricao"
-          rows="2"
-          class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-        ></textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm text-white/70 mb-1" for="link">Link</label>
-        <input
-          id="link"
-          type="url"
-          formControlName="link"
-          placeholder="https://..."
-          class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-        />
-      </div>
-
-      @if (erroOportunidade()) {
-        <p class="text-sm text-red-400">{{ erroOportunidade() }}</p>
-      }
-
-      <button
-        type="submit"
-        [disabled]="salvandoOportunidade()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-      >
-        {{ salvandoOportunidade() ? 'Salvando...' : 'Adicionar oportunidade' }}
-      </button>
-    </form>
-
-    @if (carregandoOportunidades()) {
-      <p class="text-white/50">Carregando oportunidades...</p>
-    } @else {
-      <div class="space-y-2">
-        @for (op of oportunidades(); track op.id) {
-          <div class="flex items-center justify-between gap-4 rounded-lg border border-norte-800 bg-norte-900/40 px-4 py-3">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <p class="font-medium truncate">{{ op.titulo }}</p>
-                @if (op.status === 'pendente') {
-                  <span class="shrink-0 text-xs rounded-full bg-norte-accent/20 text-norte-accent-light px-2 py-0.5">
-                    pendente
-                  </span>
+  @if (carregando()) {
+    <p class="text-white/50">Carregando usuários...</p>
+  } @else {
+    <div class="rounded-xl border border-norte-800 overflow-hidden">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-norte-900/80 text-white/60 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3">Nome</th>
+            <th class="px-4 py-3">E-mail</th>
+            <th class="px-4 py-3">Cidade/UF</th>
+            <th class="px-4 py-3">E-mail verificado</th>
+            <th class="px-4 py-3">Papel</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr class="border-t border-norte-800 hover:bg-norte-900/40 transition-colors">
+              <td class="px-4 py-3">{{ usuario.nome }}</td>
+              <td class="px-4 py-3 text-white/70">{{ usuario.email }}</td>
+              <td class="px-4 py-3 text-white/70">
+                {{ usuario.cidade || '—' }}{{ usuario.estado ? ' / ' + usuario.estado : '' }}
+              </td>
+              <td class="px-4 py-3">
+                @if (usuario.email_verificado) {
+                  <span class="text-emerald-400">Sim</span>
+                } @else {
+                  <span class="text-white/40">Não</span>
                 }
-                @if (op.fonte === 'busca_automatica') {
-                  <span class="shrink-0 text-xs text-white/30">✦ IA</span>
-                }
-              </div>
-              <p class="text-xs text-white/40">{{ op.tipo }} · {{ op.empresa || 'sem empresa' }}</p>
-              @if (op.descricao) {
-                <p class="text-xs text-white/40 mt-0.5 truncate">{{ op.descricao }}</p>
-              }
-              <a [href]="op.link" target="_blank" rel="noopener noreferrer" class="text-xs text-norte-accent-light hover:underline break-all">
-                {{ op.link }}
-              </a>
-            </div>
-            <div class="shrink-0 flex items-center gap-3">
-              @if (op.status === 'pendente') {
-                <button
-                  (click)="aprovarOportunidade(op)"
-                  [disabled]="atualizandoStatusId() === op.id"
-                  class="text-xs text-emerald-400 hover:underline disabled:opacity-50"
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  [class]="
+                    usuario.role === 'admin'
+                      ? 'bg-norte-accent text-norte-950'
+                      : 'bg-norte-800 text-white/70'
+                  "
                 >
-                  {{ atualizandoStatusId() === op.id ? 'Aprovando...' : 'Aprovar' }}
+                  {{ usuario.role }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button
+                  (click)="alternarRole(usuario)"
+                  [disabled]="atualizandoId() === usuario.id"
+                  class="text-xs text-norte-accent-light hover:underline disabled:opacity-50"
+                >
+                  {{
+                    atualizandoId() === usuario.id
+                      ? 'Atualizando...'
+                      : usuario.role === 'admin'
+                        ? 'Remover admin'
+                        : 'Tornar admin'
+                  }}
                 </button>
-              }
-              <button
-                (click)="removerOportunidade(op)"
-                [disabled]="removendoId() === op.id"
-                class="text-xs text-red-400 hover:underline disabled:opacity-50"
-              >
-                {{ removendoId() === op.id ? 'Removendo...' : 'Remover' }}
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-    }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </main>
-

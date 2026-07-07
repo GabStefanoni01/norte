@@ -93,26 +93,31 @@ UPDATE users SET role = 'admin' WHERE email = 'seu-email@exemplo.com';
 
 A partir daí, fazer login com esse e-mail concede acesso à área administrativa (`/admin`).
 
-### Busca automática de oportunidades
+### IA (mentor, descoberta, plano de evolução, busca de oportunidades)
 
-No painel admin, a aba Oportunidades tem um botão para buscar oportunidades reais na
-internet (cursos, vagas, bolsas) usando a IA com busca na web habilitada — reaproveita a
-mesma `AI_API_KEY` do mentor. **Duas coisas importantes:**
+O Norte usa a API do **Google Gemini** para todos os recursos de IA. Gere sua chave
+gratuita em https://aistudio.google.com/apikey (não pede cartão de crédito) e cole em
+`GEMINI_API_KEY` no `.env`. Sem essa chave, o app continua funcionando normalmente — só
+os recursos de IA ficam desativados (veja o que cada um faz sem ela, abaixo).
 
-- **Custo:** chamadas com busca na web custam mais caro que uma mensagem de texto simples
-  do mentor. Use sob demanda, não em loop.
-- **Sempre entra como "pendente"**: a IA pode errar ou trazer links desatualizados mesmo
-  buscando na web de verdade — por isso nada é publicado automaticamente. Um admin precisa
-  revisar e aprovar cada oportunidade encontrada antes dela aparecer pros usuários.
+O modelo usado (`gemini-2.5-flash`) tem camada gratuita com limite de uso diário, o que é
+mais do que suficiente para uso pessoal/portfólio. A busca na web (usada só na sincronização
+de oportunidades) tem uma cota diária gratuita separada, também generosa para esse uso.
+
+**Sobre a busca automática de oportunidades:** o Gemini busca no índice público do Google,
+o que inclui páginas de vagas publicadas no LinkedIn, InfoJobs, Catho, Gupy e outros sites
+— sem precisar de acesso privado a nenhum deles (LinkedIn restringe a API de vagas a
+parceiros aprovados; o InfoJobs nem libera API pros próprios clientes). Tudo que a IA
+encontra entra como **pendente** até um admin revisar e aprovar — a IA pode errar ou trazer
+links desatualizados mesmo com busca real habilitada.
 
 ### Teste de descoberta pessoal
 
 O resultado é calculado por regras (sem depender de nenhuma API externa) — funciona
-sempre. Se `AI_API_KEY` estiver configurada no `.env` (mesma chave usada pelo mentor IA
-no chat), a descrição do resultado é enriquecida com um texto personalizado gerado pela
-IA, cruzando o perfil dominante com os interesses/objetivos da pessoa e com as respostas
-reflexivas abertas do final do teste. Sem a chave, usa a descrição padrão — o teste
-continua funcionando normalmente.
+sempre. Com `GEMINI_API_KEY` configurada, a descrição do resultado é enriquecida com um
+texto personalizado gerado pela IA, cruzando o perfil dominante com os interesses/objetivos
+da pessoa e com as respostas reflexivas abertas do final do teste. Sem a chave, usa a
+descrição padrão — o teste continua funcionando normalmente.
 
 ### Perfil do usuário
 

@@ -9,7 +9,7 @@ const { buildUserContext } = require('../ai/ai.context');
  * quem chama deve usar a descrição padrão (rule-based) como fallback.
  */
 async function gerarDescricaoPersonalizada(userId, resultado, reflexao) {
-  if (!env.aiApiKey) return null;
+  if (!env.geminiApiKey) return null;
 
   try {
     const context = await buildUserContext(userId);

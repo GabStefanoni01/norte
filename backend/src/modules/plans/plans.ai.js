@@ -9,7 +9,7 @@ const { buildUserContext } = require('../ai/ai.context');
  * quem chama deve usar o template padrão (rule-based) como fallback.
  */
 async function gerarPlanoComIA(userId) {
-  if (!env.aiApiKey) return null;
+  if (!env.geminiApiKey) return null;
 
   try {
     const context = await buildUserContext(userId);

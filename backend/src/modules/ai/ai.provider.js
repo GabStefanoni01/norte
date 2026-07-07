@@ -1,87 +1,83 @@
 const env = require('../../config/env');
 
+const MODEL = 'gemini-2.5-flash';
+const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+
 /**
- * Camada de abstração para o provedor de IA. Isolar a chamada externa aqui
- * permite trocar de provedor (ou usar um mock em testes) sem tocar no
- * restante do módulo.
+ * Camada de abstração para o provedor de IA (Google Gemini). Isolar a
+ * chamada externa aqui permite trocar de provedor (ou usar um mock em
+ * testes) sem tocar no restante do módulo. Usa o mesmo modelo pra chat
+ * simples e pra busca na web — só muda se a ferramenta google_search
+ * está habilitada ou não.
  */
-async function askMentor({ systemPrompt, mensagem }) {
-  if (!env.aiApiKey) {
-    const err = new Error('AI_API_KEY não configurada');
-    err.status = 500;
-    throw err;
+function extrairTexto(data) {
+  const partes = data?.candidates?.[0]?.content?.parts || [];
+  return partes
+    .map((p) => p.text)
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+}
+
+function erroIaNaoConfigurada(comBusca) {
+  const err = new Error(
+    comBusca
+      ? 'Busca automática desativada: configure GEMINI_API_KEY no .env para usar este recurso opcional. ' +
+        'Sem isso, o cadastro manual de oportunidades continua funcionando normalmente.'
+      : 'Recurso de IA desativado: configure GEMINI_API_KEY no .env para usar o mentor.'
+  );
+  err.status = 400;
+  err.code = 'IA_NAO_CONFIGURADA';
+  return err;
+}
+
+async function chamarGemini({ systemPrompt, mensagem, comBusca }) {
+  if (!env.geminiApiKey) {
+    throw erroIaNaoConfigurada(comBusca);
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: mensagem }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+  };
+
+  if (comBusca) {
+    body.tools = [{ google_search: {} }];
+  }
+
+  const response = await fetch(`${BASE_URL}/${MODEL}:generateContent`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': env.aiApiKey,
-      'anthropic-version': '2023-06-01',
+      'x-goog-api-key': env.geminiApiKey,
     },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: mensagem }],
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    const err = new Error('Falha ao consultar o provedor de IA');
+    const err = new Error(`Falha ao consultar o Gemini${comBusca ? ' (com busca na web)' : ''}`);
     err.status = 502;
     throw err;
   }
 
   const data = await response.json();
-  const textBlock = data.content?.find((block) => block.type === 'text');
+  return extrairTexto(data);
+}
 
-  return textBlock?.text || '';
+async function askMentor({ systemPrompt, mensagem }) {
+  return chamarGemini({ systemPrompt, mensagem, comBusca: false });
 }
 
 /**
- * Igual ao askMentor, mas habilita a ferramenta de busca na web da própria
- * API da Anthropic — usado quando a resposta precisa de informação atual
- * da internet (ex: buscar oportunidades reais). Custa mais caro que uma
- * chamada de texto simples, por isso é usado só sob demanda, não em toda
- * interação do mentor.
+ * Igual ao askMentor, mas habilita a busca na web do Gemini (Grounding with
+ * Google Search) — usado quando a resposta precisa de informação atual da
+ * internet (ex: buscar oportunidades reais em sites como LinkedIn, InfoJobs,
+ * Catho etc). O Gemini pesquisa o índice público do Google, não usa APIs
+ * privadas desses sites (que, no caso do LinkedIn e InfoJobs, não estão
+ * disponíveis para desenvolvedores independentes).
  */
 async function perguntarComBusca({ systemPrompt, mensagem }) {
-  if (!env.aiApiKey) {
-    const err = new Error('AI_API_KEY não configurada');
-    err.status = 500;
-    throw err;
-  }
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': env.aiApiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: mensagem }],
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-    }),
-  });
-
-  if (!response.ok) {
-    const err = new Error('Falha ao consultar o provedor de IA (com busca)');
-    err.status = 502;
-    throw err;
-  }
-
-  const data = await response.json();
-
-  // Com ferramentas, a resposta pode ter varios blocos (tool_use, tool_result,
-  // text) intercalados — o texto final costuma vir no(s) ultimo(s) bloco(s)
-  // de tipo "text", depois que o modelo ja processou os resultados da busca.
-  const textos = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text);
-  return textos.join('\n').trim();
+  return chamarGemini({ systemPrompt, mensagem, comBusca: true });
 }
 
 module.exports = { askMentor, perguntarComBusca };

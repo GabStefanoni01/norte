@@ -7,7 +7,7 @@ module.exports = {
   databaseUrl: process.env.DATABASE_URL,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  aiApiKey: process.env.AI_API_KEY,
+  geminiApiKey: process.env.GEMINI_API_KEY,
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,

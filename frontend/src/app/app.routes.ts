@@ -55,6 +55,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/plans/plans.component').then((m) => m.PlansComponent),
   },
   {
+    path: 'curriculo',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/resume/resume.component').then((m) => m.ResumeComponent),
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/admin.component').then((m) => m.AdminComponent),

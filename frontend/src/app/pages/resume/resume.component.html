@@ -1,0 +1,167 @@
+<norte-navbar />
+
+<main class="max-w-3xl mx-auto px-6 py-10">
+  <h1 class="font-display text-3xl mb-6">Currículo inteligente</h1>
+
+  <div class="flex gap-1 border-b border-norte-800 mb-8 text-sm">
+    <button
+      (click)="mudarAba('curriculo')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'curriculo' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Currículo
+    </button>
+    <button
+      (click)="mudarAba('entrevista')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'entrevista' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Simulação de entrevista
+    </button>
+  </div>
+
+  <!-- ===== Currículo ===== -->
+  @if (abaAtiva() === 'curriculo') {
+    @if (carregandoCurriculo()) {
+      <p class="text-white/50">Carregando...</p>
+    } @else if (!curriculo()) {
+      <div class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-8 text-center">
+        <p class="text-lg font-semibold mb-2">Gere seu currículo</p>
+        <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">
+          Vamos montar um currículo com base no seu perfil, objetivos e no que você já concluiu no seu plano de
+          evolução.
+        </p>
+
+        @if (erroCurriculo()) {
+          <p class="text-sm text-red-400 mb-4">{{ erroCurriculo() }}</p>
+        }
+
+        <button
+          (click)="gerarCurriculo()"
+          [disabled]="gerandoCurriculo()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+        >
+          {{ gerandoCurriculo() ? 'Gerando...' : 'Gerar meu currículo' }}
+        </button>
+      </div>
+    } @else {
+      <div class="stagger">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          @if (curriculo()!.gerado_por_ia) {
+            <p class="text-xs text-white/30">✦ Gerado pelo mentor IA</p>
+          } @else {
+            <p class="text-xs text-white/30">Gerado a partir do seu perfil</p>
+          }
+
+          <div class="flex gap-3 text-xs">
+            <button (click)="copiarCurriculo()" class="text-norte-accent-light hover:underline">
+              {{ copiado() ? 'Copiado!' : 'Copiar' }}
+            </button>
+            <button (click)="baixarCurriculo()" class="text-norte-accent-light hover:underline">Baixar .txt</button>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-norte-800 bg-norte-900/60 p-6 mb-6">
+          <pre class="whitespace-pre-wrap font-sans text-sm text-white/85 leading-relaxed">{{ curriculo()!.conteudo }}</pre>
+        </div>
+
+        @if (erroCurriculo()) {
+          <p class="text-sm text-red-400 mb-4">{{ erroCurriculo() }}</p>
+        }
+
+        <button
+          (click)="gerarCurriculo()"
+          [disabled]="gerandoCurriculo()"
+          class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-5 py-2 text-sm disabled:opacity-50"
+        >
+          {{ gerandoCurriculo() ? 'Gerando...' : 'Gerar novamente' }}
+        </button>
+      </div>
+    }
+  }
+
+  <!-- ===== Simulação de entrevista ===== -->
+  @if (abaAtiva() === 'entrevista') {
+    @if (carregandoEntrevista()) {
+      <p class="text-white/50">Carregando...</p>
+    } @else if (emAndamento() && perguntaAtual()) {
+      <!-- Pergunta atual -->
+      <div class="mb-8">
+        <div class="flex justify-between text-xs text-white/40 mb-2">
+          <span>Pergunta {{ passoAtual() + 1 }} de {{ perguntas().length }}</span>
+          <span>{{ progresso() }}%</span>
+        </div>
+        <div class="h-1.5 rounded-full bg-norte-800 overflow-hidden">
+          <div class="h-full bg-norte-accent transition-all duration-500 ease-out" [style.width.%]="progresso()"></div>
+        </div>
+      </div>
+
+      <h2 class="font-display text-xl mb-4">{{ perguntaAtual()!.texto }}</h2>
+
+      <textarea
+        [(ngModel)]="respostaAtual"
+        rows="5"
+        class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent mb-4"
+        placeholder="Responda como se estivesse numa entrevista de verdade..."
+      ></textarea>
+
+      @if (erroEntrevista()) {
+        <p class="text-sm text-red-400 mb-4">{{ erroEntrevista() }}</p>
+      }
+
+      <button
+        (click)="proximaPergunta()"
+        [disabled]="!respostaAtual.trim() || enviandoRespostas()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+      >
+        {{
+          enviandoRespostas()
+            ? 'Calculando feedback...'
+            : passoAtual() < perguntas().length - 1
+              ? 'Próxima pergunta'
+              : 'Finalizar e ver feedback'
+        }}
+      </button>
+    } @else if (sessao()) {
+      <!-- Resultado / feedback -->
+      <div class="stagger">
+        <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Feedback da simulação</p>
+
+        <div class="rounded-xl border border-norte-800 bg-norte-900/60 p-6 mb-6">
+          <pre class="whitespace-pre-wrap font-sans text-sm text-white/85 leading-relaxed">{{ sessao()!.feedback }}</pre>
+        </div>
+
+        @if (sessao()!.gerado_por_ia) {
+          <p class="text-xs text-white/30 mb-6">✦ Feedback personalizado pelo mentor IA.</p>
+        }
+
+        <button
+          (click)="iniciarSimulacao()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+        >
+          Fazer nova simulação
+        </button>
+      </div>
+    } @else {
+      <!-- Estado inicial -->
+      <div class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-8 text-center">
+        <p class="text-lg font-semibold mb-2">Pratique pra sua próxima entrevista</p>
+        <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">
+          Responda algumas perguntas como se fosse uma entrevista de verdade e receba um feedback sobre suas
+          respostas.
+        </p>
+
+        @if (erroEntrevista()) {
+          <p class="text-sm text-red-400 mb-4">{{ erroEntrevista() }}</p>
+        }
+
+        <button
+          (click)="iniciarSimulacao()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+        >
+          Começar simulação
+        </button>
+      </div>
+    }
+  }
+</main>

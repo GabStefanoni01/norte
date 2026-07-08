@@ -1,6 +1,73 @@
-<norte-navbar />
+<div class="flex flex-col h-screen">
+  <norte-navbar />
 
-<main class="max-w-4xl mx-auto px-6 py-10">
-  <h1 class="font-display text-2xl mb-2">Mentor IA</h1>
-  <p class="text-white/50">Esta tela será implementada em uma próxima etapa.</p>
-</main>
+  <div #scrollContainer class="flex-1 overflow-y-auto px-6 py-6">
+    <div class="max-w-2xl mx-auto space-y-4">
+      @if (carregando()) {
+        <p class="text-white/40 text-sm text-center">Carregando conversa...</p>
+      } @else if (turnos().length === 0) {
+        <div class="stagger text-center py-10">
+          <p class="font-display text-2xl text-norte-accent-light mb-2">Oi{{ nomeUsuario ? ', ' + nomeUsuario : '' }} 👋</p>
+          <p class="text-white/50 text-sm max-w-sm mx-auto">
+            Sou seu mentor no Norte. Pode me perguntar sobre seu plano, sua carreira, ou só desabafar se travou em
+            alguma coisa.
+          </p>
+        </div>
+      }
+
+      @for (turno of turnos(); track $index) {
+        @if (turno.tipo === 'usuario') {
+          <div class="flex justify-end">
+            <div class="max-w-[80%] rounded-2xl rounded-br-sm bg-norte-accent text-norte-950 px-4 py-2.5 text-sm">
+              {{ turno.texto }}
+            </div>
+          </div>
+        } @else if (turno.tipo === 'mentor') {
+          <div class="flex justify-start">
+            <div class="max-w-[80%] rounded-2xl rounded-bl-sm border border-norte-800 bg-norte-900/60 px-4 py-2.5 text-sm text-white/85 whitespace-pre-wrap">
+              {{ turno.texto }}
+            </div>
+          </div>
+        } @else {
+          <div class="flex justify-center">
+            <div class="max-w-[85%] rounded-lg border border-norte-700 bg-norte-900/40 px-4 py-2 text-xs text-white/50 text-center">
+              {{ turno.texto }}
+            </div>
+          </div>
+        }
+      }
+
+      @if (enviando()) {
+        <div class="flex justify-start">
+          <div class="rounded-2xl rounded-bl-sm border border-norte-800 bg-norte-900/60 px-4 py-3 text-sm text-white/40">
+            <span class="inline-flex gap-1">
+              <span class="h-1.5 w-1.5 rounded-full bg-white/40 float"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-white/40 float" style="animation-delay: 0.15s"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-white/40 float" style="animation-delay: 0.3s"></span>
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="border-t border-norte-800 px-6 py-4">
+    <form (ngSubmit)="enviar()" class="max-w-2xl mx-auto flex gap-3">
+      <input
+        type="text"
+        name="mensagem"
+        [(ngModel)]="mensagemAtual"
+        [disabled]="enviando()"
+        placeholder="Escreva sua mensagem..."
+        class="flex-1 rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-60"
+      />
+      <button
+        type="submit"
+        [disabled]="!mensagemAtual.trim() || enviando()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-5 py-2.5 disabled:opacity-50"
+      >
+        Enviar
+      </button>
+    </form>
+  </div>
+</div>

@@ -93,4 +93,21 @@
       </p>
     }
   </div>
+
+  @if (gamificacao()) {
+    <a
+      routerLink="/conquistas"
+      class="card-hover block rounded-lg border border-norte-800 bg-norte-900 p-6 mt-6 hover:border-norte-accent/40 transition-colors"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-white/50">Seu nível</p>
+          <p class="font-semibold text-lg">{{ gamificacao()!.nivel }}</p>
+        </div>
+        <p class="text-sm text-norte-accent-light">
+          {{ gamificacao()!.totalConquistas }} / {{ gamificacao()!.totalPossivel }} conquistas →
+        </p>
+      </div>
+    </a>
+  }
 </main>

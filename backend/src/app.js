@@ -9,6 +9,7 @@ const discoveryRoutes = require('./modules/discovery/discovery.routes');
 const aiRoutes = require('./modules/ai/ai.routes');
 const plansRoutes = require('./modules/plans/plans.routes');
 const resumeRoutes = require('./modules/resume/resume.routes');
+const achievementsRoutes = require('./modules/achievements/achievements.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/discovery', discoveryRoutes);
 app.use('/ai', aiRoutes);
 app.use('/plans', plansRoutes);
 app.use('/resume', resumeRoutes);
+app.use('/achievements', achievementsRoutes);
 app.use('/admin', adminRoutes);
 
 app.use(errorHandler);

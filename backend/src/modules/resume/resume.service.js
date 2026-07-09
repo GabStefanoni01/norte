@@ -2,6 +2,7 @@ const pool = require('../../database/pool');
 const { montarPerguntas } = require('./resume.data');
 const { montarCurriculoTemplate, montarFeedbackEntrevistaTemplate } = require('./resume.templates');
 const { gerarCurriculoComIA, gerarFeedbackEntrevistaComIA } = require('./resume.ai');
+const { verificarConquistas } = require('../achievements/achievements.service');
 
 async function buscarDadosParaCurriculo(userId) {
   const [userResult, profileResult, planResult] = await Promise.all([
@@ -51,6 +52,8 @@ async function gerarCurriculo(userId) {
     [userId, conteudo, Boolean(conteudoIA)]
   );
 
+  verificarConquistas(userId).catch((err) => console.error('Erro ao verificar conquistas:', err.message));
+
   return result.rows[0];
 }
 
@@ -83,6 +86,8 @@ async function enviarRespostasEntrevista(userId, perguntasRespostas) {
      RETURNING *`,
     [userId, JSON.stringify(perguntasRespostas), feedback, Boolean(feedbackIA)]
   );
+
+  verificarConquistas(userId).catch((err) => console.error('Erro ao verificar conquistas:', err.message));
 
   return result.rows[0];
 }

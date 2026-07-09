@@ -1,6 +1,7 @@
 const pool = require('../../database/pool');
 const { buildTemplatePlan } = require('./plans.templates');
 const { gerarPlanoComIA } = require('./plans.ai');
+const { verificarConquistas } = require('../achievements/achievements.service');
 
 const STATUS_VALIDOS = ['pendente', 'em_andamento', 'concluido'];
 
@@ -79,6 +80,8 @@ async function gerarPlano(userId) {
     [userId, JSON.stringify(etapas), progresso, geradoPorIA, perfilDominante]
   );
 
+  verificarConquistas(userId).catch((err) => console.error('Erro ao verificar conquistas:', err.message));
+
   return comFrescor(enriquecer(result.rows[0]), userId);
 }
 
@@ -147,6 +150,8 @@ async function atualizarStatusItem(userId, planId, itemId, status, reflexao) {
     `UPDATE plans SET etapas = $1, progresso = $2 WHERE id = $3 RETURNING *`,
     [JSON.stringify(etapas), progresso, planId]
   );
+
+  verificarConquistas(userId).catch((err) => console.error('Erro ao verificar conquistas:', err.message));
 
   return comFrescor(enriquecer(atualizado.rows[0]), userId);
 }

@@ -1,0 +1,58 @@
+<norte-navbar />
+
+<main class="max-w-3xl mx-auto px-6 py-10">
+  <h1 class="font-display text-3xl mb-2">Suas conquistas</h1>
+  <p class="text-white/60 mb-8">Cada passo que você dá no Norte conta pra algo.</p>
+
+  @if (carregando()) {
+    <p class="text-white/50">Carregando...</p>
+  } @else if (status()) {
+    <div class="stagger">
+      <!-- Nível atual -->
+      <div class="card-glow rounded-xl border border-norte-accent/40 bg-norte-accent/5 p-6 mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-norte-accent-light/80">Seu nível</p>
+            <p class="font-display text-2xl">{{ status()!.nivel }}</p>
+          </div>
+          <p class="text-sm text-white/50">{{ status()!.totalConquistas }} / {{ status()!.totalPossivel }}</p>
+        </div>
+
+        @if (status()!.proximoNivel) {
+          <div class="h-2 rounded-full bg-norte-800 overflow-hidden mb-2">
+            <div
+              class="h-full bg-norte-accent transition-all duration-700 ease-out"
+              [style.width.%]="progressoNivel()"
+            ></div>
+          </div>
+          <p class="text-xs text-white/40">
+            Faltam {{ status()!.proximoNivel!.minimo - status()!.totalConquistas }} conquista(s) pra chegar a
+            {{ status()!.proximoNivel!.nome }}
+          </p>
+        } @else {
+          <p class="text-xs text-emerald-400">🎉 Você chegou ao nível máximo!</p>
+        }
+      </div>
+
+      <!-- Grid de conquistas -->
+      <div class="grid gap-3 sm:grid-cols-2">
+        @for (conquista of status()!.conquistas; track conquista.codigo) {
+          <div
+            class="card-hover rounded-xl border p-4 flex items-start gap-3"
+            [class]="
+              conquista.conquistada
+                ? 'border-norte-accent/40 bg-norte-accent/5'
+                : 'border-norte-800 bg-norte-900/40 opacity-50'
+            "
+          >
+            <span class="text-2xl shrink-0">{{ conquista.icone }}</span>
+            <div>
+              <p class="font-medium text-sm">{{ conquista.titulo }}</p>
+              <p class="text-xs text-white/50">{{ conquista.descricao }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</main>

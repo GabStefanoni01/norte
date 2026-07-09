@@ -1,0 +1,176 @@
+<norte-navbar />
+
+<main class="max-w-2xl mx-auto px-6 py-10">
+  @if (carregando()) {
+    <p class="text-white/50">Carregando...</p>
+  } @else if (resultado()) {
+    <!-- Tela de resultado -->
+    <div class="stagger">
+      <div class="inline-flex items-center gap-2 rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-xs px-3 py-1 mb-4">
+        🏆 Teste de descoberta concluído
+      </div>
+
+      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Resultado</p>
+      <h1 class="font-display text-3xl mb-4">Seu perfil é {{ resultado()!.perfilDominante }}</h1>
+      <p class="text-white/70 leading-relaxed mb-2">{{ resultado()!.descricao }}</p>
+
+      @if (resultado()!.geradoPorIA) {
+        <p class="text-xs text-white/30 mb-8">✦ Descrição personalizada pelo mentor IA com base no seu perfil.</p>
+      } @else {
+        <div class="mb-8"></div>
+      }
+
+      @if (breakdown().length) {
+        <p class="text-sm text-white/50 mb-3">Como ficou sua pontuação:</p>
+        <div class="space-y-3 mb-8">
+          @for (item of breakdown(); track item.categoria) {
+            <div>
+              <div class="flex justify-between text-xs text-white/50 mb-1">
+                <span>{{ item.nome }}</span>
+                <span>{{ item.percentual }}%</span>
+              </div>
+              <div class="h-2 rounded-full bg-norte-800 overflow-hidden">
+                <div
+                  class="h-full bg-norte-accent transition-all duration-700 ease-out"
+                  [style.width.%]="item.percentual"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <p class="text-sm text-white/50 mb-3">Áreas sugeridas pra você explorar:</p>
+      <div class="flex flex-wrap gap-2 mb-6">
+        @for (area of resultado()!.areasSugeridas; track area) {
+          <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-sm px-3 py-1">
+            {{ area }}
+          </span>
+        }
+      </div>
+
+      @if (resultado()!.areasSecundarias?.length) {
+        <p class="text-sm text-white/40 mb-3">Vale explorar também:</p>
+        <div class="flex flex-wrap gap-2 mb-10">
+          @for (area of resultado()!.areasSecundarias; track area) {
+            <span class="rounded-full border border-norte-800 bg-norte-900/40 text-white/50 text-sm px-3 py-1">
+              {{ area }}
+            </span>
+          }
+        </div>
+      } @else {
+        <div class="mb-10"></div>
+      }
+
+      @if (recap().length) {
+        <button
+          (click)="mostrarRecap.set(!mostrarRecap())"
+          class="text-sm text-white/40 hover:text-white/70 mb-10 flex items-center gap-1"
+        >
+          {{ mostrarRecap() ? '▲' : '▼' }} Ver suas respostas
+        </button>
+
+        @if (mostrarRecap()) {
+          <div class="space-y-3 mb-10 -mt-6">
+            @for (item of recap(); track item.pergunta) {
+              <div class="rounded-lg border border-norte-800 bg-norte-900/40 p-3">
+                <p class="text-xs text-white/40 mb-1">{{ item.pergunta }}</p>
+                <p class="text-sm text-white/80">{{ item.resposta }}</p>
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <div class="mb-10"></div>
+      }
+
+      <div class="flex flex-wrap gap-3">
+        <button
+          (click)="irParaDashboard()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+        >
+          Ir para o dashboard
+        </button>
+        <button
+          (click)="refazerTeste()"
+          class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-6 py-2.5"
+        >
+          Refazer teste
+        </button>
+      </div>
+    </div>
+  } @else if (mostrandoReflexao()) {
+    <!-- Perguntas reflexivas abertas, antes de calcular o resultado -->
+    <div class="stagger">
+      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Quase lá</p>
+      <h1 class="font-display text-2xl mb-2">Duas perguntas rápidas (opcionais)</h1>
+      <p class="text-white/50 text-sm mb-8">
+        Suas respostas ajudam o mentor IA a te conhecer melhor daqui pra frente.
+      </p>
+
+      <div class="space-y-6 mb-8">
+        @for (pergunta of perguntasReflexao; track pergunta.chave) {
+          <div>
+            <label class="block text-sm text-white/70 mb-2">{{ pergunta.texto }}</label>
+            <textarea
+              [(ngModel)]="respostasReflexao[pergunta.chave]"
+              rows="2"
+              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
+              placeholder="Fique à vontade — ou deixe em branco e pule essa"
+            ></textarea>
+          </div>
+        }
+      </div>
+
+      @if (erro()) {
+        <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
+      }
+
+      <button
+        (click)="finalizarReflexao()"
+        [disabled]="enviando()"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+      >
+        {{ enviando() ? 'Calculando resultado...' : 'Ver meu resultado' }}
+      </button>
+    </div>
+  } @else if (perguntaAtual()) {
+    <!-- Quiz -->
+    <div class="mb-8">
+      <div class="flex justify-between text-xs text-white/40 mb-2">
+        <span>Pergunta {{ passoAtual() + 1 }} de {{ perguntas().length }}</span>
+        <span>{{ progresso() }}%</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-norte-800 overflow-hidden">
+        <div
+          class="h-full bg-norte-accent transition-all duration-500 ease-out"
+          [style.width.%]="progresso()"
+        ></div>
+      </div>
+    </div>
+
+    <h1 class="font-display text-2xl mb-6">{{ perguntaAtual()!.texto }}</h1>
+
+    <div class="stagger space-y-3">
+      @for (opcao of perguntaAtual()!.opcoes; track opcao.id) {
+        <button
+          (click)="escolher(opcao.id)"
+          [disabled]="enviando()"
+          class="card-hover w-full text-left rounded-xl border border-norte-800 bg-norte-900/60 px-5 py-4 text-white/80 hover:text-white transition-colors disabled:opacity-50"
+        >
+          {{ opcao.texto }}
+        </button>
+      }
+    </div>
+
+    @if (passoAtual() > 0) {
+      <button (click)="voltar()" class="mt-6 text-sm text-white/40 hover:text-white/70">
+        ← Voltar
+      </button>
+    }
+
+    @if (erro()) {
+      <p class="text-sm text-red-400 mt-4">{{ erro() }}</p>
+    }
+  }
+</main>

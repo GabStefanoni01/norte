@@ -1,0 +1,34 @@
+const express = require('express');
+const cors = require('cors');
+const errorHandler = require('./middlewares/errorHandler');
+
+const authRoutes = require('./modules/auth/auth.routes');
+const usersRoutes = require('./modules/users/users.routes');
+const profileRoutes = require('./modules/profile/profile.routes');
+const discoveryRoutes = require('./modules/discovery/discovery.routes');
+const aiRoutes = require('./modules/ai/ai.routes');
+const plansRoutes = require('./modules/plans/plans.routes');
+const resumeRoutes = require('./modules/resume/resume.routes');
+const achievementsRoutes = require('./modules/achievements/achievements.routes');
+const adminRoutes = require('./modules/admin/admin.routes');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use('/auth', authRoutes);
+app.use('/users', usersRoutes);
+app.use('/profile', profileRoutes);
+app.use('/discovery', discoveryRoutes);
+app.use('/ai', aiRoutes);
+app.use('/plans', plansRoutes);
+app.use('/resume', resumeRoutes);
+app.use('/achievements', achievementsRoutes);
+app.use('/admin', adminRoutes);
+
+app.use(errorHandler);
+
+module.exports = app;

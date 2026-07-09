@@ -1,6 +1,7 @@
 const pool = require('../../database/pool');
 const { PERGUNTAS, CATEGORIAS } = require('./discovery.data');
 const { gerarDescricaoPersonalizada } = require('./discovery.ai');
+const { verificarConquistas } = require('../achievements/achievements.service');
 
 function listarPerguntas() {
   // Não expõe a categoria de cada opção — senão dava pra "forçar" o resultado.
@@ -85,19 +86,24 @@ async function salvarResultado(userId, resultado, reflexao) {
     [...valores, userId]
   );
 
-  if (result.rows[0]) return result.rows[0];
+  let perfil = result.rows[0];
 
-  // Usuário ainda não tem uma linha em profiles (não passou pelo cadastro
-  // de perfil) — cria uma já com o resultado da descoberta.
-  const inserted = await pool.query(
-    `INSERT INTO profiles
-       (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas, pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia, reflexao_descoberta)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     RETURNING *`,
-    [userId, ...valores]
-  );
+  if (!perfil) {
+    // Usuário ainda não tem uma linha em profiles (não passou pelo cadastro
+    // de perfil) — cria uma já com o resultado da descoberta.
+    const inserted = await pool.query(
+      `INSERT INTO profiles
+         (user_id, perfil_dominante, resultado_descoberta, areas_sugeridas, pontuacao_descoberta, areas_secundarias, descricao_gerada_por_ia, reflexao_descoberta)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [userId, ...valores]
+    );
+    perfil = inserted.rows[0];
+  }
 
-  return inserted.rows[0];
+  verificarConquistas(userId).catch((err) => console.error('Erro ao verificar conquistas:', err.message));
+
+  return perfil;
 }
 
 async function buscarResultado(userId) {

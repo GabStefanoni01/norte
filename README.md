@@ -131,6 +131,15 @@ preencha `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `SMTP_FROM` no `.e
 Se os e-mails não chegarem, confira o log do backend: a falha de envio é registrada lá
 sem impedir a criação da conta (o usuário pode pedir um novo código depois).
 
+## Segurança
+
+- Senhas e códigos de verificação com hash (bcrypt); códigos gerados com `crypto.randomInt` (não `Math.random`)
+- Rate limiting em login, cadastro, códigos de verificação/redefinição e em todo endpoint que consome a API de IA
+- JWT: role reconferida no banco a cada requisição (não fica "presa" no token); app recusa subir com `JWT_SECRET` ausente ou no valor padrão do exemplo
+- `helmet` para headers de segurança, CORS restrito via `FRONTEND_URL` em produção
+- Conexão com o banco valida certificado SSL por padrão
+- Validação de entrada (e-mail, senha, formato de código) também no backend, não só no frontend
+
 ## Stack
 
 - **Backend:** Node.js, Express, PostgreSQL, JWT

@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const env = require('./config/env');
 const errorHandler = require('./middlewares/errorHandler');
 
 const authRoutes = require('./modules/auth/auth.routes');
@@ -14,8 +16,17 @@ const adminRoutes = require('./modules/admin/admin.routes');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(helmet());
+
+// Sem FRONTEND_URL configurada, libera qualquer origem (bom para
+// desenvolvimento local, onde a porta do frontend pode variar). Em
+// produção, defina FRONTEND_URL no .env para restringir a origens
+// específicas — evita que qualquer site faça requisições autenticadas
+// para a API usando o token de alguém.
+const origensPermitidas = env.frontendUrl ? env.frontendUrl.split(',').map((o) => o.trim()) : true;
+
+app.use(cors({ origin: origensPermitidas }));
+app.use(express.json({ limit: '100kb' }));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

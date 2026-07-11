@@ -4,11 +4,12 @@ import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 
 @Component({
   selector: 'norte-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent, LogoMarkComponent],
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {

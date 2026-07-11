@@ -6,12 +6,13 @@ import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations.service';
 import { Estado, Cidade } from '../../models/location.model';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
 
 @Component({
   selector: 'norte-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent, LogoMarkComponent],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent implements OnInit {

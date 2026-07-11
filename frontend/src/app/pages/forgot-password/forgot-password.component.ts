@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 
 @Component({
   selector: 'norte-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent, LogoMarkComponent],
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {

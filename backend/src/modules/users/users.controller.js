@@ -1,4 +1,5 @@
 const usersService = require('./users.service');
+const { nomeValido } = require('../../utils/validators');
 
 function ensureSelfOrAdmin(req, res) {
   const requestedId = Number(req.params.id);
@@ -25,6 +26,10 @@ async function getById(req, res, next) {
 async function update(req, res, next) {
   try {
     if (!ensureSelfOrAdmin(req, res)) return;
+
+    if (req.body.nome !== undefined && !nomeValido(req.body.nome)) {
+      return res.status(400).json({ error: 'Nome inválido (mínimo 2 caracteres).' });
+    }
 
     const user = await usersService.update(req.params.id, req.body);
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });

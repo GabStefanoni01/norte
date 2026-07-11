@@ -2,14 +2,14 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { PlansService } from '../../services/plans.service';
 import { Plano, StatusItem, ItemPlano } from '../../models/plan.model';
 
 @Component({
   selector: 'norte-plans',
   standalone: true,
-  imports: [NavbarComponent, RouterLink, FormsModule],
+  imports: [SidebarComponent, RouterLink, FormsModule],
   templateUrl: './plans.component.html',
 })
 export class PlansComponent implements OnInit {

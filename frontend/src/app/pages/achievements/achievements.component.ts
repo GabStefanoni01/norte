@@ -1,12 +1,12 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AchievementsService } from '../../services/achievements.service';
 import { StatusGamificacao } from '../../models/achievement.model';
 
 @Component({
   selector: 'norte-achievements',
   standalone: true,
-  imports: [NavbarComponent],
+  imports: [SidebarComponent],
   templateUrl: './achievements.component.html',
 })
 export class AchievementsComponent implements OnInit {

@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 import { PlansService } from '../../services/plans.service';
@@ -12,7 +12,7 @@ import { StatusGamificacao } from '../../models/achievement.model';
 @Component({
   selector: 'norte-dashboard',
   standalone: true,
-  imports: [NavbarComponent, RouterLink],
+  imports: [SidebarComponent, RouterLink],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {

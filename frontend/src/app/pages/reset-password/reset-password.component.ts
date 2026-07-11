@@ -4,12 +4,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
 
 @Component({
   selector: 'norte-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent, LogoMarkComponent],
   templateUrl: './reset-password.component.html',
 })
 export class ResetPasswordComponent implements OnInit {

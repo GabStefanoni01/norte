@@ -4,11 +4,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
+import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 
 @Component({
   selector: 'norte-verify-email',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarfieldComponent, LogoMarkComponent],
   templateUrl: './verify-email.component.html',
 })
 export class VerifyEmailComponent implements OnInit {

@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -13,7 +13,7 @@ interface Turno {
 @Component({
   selector: 'norte-chat',
   standalone: true,
-  imports: [NavbarComponent, FormsModule],
+  imports: [SidebarComponent, FormsModule],
   templateUrl: './chat.component.html',
 })
 export class ChatComponent implements OnInit, AfterViewChecked {

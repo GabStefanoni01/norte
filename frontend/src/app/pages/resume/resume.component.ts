@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { ResumeService } from '../../services/resume.service';
 import {
   Curriculo,
@@ -15,7 +15,7 @@ type Aba = 'curriculo' | 'entrevista';
 @Component({
   selector: 'norte-resume',
   standalone: true,
-  imports: [NavbarComponent, FormsModule],
+  imports: [SidebarComponent, FormsModule],
   templateUrl: './resume.component.html',
 })
 export class ResumeComponent implements OnInit {

@@ -1,12 +1,12 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminService } from '../../services/admin.service';
 import { UsuarioAdmin } from '../../models/admin-user.model';
 
 @Component({
   selector: 'norte-admin',
   standalone: true,
-  imports: [NavbarComponent],
+  imports: [SidebarComponent],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {

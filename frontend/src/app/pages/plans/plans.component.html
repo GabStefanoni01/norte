@@ -1,4 +1,6 @@
-<norte-navbar />
+<norte-sidebar />
+
+<div class="pl-16">
 
 <main class="max-w-3xl mx-auto px-6 py-10">
   <h1 class="font-display text-3xl mb-2">Seu plano de evolução</h1>
@@ -153,6 +155,7 @@
     </div>
   }
 </main>
+</div>
 
 @if (itemEmCheckin()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" (click)="cancelarCheckin()">

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { DiscoveryService } from '../../services/discovery.service';
 import { PerguntaDescoberta, RespostaDescoberta, ResultadoDescoberta } from '../../models/discovery.model';
 
@@ -21,7 +21,7 @@ const PERGUNTAS_REFLEXAO = [
 @Component({
   selector: 'norte-discovery',
   standalone: true,
-  imports: [NavbarComponent, RouterLink, FormsModule],
+  imports: [SidebarComponent, RouterLink, FormsModule],
   templateUrl: './discovery.component.html',
 })
 export class DiscoveryComponent implements OnInit {

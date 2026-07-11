@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { ProfileService } from '../../services/profile.service';
 import { UsersService } from '../../services/users.service';
 import { AuthService } from '../../services/auth.service';
@@ -16,7 +16,7 @@ type Aba = 'profissional' | 'pessoal' | 'seguranca';
 @Component({
   selector: 'norte-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, NavbarComponent],
+  imports: [ReactiveFormsModule, SidebarComponent],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {

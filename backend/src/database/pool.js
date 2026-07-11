@@ -6,9 +6,17 @@ const env = require('../config/env');
 // (docker-compose ou Postgres instalado direto) isso não é necessário.
 const exigeSSL = /sslmode=require/.test(env.databaseUrl || '');
 
+// rejectUnauthorized: true por padrão — Neon, Supabase e a maioria dos
+// provedores usam certificados de CA públicas confiáveis, então isso
+// funciona sem configuração extra. Deixar como false (como estava antes)
+// desliga a verificação do certificado, abrindo brecha pra man-in-the-middle
+// na conexão com o banco. Só desative via DB_SSL_INSECURE=true se seu
+// provedor específico usar certificado autoassinado (não é o caso comum).
+const ssl = exigeSSL ? { rejectUnauthorized: process.env.DB_SSL_INSECURE !== 'true' } : false;
+
 const pool = new Pool({
   connectionString: env.databaseUrl,
-  ssl: exigeSSL ? { rejectUnauthorized: false } : false,
+  ssl,
 });
 
 pool.on('error', (err) => {

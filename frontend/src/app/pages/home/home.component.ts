@@ -2,16 +2,16 @@ import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
 import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
+import { FooterComponent } from '../../components/footer/footer.component';
 import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'norte-home',
   standalone: true,
-  imports: [RouterLink, StarfieldComponent, RevealOnScrollDirective, LogoMarkComponent],
+  imports: [RouterLink, StarfieldComponent, RevealOnScrollDirective, LogoMarkComponent, FooterComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
-  anoAtual = new Date().getFullYear();
   menuAberto = signal(false);
 
   etapas = [

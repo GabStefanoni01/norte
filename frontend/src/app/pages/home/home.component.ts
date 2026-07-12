@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
 import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
@@ -12,6 +12,7 @@ import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.direc
 })
 export class HomeComponent {
   anoAtual = new Date().getFullYear();
+  menuAberto = signal(false);
 
   etapas = [
     {

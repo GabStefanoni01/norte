@@ -3,7 +3,7 @@
 
   <div class="stagger relative z-10 w-full max-w-sm">
     <div class="text-center mb-8">
-      <div class="flex justify-center mb-1">
+      <div class="flex justify-center mb-1 float">
         <norte-logo-mark [tamanho]="40" />
       </div>
       <p class="font-display text-4xl text-norte-accent-light">Norte</p>
@@ -40,9 +40,26 @@
             id="senha"
             type="password"
             formControlName="senha"
+            (input)="calcularForca($any($event.target).value)"
             class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
             placeholder="Mínimo 6 caracteres"
           />
+          @if (forca() > 0) {
+            <div class="flex gap-1 mt-2">
+              @for (nivel of [0, 1, 2, 3]; track nivel) {
+                <div
+                  class="h-1 flex-1 rounded-full bg-norte-800 overflow-hidden"
+                >
+                  <div
+                    class="h-full transition-all duration-300"
+                    [class]="nivel < forca() ? nivelForca[forca() - 1].cor : ''"
+                    [style.width.%]="nivel < forca() ? 100 : 0"
+                  ></div>
+                </div>
+              }
+            </div>
+            <p class="text-xs text-white/40 mt-1">{{ nivelForca[forca() - 1].rotulo }}</p>
+          }
         </div>
 
         <div>

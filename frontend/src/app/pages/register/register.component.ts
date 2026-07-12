@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
@@ -8,6 +8,14 @@ import { Estado, Cidade } from '../../models/location.model';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
 import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
+
+const NIVEIS_FORCA = [
+  { rotulo: 'Muito fraca', cor: 'bg-red-500' },
+  { rotulo: 'Fraca', cor: 'bg-orange-500' },
+  { rotulo: 'Razoável', cor: 'bg-yellow-500' },
+  { rotulo: 'Boa', cor: 'bg-emerald-500' },
+  { rotulo: 'Forte', cor: 'bg-emerald-400' },
+];
 
 @Component({
   selector: 'norte-register',
@@ -28,6 +36,18 @@ export class RegisterComponent implements OnInit {
   cidades = signal<Cidade[]>([]);
 
   hoje = new Date().toISOString().slice(0, 10);
+  nivelForca = NIVEIS_FORCA;
+  forca = signal(0);
+
+  calcularForca(senha: string) {
+    let pontos = 0;
+    if (senha.length >= 6) pontos++;
+    if (senha.length >= 10) pontos++;
+    if (/[A-Z]/.test(senha) && /[a-z]/.test(senha)) pontos++;
+    if (/\d/.test(senha)) pontos++;
+    if (/[^A-Za-z0-9]/.test(senha)) pontos++;
+    this.forca.set(senha ? Math.min(pontos, 4) : 0);
+  }
 
   form = this.fb.group(
     {

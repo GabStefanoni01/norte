@@ -1,0 +1,51 @@
+<header class="relative z-10 flex items-center justify-between px-6 py-6 md:px-12">
+  <a routerLink="/" class="flex items-center gap-2">
+    <norte-logo-mark [tamanho]="28" />
+    <span class="font-display text-2xl text-norte-accent-light">Norte</span>
+  </a>
+  <a routerLink="/" class="text-sm text-white/60 hover:text-white transition-colors">← Voltar ao início</a>
+</header>
+
+<section class="relative overflow-hidden px-6 py-16 md:px-12">
+  <norte-starfield />
+
+  <div class="stagger relative z-10 mx-auto max-w-2xl">
+    <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-4">Sobre</p>
+    <h1 class="font-display text-4xl mb-6">A ideia por trás do Norte</h1>
+
+    <div class="space-y-5 text-white/70 leading-relaxed">
+      <p>
+        Boa parte dos jovens chega no início da carreira sem saber muito bem por onde começar. Os conselhos que
+        recebem costumam ser genéricos — "faça um curso", "monte um currículo" — mas raramente dizem o que fazer
+        na prática, amanhã de manhã.
+      </p>
+      <p>
+        O Norte nasceu pra preencher esse vazio: uma plataforma que une um teste de descoberta pessoal, um plano
+        de evolução prático (mês a mês, com projetos reais) e um mentor de IA que conhece o histórico de cada
+        pessoa — tudo pra transformar "não sei o que fazer da vida" em um próximo passo concreto.
+      </p>
+      <p>
+        O projeto é desenvolvido por <span class="text-white">Gabriel Stefanoni</span>, desenvolvedor fullstack,
+        como uma iniciativa pessoal com o objetivo de tornar a orientação de carreira mais acessível e prática
+        pra quem está começando.
+      </p>
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a
+        routerLink="/cadastro"
+        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+      >
+        Começar agora
+      </a>
+      <a
+        routerLink="/contato"
+        class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white px-6 py-2.5"
+      >
+        Fale conosco
+      </a>
+    </div>
+  </div>
+</section>
+
+<norte-footer />

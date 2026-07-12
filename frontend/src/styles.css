@@ -155,3 +155,20 @@ html, body {
     display: none !important;
   }
 }
+
+/* ---- Micro-interação de foco em campos de formulário ---- */
+
+@keyframes focus-glow {
+  from { box-shadow: 0 0 0 0 rgba(224, 169, 68, 0.4); }
+  to { box-shadow: 0 0 0 4px rgba(224, 169, 68, 0); }
+}
+
+input:focus, textarea:focus, select:focus {
+  animation: focus-glow 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input:focus, textarea:focus, select:focus {
+    animation: none !important;
+  }
+}

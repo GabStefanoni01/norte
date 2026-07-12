@@ -13,6 +13,7 @@ const plansRoutes = require('./modules/plans/plans.routes');
 const resumeRoutes = require('./modules/resume/resume.routes');
 const achievementsRoutes = require('./modules/achievements/achievements.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
+const contactRoutes = require('./modules/contact/contact.routes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/plans', plansRoutes);
 app.use('/resume', resumeRoutes);
 app.use('/achievements', achievementsRoutes);
 app.use('/admin', adminRoutes);
+app.use('/contact', contactRoutes);
 
 app.use(errorHandler);
 

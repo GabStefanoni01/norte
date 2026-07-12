@@ -50,5 +50,6 @@ module.exports = {
     pass: process.env.SMTP_PASS,
     from: process.env.SMTP_FROM || 'Norte <no-reply@norte.app>',
   },
+  contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_FROM,
   enableCron: process.env.ENABLE_CRON === 'true',
 };

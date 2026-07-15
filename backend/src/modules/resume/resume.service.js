@@ -77,7 +77,7 @@ async function enviarRespostasEntrevista(userId, perguntasRespostas) {
     throw err;
   }
 
-  const feedbackIA = await gerarFeedbackEntrevistaComIA(perguntasRespostas);
+  const feedbackIA = await gerarFeedbackEntrevistaComIA(userId, perguntasRespostas);
   const feedback = feedbackIA || montarFeedbackEntrevistaTemplate();
 
   const result = await pool.query(

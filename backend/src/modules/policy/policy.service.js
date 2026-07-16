@@ -120,6 +120,31 @@ async function enviarSolicitacoesRetroativas() {
   return { totalUsuarios: result.rows.length, enviados };
 }
 
+async function enviarSolicitacaoParaUsuario(userId) {
+  const result = await pool.query('SELECT id, nome, email FROM users WHERE id = $1', [userId]);
+  const usuario = result.rows[0];
+
+  if (!usuario) {
+    const err = new Error('Usuário não encontrado.');
+    err.status = 404;
+    throw err;
+  }
+
+  const token = await gerarTokenAceite(usuario.id);
+  const link = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/aceite-termos?email=${encodeURIComponent(usuario.email)}&token=${token}`;
+
+  await enviarEmail({
+    para: usuario.email,
+    assunto: 'Revise nossos Termos de Uso — Norte',
+    texto:
+      `Olá, ${usuario.nome}!\n\n` +
+      'Pedimos que você revise nossa Política de Privacidade e Termos de Uso.\n\n' +
+      `Responda por aqui: ${link}\n\n— Equipe Norte`,
+  });
+
+  return { message: `E-mail de aceite reenviado para ${usuario.email}.` };
+}
+
 module.exports = {
   usuarioTemConsentimentoValido,
   registrarAceite,
@@ -127,4 +152,5 @@ module.exports = {
   gerarTokenAceite,
   processarResposta,
   enviarSolicitacoesRetroativas,
+  enviarSolicitacaoParaUsuario,
 };

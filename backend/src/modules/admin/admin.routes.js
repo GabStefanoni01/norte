@@ -4,7 +4,7 @@ const authGuard = require('../../middlewares/authGuard');
 const adminGuard = require('../../middlewares/adminGuard');
 const { aiLimiter } = require('../../middlewares/rateLimiters');
 const { executarRotinaDeLembretes } = require('../plans/plans.reminders');
-const { enviarSolicitacoesRetroativas } = require('../policy/policy.service');
+const { enviarSolicitacoesRetroativas, enviarSolicitacaoParaUsuario } = require('../policy/policy.service');
 
 const router = Router();
 
@@ -24,6 +24,15 @@ router.post('/lembretes/enviar', aiLimiter, async (req, res, next) => {
 router.post('/politica/enviar-solicitacoes', aiLimiter, async (req, res, next) => {
   try {
     const resultado = await enviarSolicitacoesRetroativas();
+    res.json(resultado);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/politica/reenviar/:userId', aiLimiter, async (req, res, next) => {
+  try {
+    const resultado = await enviarSolicitacaoParaUsuario(req.params.userId);
     res.json(resultado);
   } catch (err) {
     next(err);

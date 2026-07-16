@@ -2,7 +2,8 @@ const pool = require('../../database/pool');
 
 async function listarUsuarios() {
   const result = await pool.query(
-    `SELECT id, nome, email, role, email_verificado, cidade, estado, created_at
+    `SELECT id, nome, email, role, email_verificado, cidade, estado, created_at,
+            aceite_termos_versao, aceite_termos_em, aceite_termos_recusado_em
      FROM users
      ORDER BY created_at DESC`
   );

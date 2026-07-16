@@ -1,9 +1,11 @@
 const env = require('../../config/env');
+const { usuarioTemConsentimentoValido } = require('../policy/policy.service');
 const { askMentor } = require('../ai/ai.provider');
 const { buildUserContext } = require('../ai/ai.context');
 
 async function gerarCurriculoComIA(userId) {
   if (!env.geminiApiKey) return null;
+  if (!(await usuarioTemConsentimentoValido(userId))) return null;
 
   try {
     const context = await buildUserContext(userId);
@@ -25,8 +27,9 @@ async function gerarCurriculoComIA(userId) {
   }
 }
 
-async function gerarFeedbackEntrevistaComIA(perguntasRespostas) {
+async function gerarFeedbackEntrevistaComIA(userId, perguntasRespostas) {
   if (!env.geminiApiKey) return null;
+  if (!(await usuarioTemConsentimentoValido(userId))) return null;
 
   try {
     const systemPrompt =

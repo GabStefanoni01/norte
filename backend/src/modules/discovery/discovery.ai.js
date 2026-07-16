@@ -1,4 +1,5 @@
 const env = require('../../config/env');
+const { usuarioTemConsentimentoValido } = require('../policy/policy.service');
 const { askMentor } = require('../ai/ai.provider');
 const { buildUserContext } = require('../ai/ai.context');
 
@@ -10,6 +11,7 @@ const { buildUserContext } = require('../ai/ai.context');
  */
 async function gerarDescricaoPersonalizada(userId, resultado, reflexao) {
   if (!env.geminiApiKey) return null;
+  if (!(await usuarioTemConsentimentoValido(userId))) return null;
 
   try {
     const context = await buildUserContext(userId);

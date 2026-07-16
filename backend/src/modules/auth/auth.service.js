@@ -4,18 +4,25 @@ const pool = require('../../database/pool');
 const env = require('../../config/env');
 const { calcularIdade } = require('../../utils/date');
 const verificationService = require('./verification.service');
+const { VERSAO_ATUAL_TERMOS } = require('../policy/policy.data');
 
 const SALT_ROUNDS = 10;
 
-async function register({ nome, email, senha, dataNascimento, estado, cidade }) {
+async function register({ nome, email, senha, dataNascimento, estado, cidade, aceiteTermos }) {
+  if (!aceiteTermos) {
+    const err = new Error('É necessário aceitar a Política de Privacidade e os Termos de Uso para se cadastrar.');
+    err.status = 400;
+    throw err;
+  }
+
   const hashed = await bcrypt.hash(senha, SALT_ROUNDS);
   const idade = calcularIdade(dataNascimento);
 
   const result = await pool.query(
-    `INSERT INTO users (nome, email, senha, idade, cidade, data_nascimento, estado)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO users (nome, email, senha, idade, cidade, data_nascimento, estado, aceite_termos_versao, aceite_termos_em)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
      RETURNING id, nome, email, idade, cidade, data_nascimento, estado`,
-    [nome, email, hashed, idade, cidade, dataNascimento, estado]
+    [nome, email, hashed, idade, cidade, dataNascimento, estado, VERSAO_ATUAL_TERMOS]
   );
 
   const usuario = result.rows[0];

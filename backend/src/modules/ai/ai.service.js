@@ -1,8 +1,20 @@
 const pool = require('../../database/pool');
+const { usuarioTemConsentimentoValido } = require('../policy/policy.service');
 const { buildUserContext, contextToSystemPrompt } = require('./ai.context');
 const { askMentor } = require('./ai.provider');
 
 async function chat(userId, mensagem) {
+  const consentiu = await usuarioTemConsentimentoValido(userId);
+  if (!consentiu) {
+    const err = new Error(
+      'Para usar o mentor IA, é necessário aceitar o compartilhamento de dados com nosso provedor de IA. ' +
+      'Revise em Perfil > Segurança ou entre em contato.'
+    );
+    err.status = 403;
+    err.code = 'CONSENTIMENTO_NECESSARIO';
+    throw err;
+  }
+
   if (!mensagem || !mensagem.trim()) {
     const err = new Error('Mensagem não pode ser vazia');
     err.status = 400;

@@ -58,6 +58,7 @@ export class RegisterComponent implements OnInit {
       dataNascimento: ['', [Validators.required]],
       estado: ['', [Validators.required]],
       cidade: [{ value: '', disabled: true }, [Validators.required]],
+      aceiteTermos: [false, [Validators.requiredTrue]],
     },
     { validators: senhasIguaisValidator() }
   );
@@ -116,6 +117,7 @@ export class RegisterComponent implements OnInit {
         dataNascimento: dados.dataNascimento!,
         estado: dados.estado!,
         cidade: dados.cidade!,
+        aceiteTermos: dados.aceiteTermos!,
       })
       .subscribe({
         next: () => {

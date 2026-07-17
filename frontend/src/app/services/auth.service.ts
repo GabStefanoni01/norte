@@ -73,6 +73,7 @@ export class AuthService {
     dataNascimento: string;
     estado: string;
     cidade: string;
+    aceiteTermos: boolean;
   }) {
     return this.api.post<{ message: string; user: Usuario }>('/auth/register', dados);
   }

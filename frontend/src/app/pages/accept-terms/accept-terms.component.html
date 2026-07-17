@@ -1,0 +1,49 @@
+<main class="relative min-h-screen overflow-hidden flex items-center justify-center px-4">
+  <norte-starfield />
+
+  <div class="stagger relative z-10 w-full max-w-md text-center">
+    <div class="flex justify-center mb-4">
+      <norte-logo-mark [tamanho]="40" />
+    </div>
+
+    @if (resultado()) {
+      <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
+        <p class="font-display text-2xl mb-3">
+          {{ resultado() === 'aceito' ? '✓ Obrigado!' : 'Recusa registrada' }}
+        </p>
+        <p class="text-white/70 text-sm leading-relaxed mb-6">{{ mensagem() }}</p>
+        <a routerLink="/entrar" class="text-norte-accent-light hover:underline text-sm">Ir para o login →</a>
+      </div>
+    } @else {
+      <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
+        <p class="font-display text-2xl mb-3">Revise nossos termos</p>
+        <p class="text-white/60 text-sm leading-relaxed mb-6">
+          Atualizamos nossa <a routerLink="/politica-de-privacidade" target="_blank" class="text-norte-accent-light hover:underline">Política de Privacidade</a>
+          e <a routerLink="/termos-de-uso" target="_blank" class="text-norte-accent-light hover:underline">Termos de Uso</a>.
+          Pra continuar usando o mentor IA e as sugestões personalizadas, precisamos do seu aceite.
+        </p>
+
+        @if (erro()) {
+          <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
+        }
+
+        <div class="flex gap-3">
+          <button
+            (click)="responder(true)"
+            [disabled]="processando() || !!erro()"
+            class="btn-shine flex-1 rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold py-2.5 disabled:opacity-50"
+          >
+            {{ processando() ? 'Enviando...' : 'Aceitar' }}
+          </button>
+          <button
+            (click)="responder(false)"
+            [disabled]="processando() || !!erro()"
+            class="flex-1 rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white py-2.5 disabled:opacity-50"
+          >
+            Recusar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</main>

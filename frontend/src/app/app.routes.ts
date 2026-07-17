@@ -8,6 +8,20 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'politica-de-privacidade',
+    loadComponent: () =>
+      import('./pages/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent),
+  },
+  {
+    path: 'termos-de-uso',
+    loadComponent: () => import('./pages/terms/terms.component').then((m) => m.TermsComponent),
+  },
+  {
+    path: 'aceite-termos',
+    loadComponent: () =>
+      import('./pages/accept-terms/accept-terms.component').then((m) => m.AcceptTermsComponent),
+  },
+  {
     path: 'sobre',
     loadComponent: () => import('./pages/about/about.component').then((m) => m.AboutComponent),
   },

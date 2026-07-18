@@ -45,6 +45,7 @@ export class ProfileComponent implements OnInit {
     interesses: this.fb.array(this.interessesDisponiveis.map(() => this.fb.control(false))),
     objetivos: ['', [Validators.required, Validators.minLength(5)]],
     habilidadesTexto: [''],
+    carreiraInteresse: [''],
   });
 
   // --- Dados pessoais ---
@@ -98,6 +99,7 @@ export class ProfileComponent implements OnInit {
           escolaridade: perfil.escolaridade,
           objetivos: perfil.objetivos,
           habilidadesTexto: (perfil.habilidades || []).join(', '),
+          carreiraInteresse: perfil.carreira_interesse || '',
         });
 
         const interesses = perfil.interesses || [];
@@ -138,6 +140,7 @@ export class ProfileComponent implements OnInit {
         interesses,
         objetivos: valores.objetivos!,
         habilidades,
+        carreira_interesse: valores.carreiraInteresse || undefined,
       })
       .subscribe({
         next: () => {

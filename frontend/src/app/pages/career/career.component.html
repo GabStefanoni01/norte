@@ -1,0 +1,159 @@
+<norte-sidebar />
+
+<div class="pl-16">
+  <main class="max-w-4xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <div>
+        <p class="text-sm uppercase tracking-[0.3em] text-norte-accent-light/80 mb-2">Simulador de carreira</p>
+        <h1 class="font-display text-3xl">Explorar profissões</h1>
+      </div>
+      <button
+        routerLink="/perfil"
+        class="rounded-full border border-norte-800 bg-norte-900/80 px-4 py-2 text-sm text-white/80 hover:bg-norte-900"
+      >
+        Atualizar meu perfil
+      </button>
+    </div>
+
+    <p class="text-white/60 mb-8">
+      Compare diferentes caminhos com competências, salário, rotina, áreas de atuação, tecnologias e cursos recomendados.
+    </p>
+
+    <div class="grid gap-4 lg:grid-cols-3 mb-6">
+      <label class="block text-sm text-white/70">
+        <span class="mb-2 inline-block">Área</span>
+        <select
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          [value]="selectedArea()"
+          (change)="selectedArea.set($any($event.target).value)"
+        >
+          <option value="">Todas</option>
+          <option *ngFor="let area of areasDisponiveis()" [value]="area">{{ area }}</option>
+        </select>
+      </label>
+
+      <label class="block text-sm text-white/70">
+        <span class="mb-2 inline-block">Tecnologia</span>
+        <select
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          [value]="selectedTechnology()"
+          (change)="selectedTechnology.set($any($event.target).value)"
+        >
+          <option value="">Todas</option>
+          <option *ngFor="let tech of tecnologiasDisponiveis()" [value]="tech">{{ tech }}</option>
+        </select>
+      </label>
+
+      <label class="block text-sm text-white/70">
+        <span class="mb-2 inline-block">Tempo de entrada</span>
+        <select
+          class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+          [value]="selectedTempo()"
+          (change)="selectedTempo.set($any($event.target).value)"
+        >
+          <option value="">Todos</option>
+          <option *ngFor="let tempo of temposDisponiveis()" [value]="tempo">{{ tempo }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div *ngIf="mensagemComparacao()" class="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-200 mb-6">
+      {{ mensagemComparacao() }}
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <div>
+          <div class="grid gap-4">
+            <ng-container *ngIf="carreirasFiltradas().length > 0; else semResultados">
+              <button
+                *ngFor="let carreira of carreirasFiltradas()"
+                (click)="selecionarCarreira(carreira)"
+                [class]="
+                  carreiraSelecionada() === carreira
+                    ? 'rounded-3xl border border-norte-accent bg-norte-accent/10 p-5 text-left text-white shadow-[0_0_20px_rgba(224,169,68,0.15)]'
+                    : 'rounded-3xl border border-norte-800 bg-norte-900/60 p-5 text-left text-white/80 hover:border-norte-700 hover:bg-norte-900/80 transition'
+                "
+              >
+                <p class="text-sm text-norte-accent-light mb-2">{{ carreira.nome }}</p>
+                <p class="text-sm text-white/60">{{ carreira.descricaoCurta }}</p>
+              </button>
+            </ng-container>
+
+            <ng-template #semResultados>
+              <div class="rounded-3xl border border-norte-800 bg-norte-900/60 p-5 text-white/70">
+                Nenhuma carreira encontrada para os filtros selecionados.
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-norte-800 bg-norte-900/70 p-6 min-h-[420px]">
+          <ng-container *ngIf="carreiraSelecionada(); else placeholder">
+            <button
+              (click)="voltar()"
+              class="mb-6 inline-flex items-center gap-2 text-sm text-norte-accent-light hover:text-white"
+            >
+              ← Voltar para a lista
+            </button>
+
+            <h2 class="font-semibold text-2xl mb-3">{{ carreiraSelecionada()!.nome }}</h2>
+            <p class="text-white/60 mb-6">{{ carreiraSelecionada()!.descricaoCurta }}</p>
+
+            <div class="grid gap-5">
+              <section class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Competências necessárias</p>
+                <ul class="grid gap-2 text-sm text-white/80">
+                  <li *ngFor="let item of carreiraSelecionada()!.competencias">• {{ item }}</li>
+                </ul>
+              </section>
+
+              <section class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Tempo médio para entrar na área</p>
+                <p class="text-white/80">{{ carreiraSelecionada()!.tempoMedioEntrada }}</p>
+              </section>
+
+              <section class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Média salarial</p>
+                <p class="text-white/80">{{ carreiraSelecionada()!.salarioMedia }}</p>
+              </section>
+
+              <section class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Rotina da profissão</p>
+                <p class="text-white/80">{{ carreiraSelecionada()!.rotina }}</p>
+              </section>
+
+              <section class="grid gap-4 lg:grid-cols-2">
+                <div class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                  <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Áreas de atuação</p>
+                  <ul class="grid gap-2 text-sm text-white/80">
+                    <li *ngFor="let area of carreiraSelecionada()!.areasAtuacao">• {{ area }}</li>
+                  </ul>
+                </div>
+
+                <div class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                  <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Tecnologias</p>
+                  <ul class="grid gap-2 text-sm text-white/80">
+                    <li *ngFor="let tech of carreiraSelecionada()!.tecnologias">• {{ tech }}</li>
+                  </ul>
+                </div>
+              </section>
+
+              <section class="rounded-2xl border border-norte-800 bg-norte-950/60 p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light mb-3">Cursos recomendados</p>
+                <ul class="grid gap-2 text-sm text-white/80">
+                  <li *ngFor="let curso of carreiraSelecionada()!.cursosRecomendados">• {{ curso }}</li>
+                </ul>
+              </section>
+            </div>
+          </ng-container>
+
+          <ng-template #placeholder>
+            <div class="flex h-full flex-col items-center justify-center gap-4 text-center text-white/60">
+              <p class="text-lg font-semibold">Escolha uma profissão para comparar</p>
+              <p class="max-w-sm text-sm">Veja competências, salário, rotina, áreas, tecnologias e cursos que ajudam a entrar na área.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+  </main>
+</div>

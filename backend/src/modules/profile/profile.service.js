@@ -1,7 +1,7 @@
 const pool = require('../../database/pool');
 const { verificarConquistas } = require('../achievements/achievements.service');
 
-async function upsertProfile(userId, { escolaridade, interesses, objetivos, habilidades }) {
+async function upsertProfile(userId, { escolaridade, interesses, objetivos, habilidades, carreira_interesse }) {
   const existing = await pool.query('SELECT id FROM profiles WHERE user_id = $1', [userId]);
 
   let perfil;
@@ -9,18 +9,18 @@ async function upsertProfile(userId, { escolaridade, interesses, objetivos, habi
   if (existing.rows.length > 0) {
     const result = await pool.query(
       `UPDATE profiles
-       SET escolaridade = $1, interesses = $2, objetivos = $3, habilidades = $4
-       WHERE user_id = $5
+       SET escolaridade = $1, interesses = $2, objetivos = $3, habilidades = $4, carreira_interesse = $5
+       WHERE user_id = $6
        RETURNING *`,
-      [escolaridade, interesses, objetivos, habilidades, userId]
+      [escolaridade, interesses, objetivos, habilidades, carreira_interesse, userId]
     );
     perfil = result.rows[0];
   } else {
     const result = await pool.query(
-      `INSERT INTO profiles (user_id, escolaridade, interesses, objetivos, habilidades)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO profiles (user_id, escolaridade, interesses, objetivos, habilidades, carreira_interesse)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [userId, escolaridade, interesses, objetivos, habilidades]
+      [userId, escolaridade, interesses, objetivos, habilidades, carreira_interesse]
     );
     perfil = result.rows[0];
   }

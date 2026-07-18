@@ -5,6 +5,7 @@ export interface Perfil {
   interesses: string[];
   objetivos: string;
   habilidades: string[];
+  carreira_interesse?: string;
   perfil_dominante?: string;
   resultado_descoberta?: string;
   areas_sugeridas?: string[];

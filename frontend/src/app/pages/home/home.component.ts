@@ -1,18 +1,25 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
 import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 import { FooterComponent } from '../../components/footer/footer.component';
 import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.directive';
+import { CommunityService } from '../../services/community.service';
+import { CommunityPost } from '../../models/community.model';
 
 @Component({
   selector: 'norte-home',
   standalone: true,
-  imports: [RouterLink, StarfieldComponent, RevealOnScrollDirective, LogoMarkComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, StarfieldComponent, RevealOnScrollDirective, LogoMarkComponent, FooterComponent],
   templateUrl: './home.component.html',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private communityService = inject(CommunityService);
+
   menuAberto = signal(false);
+  posts = signal<CommunityPost[]>([]);
+  carregandoPosts = signal(true);
 
   etapas = [
     {
@@ -32,6 +39,18 @@ export class HomeComponent {
       texto: 'Travou? Desanimou? O mentor IA conhece seu histórico e ajuda a ajustar a rota, não só responde perguntas.',
     },
   ];
+
+  ngOnInit() {
+    this.communityService.listarPosts({ limit: 4 }).subscribe({
+      next: (posts) => {
+        this.posts.set(posts);
+        this.carregandoPosts.set(false);
+      },
+      error: () => {
+        this.carregandoPosts.set(false);
+      },
+    });
+  }
 
   beneficios = [
     { titulo: 'Feito para o começo de carreira', texto: 'Sem experiência? Sem diploma ainda? O Norte parte de onde você está, não de onde deveria estar.' },

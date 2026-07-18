@@ -68,6 +68,19 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/career/career.component').then((m) => m.CareerComponent),
   },
   {
+    path: 'comunidade/novo',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/community/community-create.component').then((m) => m.CommunityCreateComponent),
+  },
+  {
+    path: 'comunidade/:id',
+    loadComponent: () => import('./pages/community/community-post.component').then((m) => m.CommunityPostComponent),
+  },
+  {
+    path: 'comunidade',
+    loadComponent: () => import('./pages/community/community.component').then((m) => m.CommunityComponent),
+  },
+  {
     path: 'curriculo',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/resume/resume.component').then((m) => m.ResumeComponent),

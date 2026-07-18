@@ -7,8 +7,18 @@ const API_URL = 'http://localhost:3000';
 export class ApiService {
   constructor(private http: HttpClient) {}
 
-  get<T>(path: string, params?: Record<string, string | number>) {
-    return this.http.get<T>(`${API_URL}${path}`, { params });
+  get<T>(path: string, params?: Record<string, string | number | undefined>) {
+    const filteredParams: Record<string, string> = {};
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          filteredParams[key] = String(value);
+        }
+      });
+    }
+
+    return this.http.get<T>(`${API_URL}${path}`, { params: filteredParams });
   }
 
   post<T>(path: string, body: unknown) {

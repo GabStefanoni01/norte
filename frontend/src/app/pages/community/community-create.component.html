@@ -1,0 +1,56 @@
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <div class="mb-8">
+    <h1 class="text-3xl font-semibold text-white">Nova publicação</h1>
+    <p class="text-white/60 mt-2">Escreva sua publicação com formatação e imagens. Depois de criar, você será redirecionado para a publicação.</p>
+  </div>
+
+  <div class="space-y-6 rounded-3xl border border-norte-800 bg-norte-900/70 p-6">
+    <label class="block text-sm text-white/70">
+      <span class="mb-2 block">Categoria</span>
+      <select
+        class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        [value]="categoria()"
+        (change)="categoria.set($any($event.target).value)"
+      >
+        <option *ngFor="let item of categorias()" [value]="item">{{ item }}</option>
+      </select>
+    </label>
+
+    <label class="block text-sm text-white/70">
+      <span class="mb-2 block">Título</span>
+      <input
+        class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        type="text"
+        [value]="titulo()"
+        (input)="titulo.set($any($event.target).value)"
+      />
+    </label>
+
+    <label class="block text-sm text-white/70">
+      <span class="mb-2 block">Conteúdo</span>
+      <textarea
+        class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
+        rows="12"
+        [value]="conteudo()"
+        (input)="conteudo.set($any($event.target).value)"
+        (paste)="handlePaste($event)"
+        placeholder="Use **negrito**, _itálico_, listas ou cole imagens diretamente do clipboard."
+      ></textarea>
+    </label>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <button
+        class="rounded-full bg-norte-accent px-6 py-3 text-sm font-semibold text-norte-950 hover:bg-norte-accent-light transition"
+        [disabled]="salvando()"
+        (click)="criarPublicacao()"
+      >
+        {{ salvando() ? 'Publicando...' : 'Criar publicação' }}
+      </button>
+      <a routerLink="/comunidade" class="text-sm text-white/60 hover:text-white">Voltar para a comunidade</a>
+    </div>
+
+    <div *ngIf="mensagem()" class="rounded-2xl border border-norte-700 bg-norte-yellow/10 p-4 text-yellow-200">
+      {{ mensagem() }}
+    </div>
+  </div>
+</div>

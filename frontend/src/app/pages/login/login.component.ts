@@ -22,6 +22,7 @@ export class LoginComponent implements OnInit {
   sucesso = signal<string | null>(null);
   emailNaoVerificado = signal(false);
   carregando = signal(false);
+  redirectTo = signal('');
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -36,6 +37,8 @@ export class LoginComponent implements OnInit {
     } else if (params.get('senhaRedefinida')) {
       this.sucesso.set('Senha redefinida com sucesso. Entre com sua nova senha.');
     }
+
+    this.redirectTo.set(params.get('redirectTo') || '');
   }
 
   entrar() {
@@ -54,7 +57,7 @@ export class LoginComponent implements OnInit {
     this.auth.login(email!, senha!).subscribe({
       next: () => {
         this.carregando.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigateByUrl(this.redirectTo() || '/dashboard');
       },
       error: (err) => {
         this.carregando.set(false);

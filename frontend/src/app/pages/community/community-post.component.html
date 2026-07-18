@@ -1,0 +1,42 @@
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <div *ngIf="carregando()" class="text-white/60">Carregando...</div>
+
+  <div *ngIf="!carregando() && post()" class="space-y-6">
+    <div class="rounded-3xl border border-norte-800 bg-norte-900/70 p-6">
+      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light">{{ post()?.categoria }}</p>
+      <h1 class="text-3xl font-semibold text-white mt-4">{{ post()?.titulo }}</h1>
+      <p class="mt-4 text-white/60">Por {{ post()?.autor_nome }} • {{ post()?.created_at | date:'short' }}</p>
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-white/80">&nbsp;</div>
+        <button
+          *ngIf="auth.ehAdmin()"
+          type="button"
+          class="rounded-full border border-red-500 bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+          [disabled]="deletando()"
+          (click)="excluirPost()"
+        >
+          {{ deletando() ? 'Excluindo...' : 'Excluir publicação' }}
+        </button>
+      </div>
+      <div *ngIf="mensagem()" class="mt-4 rounded-2xl border border-red-500 bg-red-950/60 p-4 text-sm text-red-200">
+        {{ mensagem() }}
+      </div>
+      <div class="prose prose-invert mt-8 text-white/80" [innerHTML]="formatContent(post()?.conteudo || '')"></div>
+    </div>
+
+    <div class="rounded-3xl border border-norte-800 bg-norte-900/70 p-6">
+      <h2 class="text-xl font-semibold text-white mb-4">Comentários</h2>
+      <div *ngIf="post()?.comentarios?.length === 0" class="text-white/60">Nenhum comentário ainda.</div>
+      <div class="space-y-4" *ngFor="let comment of post()?.comentarios || []">
+        <div class="rounded-2xl border border-norte-800 bg-norte-950/60 p-4">
+          <p class="text-sm text-white/60">{{ comment.autor_nome }} • {{ comment.created_at | date:'short' }}</p>
+          <p class="mt-2 text-white/80">{{ comment.conteudo }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!carregando() && !post()" class="rounded-3xl border border-norte-800 bg-norte-950/60 p-6 text-white/70">
+    Não foi possível encontrar a publicação.
+  </div>
+</div>

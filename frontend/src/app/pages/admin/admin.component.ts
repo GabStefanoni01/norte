@@ -16,6 +16,8 @@ export class AdminComponent implements OnInit {
   carregando = signal(true);
   erro = signal<string | null>(null);
   atualizandoId = signal<number | null>(null);
+  reenviandoId = signal<number | null>(null);
+  mensagemReenvio = signal<string | null>(null);
 
   ngOnInit() {
     this.carregarUsuarios();
@@ -49,6 +51,22 @@ export class AdminComponent implements OnInit {
       error: () => {
         this.erro.set('Não foi possível atualizar o papel deste usuário.');
         this.atualizandoId.set(null);
+      },
+    });
+  }
+
+  reenviarTermos(usuario: UsuarioAdmin) {
+    this.reenviandoId.set(usuario.id);
+    this.mensagemReenvio.set(null);
+
+    this.admin.reenviarTermos(usuario.id).subscribe({
+      next: (res) => {
+        this.mensagemReenvio.set(res.message);
+        this.reenviandoId.set(null);
+      },
+      error: () => {
+        this.erro.set('Não foi possível reenviar o e-mail de aceite.');
+        this.reenviandoId.set(null);
       },
     });
   }

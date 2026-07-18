@@ -13,4 +13,8 @@ export class AdminService {
   atualizarRole(userId: number, role: 'usuario' | 'admin') {
     return this.api.patch<UsuarioAdmin>(`/admin/users/${userId}/role`, { role });
   }
+
+  reenviarTermos(userId: number) {
+    return this.api.post<{ message: string }>(`/admin/politica/reenviar/${userId}`, {});
+  }
 }

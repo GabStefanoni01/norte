@@ -73,10 +73,14 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         this.precisaRolar = true;
       },
       error: (err) => {
-        const mensagemErro =
-          err?.error?.code === 'IA_NAO_CONFIGURADA'
-            ? 'O mentor IA ainda não está configurado neste ambiente. Peça pro administrador configurar a GEMINI_API_KEY.'
-            : 'Não consegui responder agora. Tenta de novo em instantes?';
+        const codigo = err?.error?.code;
+        let mensagemErro = 'Não consegui responder agora. Tenta de novo em instantes?';
+
+        if (codigo === 'IA_NAO_CONFIGURADA') {
+          mensagemErro = 'O mentor IA ainda não está configurado neste ambiente. Peça pro administrador configurar a GEMINI_API_KEY.';
+        } else if (codigo === 'CONSENTIMENTO_NECESSARIO') {
+          mensagemErro = 'Pra usar o mentor IA, você precisa aceitar a Política de Privacidade e os Termos de Uso primeiro.';
+        }
 
         this.turnos.update((lista) => [...lista, { tipo: 'sistema', texto: mensagemErro }]);
         this.enviando.set(false);

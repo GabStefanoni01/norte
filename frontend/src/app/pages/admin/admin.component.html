@@ -10,6 +10,10 @@
     <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
   }
 
+  @if (mensagemReenvio()) {
+    <p class="text-sm text-emerald-400 mb-4">{{ mensagemReenvio() }}</p>
+  }
+
   @if (carregando()) {
     <p class="text-white/50">Carregando usuários...</p>
   } @else {
@@ -22,6 +26,7 @@
             <th class="px-4 py-3">Cidade/UF</th>
             <th class="px-4 py-3">E-mail verificado</th>
             <th class="px-4 py-3">Papel</th>
+            <th class="px-4 py-3">Termos</th>
             <th class="px-4 py-3"></th>
           </tr>
         </thead>
@@ -52,7 +57,23 @@
                   {{ usuario.role }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-right">
+              <td class="px-4 py-3">
+                @if (usuario.aceite_termos_versao) {
+                  <span class="text-emerald-400 text-xs">Aceitou</span>
+                } @else if (usuario.aceite_termos_recusado_em) {
+                  <span class="text-red-400 text-xs">Recusou</span>
+                } @else {
+                  <span class="text-white/40 text-xs">Pendente</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-right space-x-3 whitespace-nowrap">
+                <button
+                  (click)="reenviarTermos(usuario)"
+                  [disabled]="reenviandoId() === usuario.id"
+                  class="text-xs text-white/50 hover:text-white hover:underline disabled:opacity-50"
+                >
+                  {{ reenviandoId() === usuario.id ? 'Enviando...' : 'Reenviar termos' }}
+                </button>
                 <button
                   (click)="alternarRole(usuario)"
                   [disabled]="atualizandoId() === usuario.id"

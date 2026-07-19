@@ -119,6 +119,21 @@
           </div>
         </div>
 
+        <label class="flex items-start gap-2.5 text-xs text-white/60">
+          <input
+            type="checkbox"
+            formControlName="aceiteTermos"
+            class="mt-0.5 accent-norte-accent"
+          />
+          <span>
+            Li e aceito a
+            <a routerLink="/politica-de-privacidade" target="_blank" class="text-norte-accent-light hover:underline">Política de Privacidade</a>
+            e os
+            <a routerLink="/termos-de-uso" target="_blank" class="text-norte-accent-light hover:underline">Termos de Uso</a>
+            do Norte.
+          </span>
+        </label>
+
         @if (erro()) {
           <p class="text-sm text-red-400">{{ erro() }}</p>
         }

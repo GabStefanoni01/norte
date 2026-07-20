@@ -30,7 +30,8 @@ async function login(req, res, next) {
       [typeof senha === 'string' && senha.length > 0, 'Senha é obrigatória.'],
     ]);
 
-    const result = await authService.login(req.body);
+    const meta = { ip: req.ip, userAgent: req.headers['user-agent'] };
+    const result = await authService.login(req.body, meta);
     res.json(result);
   } catch (err) {
     next(err);

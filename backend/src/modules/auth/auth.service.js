@@ -4,6 +4,7 @@ const pool = require('../../database/pool');
 const env = require('../../config/env');
 const { calcularIdade } = require('../../utils/date');
 const verificationService = require('./verification.service');
+const { enviarEmail } = require('../mail/mail.service');
 const { VERSAO_ATUAL_TERMOS } = require('../policy/policy.data');
 
 const SALT_ROUNDS = 10;
@@ -32,7 +33,30 @@ async function register({ nome, email, senha, dataNascimento, estado, cidade, ac
   return usuario;
 }
 
-async function login({ email, senha }) {
+
+function formatarDataHora(data) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  }).format(data);
+}
+
+async function enviarNotificacaoDeLogin(user, { ip, userAgent } = {}) {
+  await enviarEmail({
+    para: user.email,
+    assunto: 'Novo login na sua conta — Norte',
+    texto:
+      `Olá, ${user.nome}!\n\n` +
+      `Detectamos um login na sua conta em ${formatarDataHora(new Date())} (horário de Brasília).\n` +
+      (ip ? `IP: ${ip}\n` : '') +
+      (userAgent ? `Dispositivo: ${userAgent}\n` : '') +
+      '\nSe foi você, pode ignorar este e-mail. Se não reconhece esse acesso, troque sua senha ' +
+      'imediatamente na página de Perfil > Segurança.\n\n— Equipe Norte',
+  });
+}
+
+async function login({ email, senha }, meta = {}) {
   const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
   const user = result.rows[0];
 
@@ -60,6 +84,11 @@ async function login({ email, senha }) {
     { sub: user.id, email: user.email, nome: user.nome, role: user.role },
     env.jwtSecret,
     { expiresIn: env.jwtExpiresIn }
+  );
+
+  // Não-bloqueante: um erro no envio do e-mail nunca deve impedir o login.
+  enviarNotificacaoDeLogin(user, meta).catch((err) =>
+    console.error('Não foi possível enviar notificação de login:', err.message)
   );
 
   return {

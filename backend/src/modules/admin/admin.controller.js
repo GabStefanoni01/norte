@@ -18,4 +18,13 @@ async function atualizarRole(req, res, next) {
   }
 }
 
-module.exports = { listarUsuarios, atualizarRole };
+async function atualizarPlano(req, res, next) {
+  try {
+    const usuario = await adminService.atualizarPlano(req.params.id, req.body.plano);
+    res.json(usuario);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listarUsuarios, atualizarRole, atualizarPlano };

@@ -11,6 +11,7 @@ const router = Router();
 router.use(authGuard, adminGuard);
 router.get('/users', controller.listarUsuarios);
 router.patch('/users/:id/role', controller.atualizarRole);
+router.patch('/users/:id/plano', controller.atualizarPlano);
 
 router.post('/lembretes/enviar', aiLimiter, async (req, res, next) => {
   try {

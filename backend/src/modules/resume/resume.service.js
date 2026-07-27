@@ -3,6 +3,7 @@ const { montarPerguntas } = require('./resume.data');
 const { montarCurriculoTemplate, montarFeedbackEntrevistaTemplate } = require('./resume.templates');
 const { gerarCurriculoComIA, gerarFeedbackEntrevistaComIA } = require('./resume.ai');
 const { verificarConquistas } = require('../achievements/achievements.service');
+const { consumirCota } = require('../limits/limits.service');
 
 async function buscarDadosParaCurriculo(userId) {
   const [userResult, profileResult, planResult] = await Promise.all([
@@ -42,6 +43,8 @@ async function buscarDadosParaCurriculo(userId) {
 }
 
 async function gerarCurriculo(userId) {
+  await consumirCota(userId, 'curriculo');
+
   const dados = await buscarDadosParaCurriculo(userId);
 
   const conteudoIA = await gerarCurriculoComIA(userId);
@@ -71,6 +74,8 @@ async function listarPerguntasEntrevista(userId) {
 }
 
 async function enviarRespostasEntrevista(userId, perguntasRespostas) {
+  await consumirCota(userId, 'entrevista');
+
   if (!Array.isArray(perguntasRespostas) || perguntasRespostas.length === 0) {
     const err = new Error('Envie ao menos uma pergunta respondida.');
     err.status = 400;

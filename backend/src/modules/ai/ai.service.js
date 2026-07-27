@@ -1,5 +1,6 @@
 const pool = require('../../database/pool');
 const { usuarioTemConsentimentoValido } = require('../policy/policy.service');
+const { consumirCota } = require('../limits/limits.service');
 const { buildUserContext, contextToSystemPrompt } = require('./ai.context');
 const { askMentor } = require('./ai.provider');
 
@@ -14,6 +15,8 @@ async function chat(userId, mensagem) {
     err.code = 'CONSENTIMENTO_NECESSARIO';
     throw err;
   }
+
+  await consumirCota(userId, 'mentor_chat');
 
   if (!mensagem || !mensagem.trim()) {
     const err = new Error('Mensagem não pode ser vazia');

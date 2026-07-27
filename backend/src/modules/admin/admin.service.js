@@ -3,7 +3,7 @@ const pool = require('../../database/pool');
 async function listarUsuarios() {
   const result = await pool.query(
     `SELECT id, nome, email, role, email_verificado, cidade, estado, created_at,
-            aceite_termos_versao, aceite_termos_em, aceite_termos_recusado_em
+            aceite_termos_versao, aceite_termos_em, aceite_termos_recusado_em, plano, premium_ate
      FROM users
      ORDER BY created_at DESC`
   );
@@ -31,4 +31,25 @@ async function atualizarRole(userId, role) {
   return result.rows[0];
 }
 
-module.exports = { listarUsuarios, atualizarRole };
+async function atualizarPlano(userId, plano) {
+  if (!['free', 'premium'].includes(plano)) {
+    const err = new Error('Plano inválido. Use "free" ou "premium".');
+    err.status = 400;
+    throw err;
+  }
+
+  const result = await pool.query(
+    `UPDATE users SET plano = $1 WHERE id = $2 RETURNING id, nome, email, plano`,
+    [plano, userId]
+  );
+
+  if (!result.rows[0]) {
+    const err = new Error('Usuário não encontrado');
+    err.status = 404;
+    throw err;
+  }
+
+  return result.rows[0];
+}
+
+module.exports = { listarUsuarios, atualizarRole, atualizarPlano };

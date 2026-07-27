@@ -17,6 +17,7 @@ const achievementsRoutes = require('./modules/achievements/achievements.routes')
 const adminRoutes = require('./modules/admin/admin.routes');
 const contactRoutes = require('./modules/contact/contact.routes');
 const policyRoutes = require('./modules/policy/policy.routes');
+const billingRoutes = require('./modules/billing/billing.routes');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/achievements', achievementsRoutes);
 app.use('/admin', adminRoutes);
 app.use('/contact', contactRoutes);
 app.use('/politica', policyRoutes);
+app.use('/billing', billingRoutes);
 
 app.use(errorHandler);
 

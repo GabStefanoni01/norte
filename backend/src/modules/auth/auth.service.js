@@ -20,8 +20,8 @@ async function register({ nome, email, senha, dataNascimento, estado, cidade, ac
   const idade = calcularIdade(dataNascimento);
 
   const result = await pool.query(
-    `INSERT INTO users (nome, email, senha, idade, cidade, data_nascimento, estado, aceite_termos_versao, aceite_termos_em)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+    `INSERT INTO users (nome, email, senha, idade, cidade, data_nascimento, estado, aceite_termos_versao, aceite_termos_em, premium_ate)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW() + INTERVAL '30 days')
      RETURNING id, nome, email, idade, cidade, data_nascimento, estado`,
     [nome, email, hashed, idade, cidade, dataNascimento, estado, VERSAO_ATUAL_TERMOS]
   );

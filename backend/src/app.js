@@ -18,6 +18,7 @@ const adminRoutes = require('./modules/admin/admin.routes');
 const contactRoutes = require('./modules/contact/contact.routes');
 const policyRoutes = require('./modules/policy/policy.routes');
 const billingRoutes = require('./modules/billing/billing.routes');
+const opportunitiesRoutes = require('./modules/opportunities/opportunities.routes');
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use('/admin', adminRoutes);
 app.use('/contact', contactRoutes);
 app.use('/politica', policyRoutes);
 app.use('/billing', billingRoutes);
+app.use('/opportunities', opportunitiesRoutes);
 
 app.use(errorHandler);
 

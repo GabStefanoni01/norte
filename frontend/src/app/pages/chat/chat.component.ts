@@ -80,6 +80,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           mensagemErro = 'O mentor IA ainda não está configurado neste ambiente. Peça pro administrador configurar a GEMINI_API_KEY.';
         } else if (codigo === 'CONSENTIMENTO_NECESSARIO') {
           mensagemErro = 'Pra usar o mentor IA, você precisa aceitar a Política de Privacidade e os Termos de Uso primeiro.';
+        } else if (codigo === 'LIMITE_PLANO_FREE') {
+          mensagemErro = err?.error?.error ?? 'Você atingiu o limite diário do plano Free. Assine o Premium em Perfil > Assinatura pra uso ilimitado.';
         }
 
         this.turnos.update((lista) => [...lista, { tipo: 'sistema', texto: mensagemErro }]);

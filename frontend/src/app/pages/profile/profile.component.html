@@ -27,6 +27,13 @@
     >
       Segurança
     </button>
+    <button
+      (click)="mudarAba('assinatura')"
+      class="px-4 py-2.5 border-b-2 transition-colors"
+      [class]="abaAtiva() === 'assinatura' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
+    >
+      Assinatura
+    </button>
   </div>
 
   @if (abaAtiva() === 'profissional') {
@@ -278,3 +285,53 @@
   }
 </main>
 </div>
+
+@if (abaAtiva() === 'assinatura') {
+  @if (carregandoAssinatura()) {
+    <p class="text-white/50">Carregando...</p>
+  } @else if (statusAssinatura()) {
+    <div class="card-glow rounded-xl border border-norte-accent/40 bg-norte-accent/5 p-6 max-w-md">
+      @if (statusAssinatura()!.plano === 'premium') {
+        <p class="font-semibold text-lg mb-1">✦ Você é Premium</p>
+        <p class="text-sm text-white/60 mb-4">Aproveite o mentor ilimitado e todos os recursos sem restrição.</p>
+        <button
+          (click)="cancelarPremium()"
+          [disabled]="processandoAssinatura()"
+          class="text-sm text-white/50 hover:text-white hover:underline disabled:opacity-50"
+        >
+          {{ processandoAssinatura() ? 'Cancelando...' : 'Cancelar assinatura' }}
+        </button>
+      } @else if (statusAssinatura()!.trialAtivo) {
+        <p class="font-semibold text-lg mb-1">🎁 Trial Premium ativo</p>
+        <p class="text-sm text-white/60 mb-4">
+          Você está no período gratuito de lançamento até {{ statusAssinatura()!.premiumAte | date: 'dd/MM/yyyy' }}.
+          Assine pra continuar com acesso ilimitado depois disso.
+        </p>
+        <button
+          (click)="assinarPremium()"
+          [disabled]="processandoAssinatura()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+        >
+          {{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium — R$ 9,99/mês' }}
+        </button>
+      } @else {
+        <p class="font-semibold text-lg mb-1">Plano Free</p>
+        <p class="text-sm text-white/60 mb-4">
+          Assine o Premium por R$ 9,99/mês e tenha mentor ilimitado, mais entrevistas, mais currículos e match
+          de oportunidades sem limite.
+        </p>
+        <button
+          (click)="assinarPremium()"
+          [disabled]="processandoAssinatura()"
+          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
+        >
+          {{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium' }}
+        </button>
+      }
+
+      @if (erroAssinatura()) {
+        <p class="text-sm text-red-400 mt-3">{{ erroAssinatura() }}</p>
+      }
+    </div>
+  }
+}

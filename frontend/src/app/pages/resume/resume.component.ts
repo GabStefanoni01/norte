@@ -74,8 +74,12 @@ export class ResumeComponent implements OnInit {
         this.curriculo.set(curriculo);
         this.gerandoCurriculo.set(false);
       },
-      error: () => {
-        this.erroCurriculo.set('Não foi possível gerar seu currículo. Tente novamente.');
+      error: (err) => {
+        this.erroCurriculo.set(
+          err?.error?.code === 'LIMITE_PLANO_FREE'
+            ? err.error.error
+            : 'Não foi possível gerar seu currículo. Tente novamente.'
+        );
         this.gerandoCurriculo.set(false);
       },
     });
@@ -161,8 +165,12 @@ export class ResumeComponent implements OnInit {
         this.emAndamento.set(false);
         this.enviandoRespostas.set(false);
       },
-      error: () => {
-        this.erroEntrevista.set('Não foi possível calcular seu feedback. Tente novamente.');
+      error: (err) => {
+        this.erroEntrevista.set(
+          err?.error?.code === 'LIMITE_PLANO_FREE'
+            ? err.error.error
+            : 'Não foi possível calcular seu feedback. Tente novamente.'
+        );
         this.enviandoRespostas.set(false);
       },
     });

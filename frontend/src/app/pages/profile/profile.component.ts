@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormArray, Validators } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
@@ -10,13 +11,15 @@ import { LocationsService } from '../../services/locations.service';
 import { INTERESSES_DISPONIVEIS, ESCOLARIDADES } from '../../models/profile.model';
 import { Estado, Cidade } from '../../models/location.model';
 import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
+import { BillingService } from '../../services/billing.service';
+import { StatusAssinatura } from '../../models/billing.model';
 
-type Aba = 'profissional' | 'pessoal' | 'seguranca';
+type Aba = 'profissional' | 'pessoal' | 'seguranca' | 'assinatura';
 
 @Component({
   selector: 'norte-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, SidebarComponent],
+  imports: [ReactiveFormsModule, SidebarComponent, DatePipe],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
@@ -27,6 +30,7 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
 
   auth = inject(AuthService);
+  private billing = inject(BillingService);
   hoje = new Date().toISOString().slice(0, 10);
 
   abaAtiva = signal<Aba>('profissional');
@@ -80,9 +84,46 @@ export class ProfileComponent implements OnInit {
     { validators: senhasIguaisValidator('novaSenha', 'confirmarSenha') }
   );
 
+  // --- Assinatura ---
+  statusAssinatura = signal<StatusAssinatura | null>(null);
+  carregandoAssinatura = signal(true);
+  processandoAssinatura = signal(false);
+  erroAssinatura = signal<string | null>(null);
+
   ngOnInit() {
     this.carregarPerfilProfissional();
     this.carregarDadosPessoais();
+    this.carregarAssinatura();
+  }
+
+  private carregarAssinatura() {
+    this.billing.status().subscribe({
+      next: (s) => { this.statusAssinatura.set(s); this.carregandoAssinatura.set(false); },
+      error: () => this.carregandoAssinatura.set(false),
+    });
+  }
+
+  assinarPremium() {
+    this.erroAssinatura.set(null);
+    this.processandoAssinatura.set(true);
+    this.billing.assinar().subscribe({
+      next: (res) => { window.location.href = res.initPoint; },
+      error: (err) => {
+        this.processandoAssinatura.set(false);
+        this.erroAssinatura.set(err?.error?.error ?? 'Não foi possível iniciar a assinatura.');
+      },
+    });
+  }
+
+  cancelarPremium() {
+    this.processandoAssinatura.set(true);
+    this.billing.cancelar().subscribe({
+      next: () => { this.processandoAssinatura.set(false); this.carregarAssinatura(); },
+      error: () => {
+        this.processandoAssinatura.set(false);
+        this.erroAssinatura.set('Não foi possível cancelar a assinatura.');
+      },
+    });
   }
 
   mudarAba(aba: Aba) {

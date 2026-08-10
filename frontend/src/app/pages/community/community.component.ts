@@ -5,17 +5,21 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { CommunityService } from '../../services/community.service';
 import { AuthService } from '../../services/auth.service';
 import { CommunityPost, CommunityCommentCreate } from '../../models/community.model';
+import { RevealOnScrollDirective } from '../../directives/reveal-on-scroll.directive';
+import { SkeletonLoaderComponent } from '../../components/skeleton-loader/skeleton-loader.component';
+import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'norte-community',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, RouterLink],
+  imports: [CommonModule, SidebarComponent, RouterLink, RevealOnScrollDirective, SkeletonLoaderComponent],
   templateUrl: './community.component.html',
 })
 export class CommunityComponent implements OnInit {
   private communityService = inject(CommunityService);
   router = inject(Router);
   auth = inject(AuthService);
+  private seo = inject(SeoService);
 
   carregando = signal(true);
   categorias = signal<string[]>([]);
@@ -37,6 +41,11 @@ export class CommunityComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.seo.setMeta({
+      title: 'Comunidade — Norte',
+      description: 'Leitura pública das publicações da comunidade Norte. Leia, comente e compartilhe experiências de carreira.',
+    });
+
     this.carregarCategorias();
     this.carregarPosts();
   }
@@ -141,5 +150,41 @@ export class CommunityComponent implements OnInit {
 
   get podeComentar() {
     return this.auth.estaAutenticado();
+  }
+
+  timeAgo(iso?: string) {
+    if (!iso) return '';
+    try {
+      const then = new Date(iso).getTime();
+      const diff = Date.now() - then;
+      const sec = Math.floor(diff / 1000);
+      if (sec < 60) return `há ${sec}s`;
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `há ${min}m`;
+      const hr = Math.floor(min / 60);
+      if (hr < 24) return `há ${hr}h`;
+      const days = Math.floor(hr / 24);
+      return `há ${days}d`;
+    } catch {
+      return iso;
+    }
+  }
+
+  avatarInitials(name?: string) {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
+  avatarColor(name?: string) {
+    if (!name) return '#444';
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+    const color = `hsl(${h % 360} 60% 40%)`;
+    return color;
   }
 }

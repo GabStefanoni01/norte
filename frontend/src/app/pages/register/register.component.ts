@@ -8,6 +8,12 @@ import { Estado, Cidade } from '../../models/location.model';
 import { StarfieldComponent } from '../../components/starfield/starfield.component';
 import { LogoMarkComponent } from '../../components/logo-mark/logo-mark.component';
 import { senhasIguaisValidator } from '../../validators/senhas-iguais.validator';
+import {
+  emailValidator,
+  senhaValidator,
+  nomeValidator,
+  senhaConfirmacaoValidator,
+} from '../../validators/validators';
 
 const NIVEIS_FORCA = [
   { rotulo: 'Muito fraca', cor: 'bg-red-500' },
@@ -51,10 +57,10 @@ export class RegisterComponent implements OnInit {
 
   form = this.fb.group(
     {
-      nome: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      senha: ['', [Validators.required, Validators.minLength(6)]],
-      confirmarSenha: ['', [Validators.required]],
+      nome: ['', [Validators.required, nomeValidator()]],
+      email: ['', [Validators.required, emailValidator()]],
+      senha: ['', [Validators.required, senhaValidator()]],
+      confirmarSenha: ['', [Validators.required, senhaConfirmacaoValidator('senha')]],
       dataNascimento: ['', [Validators.required]],
       estado: ['', [Validators.required]],
       cidade: [{ value: '', disabled: true }, [Validators.required]],

@@ -41,6 +41,9 @@
           <a (click)="menuAberto.set(false)" href="#beneficios" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
             Benefícios
           </a>
+          <a (click)="menuAberto.set(false)" href="#planos" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
+            Planos
+          </a>
           <a (click)="menuAberto.set(false)" href="#sobre" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
             Sobre o projeto
           </a>
@@ -184,6 +187,56 @@
 </section>
 
 <!-- Sobre -->
+<section id="planos" class="px-6 py-20 md:px-12">
+  <div class="mx-auto max-w-4xl">
+    <h2 norteReveal class="font-display text-3xl text-center mb-3">Comece grátis, evolua no seu ritmo</h2>
+    <p norteReveal class="text-white/60 text-center mb-12 max-w-xl mx-auto">
+      Todo cadastro novo já ganha 30 dias de Premium de graça pra você experimentar tudo sem limite.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div norteReveal class="card-hover rounded-2xl border border-norte-800 bg-norte-900/60 p-8">
+        <p class="text-sm text-white/50 mb-1">Free</p>
+        <p class="font-display text-3xl mb-4">R$ 0</p>
+        <ul class="space-y-2 text-sm text-white/70 mb-6">
+          <li>🧭 Teste de descoberta pessoal</li>
+          <li>🗺️ Plano de evolução</li>
+          <li>🤖 Mentor IA — 15 mensagens/dia</li>
+          <li>📄 Currículo inteligente — 2/mês</li>
+          <li>🎤 Simulação de entrevista — 3/mês</li>
+          <li>🎯 Match de oportunidades — 10 detalhados/dia</li>
+          <li>🏆 Conquistas e níveis</li>
+        </ul>
+        <a routerLink="/cadastro" class="block text-center rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white px-6 py-2.5">
+          Começar grátis
+        </a>
+      </div>
+
+      <div norteReveal [revealDelay]="0.1" class="card-glow rounded-2xl border border-norte-accent/40 bg-norte-accent/5 p-8 relative">
+        <span class="absolute -top-3 left-8 rounded-full bg-norte-accent text-norte-950 text-xs font-semibold px-3 py-1">
+          Mais popular
+        </span>
+        <p class="text-sm text-norte-accent-light mb-1">Premium</p>
+        <p class="font-display text-3xl mb-4">R$ 9,99<span class="text-base text-white/50">/mês</span></p>
+        <ul class="space-y-2 text-sm text-white/70 mb-6">
+          <li>✨ Tudo do plano Free</li>
+          <li>🤖 Mentor IA ilimitado</li>
+          <li>📄 Currículo inteligente ilimitado</li>
+          <li>🎤 Simulações de entrevista ilimitadas</li>
+          <li>🎯 Match de oportunidades ilimitado</li>
+          <li>⭐ Acesso antecipado a novidades</li>
+        </ul>
+        <a
+          routerLink="/cadastro"
+          class="btn-shine block text-center rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
+        >
+          Assinar Premium
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="sobre" class="px-6 py-20 md:px-12">
   <div norteReveal class="mx-auto max-w-2xl text-center">
     <h2 class="font-display text-3xl mb-4">Sobre o projeto</h2>

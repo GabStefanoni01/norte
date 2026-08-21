@@ -22,6 +22,8 @@ const opportunitiesRoutes = require('./modules/opportunities/opportunities.route
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 // Sem FRONTEND_URL configurada, libera qualquer origem (bom para

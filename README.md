@@ -1,5 +1,7 @@
 # Norte
 
+![CI](https://github.com/GabStefanoni01/norte/actions/workflows/ci.yml/badge.svg)
+
 **Encontre seu norte.**
 
 Plataforma de mentoria para jovens em início de carreira, combinando um plano

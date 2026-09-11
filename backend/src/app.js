@@ -31,6 +31,10 @@ app.use(helmet());
 // produção, defina FRONTEND_URL no .env para restringir a origens
 // específicas — evita que qualquer site faça requisições autenticadas
 // para a API usando o token de alguém.
+if (process.env.NODE_ENV === 'production' && !env.frontendUrl) {
+  throw new Error('FRONTEND_URL é obrigatória em produção para restringir o CORS.');
+}
+
 const origensPermitidas = env.frontendUrl ? env.frontendUrl.split(',').map((o) => o.trim()) : true;
 
 app.use(cors({ origin: origensPermitidas }));

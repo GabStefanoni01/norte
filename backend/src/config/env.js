@@ -4,6 +4,11 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const VALORES_JWT_SECRET_INSEGUROS = ['change-me', 'changeme', 'secret', '123456', ''];
 
+function numeroEnv(nome, padrao) {
+  const valor = Number(process.env[nome]);
+  return Number.isInteger(valor) && valor > 0 ? valor : padrao;
+}
+
 function validarJwtSecret() {
   const valor = process.env.JWT_SECRET;
   const inseguro = !valor || VALORES_JWT_SECRET_INSEGUROS.includes(valor.toLowerCase());
@@ -53,4 +58,9 @@ module.exports = {
   contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_FROM,
   enableCron: process.env.ENABLE_CRON === 'true',
   mpAccessToken: process.env.MP_ACCESS_TOKEN,
+  dbPoolMax: numeroEnv('DB_POOL_MAX', 10),
+  dbIdleTimeoutMs: numeroEnv('DB_IDLE_TIMEOUT_MS', 30_000),
+  dbConnectionTimeoutMs: numeroEnv('DB_CONNECTION_TIMEOUT_MS', 5_000),
+  aiTimeoutMs: numeroEnv('AI_TIMEOUT_MS', 15_000),
+  aiMaxRetries: numeroEnv('AI_MAX_RETRIES', 2),
 };

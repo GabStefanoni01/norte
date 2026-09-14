@@ -54,7 +54,7 @@ async function chamarGemini({ systemPrompt, mensagem, comBusca }) {
       if (!err.recuperavel || tentativa === env.aiMaxRetries) throw err;
       logger.warn('ai.provider.retry', { provider: 'gemini', statusCode: response.status, attempt: tentativa + 1 });
     } catch (err) {
-      const recuperavel = err.recuperavel ?? err.name === 'TimeoutError' || err.name === 'AbortError' || err.status === 502;
+      const recuperavel = err.recuperavel ?? (err.name === 'TimeoutError' || err.name === 'AbortError' || err.status === 502);
       if (!recuperavel || tentativa === env.aiMaxRetries) {
         if (!err.status) err.status = 502;
         throw err;

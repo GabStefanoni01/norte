@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const env = require('./config/env');
+const pool = require('./database/pool');
+const logger = require('./utils/logger');
+const requestContext = require('./middlewares/requestContext');
 const errorHandler = require('./middlewares/errorHandler');
 
 const authRoutes = require('./modules/auth/auth.routes');
@@ -35,8 +38,18 @@ const origensPermitidas = env.frontendUrl ? env.frontendUrl.split(',').map((o) =
 
 app.use(cors({ origin: origensPermitidas }));
 app.use(express.json({ limit: '100kb' }));
+app.use(requestContext);
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', uptimeSeconds: Math.floor(process.uptime()) }));
+app.get('/ready', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ready' });
+  } catch (err) {
+    logger.error('health.readiness_failed', err, { requestId: req.requestId });
+    res.status(503).json({ status: 'unavailable' });
+  }
+});
 
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);

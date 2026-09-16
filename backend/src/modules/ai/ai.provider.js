@@ -1,29 +1,18 @@
 const env = require('../../config/env');
+const logger = require('../../utils/logger');
 
 const MODEL = 'gemini-2.5-flash';
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/**
- * Camada de abstração para o provedor de IA (Google Gemini). Isolar a
- * chamada externa aqui permite trocar de provedor (ou usar um mock em
- * testes) sem tocar no restante do módulo. Usa o mesmo modelo pra chat
- * simples e pra busca na web — só muda se a ferramenta google_search
- * está habilitada ou não.
- */
 function extrairTexto(data) {
   const partes = data?.candidates?.[0]?.content?.parts || [];
-  return partes
-    .map((p) => p.text)
-    .filter(Boolean)
-    .join('\n')
-    .trim();
+  return partes.map((p) => p.text).filter(Boolean).join('\n').trim();
 }
 
 function erroIaNaoConfigurada(comBusca) {
   const err = new Error(
     comBusca
-      ? 'Busca automática desativada: configure GEMINI_API_KEY no .env para usar este recurso opcional. ' +
-        'Sem isso, o cadastro manual de oportunidades continua funcionando normalmente.'
+      ? 'Busca automática desativada: configure GEMINI_API_KEY no .env para usar este recurso opcional. Sem isso, o cadastro manual de oportunidades continua funcionando normalmente.'
       : 'Recurso de IA desativado: configure GEMINI_API_KEY no .env para usar o mentor.'
   );
   err.status = 400;
@@ -31,51 +20,55 @@ function erroIaNaoConfigurada(comBusca) {
   return err;
 }
 
+function aguardar(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function respostaRecuperavel(status) {
+  return status === 408 || status === 429 || status >= 500;
+}
+
 async function chamarGemini({ systemPrompt, mensagem, comBusca }) {
-  if (!env.geminiApiKey) {
-    throw erroIaNaoConfigurada(comBusca);
-  }
+  if (!env.geminiApiKey) throw erroIaNaoConfigurada(comBusca);
 
   const body = {
     contents: [{ role: 'user', parts: [{ text: mensagem }] }],
     systemInstruction: { parts: [{ text: systemPrompt }] },
   };
+  if (comBusca) body.tools = [{ google_search: {} }];
 
-  if (comBusca) {
-    body.tools = [{ google_search: {} }];
+  for (let tentativa = 0; tentativa <= env.aiMaxRetries; tentativa += 1) {
+    try {
+      const response = await fetch(BASE_URL + '/' + MODEL + ':generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.geminiApiKey },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(env.aiTimeoutMs),
+      });
+
+      if (response.ok) return extrairTexto(await response.json());
+
+      const err = new Error('Falha ao consultar o Gemini' + (comBusca ? ' (com busca na web)' : ''));
+      err.status = 502;
+      err.recuperavel = respostaRecuperavel(response.status);
+      if (!err.recuperavel || tentativa === env.aiMaxRetries) throw err;
+      logger.warn('ai.provider.retry', { provider: 'gemini', statusCode: response.status, attempt: tentativa + 1 });
+    } catch (err) {
+      const recuperavel = err.recuperavel ?? (err.name === 'TimeoutError' || err.name === 'AbortError' || err.status === 502);
+      if (!recuperavel || tentativa === env.aiMaxRetries) {
+        if (!err.status) err.status = 502;
+        throw err;
+      }
+      logger.warn('ai.provider.retry', { provider: 'gemini', reason: err.name || 'network_error', attempt: tentativa + 1 });
+    }
+    await aguardar(250 * 2 ** tentativa);
   }
-
-  const response = await fetch(`${BASE_URL}/${MODEL}:generateContent`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': env.geminiApiKey,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const err = new Error(`Falha ao consultar o Gemini${comBusca ? ' (com busca na web)' : ''}`);
-    err.status = 502;
-    throw err;
-  }
-
-  const data = await response.json();
-  return extrairTexto(data);
 }
 
 async function askMentor({ systemPrompt, mensagem }) {
   return chamarGemini({ systemPrompt, mensagem, comBusca: false });
 }
 
-/**
- * Igual ao askMentor, mas habilita a busca na web do Gemini (Grounding with
- * Google Search) — usado quando a resposta precisa de informação atual da
- * internet (ex: buscar oportunidades reais em sites como LinkedIn, InfoJobs,
- * Catho etc). O Gemini pesquisa o índice público do Google, não usa APIs
- * privadas desses sites (que, no caso do LinkedIn e InfoJobs, não estão
- * disponíveis para desenvolvedores independentes).
- */
 async function perguntarComBusca({ systemPrompt, mensagem }) {
   return chamarGemini({ systemPrompt, mensagem, comBusca: true });
 }

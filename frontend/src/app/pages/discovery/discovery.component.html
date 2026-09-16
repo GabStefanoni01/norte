@@ -1,179 +1,188 @@
 <norte-sidebar />
 
-<div class="pl-16">
-
-<main class="max-w-2xl mx-auto px-6 py-10">
-  @if (carregando()) {
-    <p class="text-white/50">Carregando...</p>
-  } @else if (resultado()) {
-    <!-- Tela de resultado -->
-    <div class="stagger">
-      <div class="inline-flex items-center gap-2 rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-xs px-3 py-1 mb-4">
-        🏆 Teste de descoberta concluído
+<div class="lg:pl-64 min-h-screen">
+  <main class="norte-page max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    @if (carregando()) {
+      <div class="max-w-3xl mx-auto space-y-4">
+        <div class="h-4 w-28 rounded bg-white/5 animate-pulse"></div>
+        <div class="h-10 w-72 rounded bg-white/5 animate-pulse"></div>
+        <div class="h-5 w-full max-w-xl rounded bg-white/5 animate-pulse"></div>
+        <div class="norte-card h-72 animate-pulse"></div>
       </div>
-
-      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Resultado</p>
-      <h1 class="font-display text-3xl mb-4">Seu perfil é {{ resultado()!.perfilDominante }}</h1>
-      <p class="text-white/70 leading-relaxed mb-2">{{ resultado()!.descricao }}</p>
-
-      @if (resultado()!.geradoPorIA) {
-        <p class="text-xs text-white/30 mb-8">✦ Descrição personalizada pelo mentor IA com base no seu perfil.</p>
-      } @else {
-        <div class="mb-8"></div>
-      }
-
-      @if (breakdown().length) {
-        <p class="text-sm text-white/50 mb-3">Como ficou sua pontuação:</p>
-        <div class="space-y-3 mb-8">
-          @for (item of breakdown(); track item.categoria) {
+    } @else if (resultado()) {
+      <div class="max-w-4xl mx-auto stagger">
+        <header class="mb-8">
+          <p class="norte-eyebrow">Descoberta</p>
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <div class="flex justify-between text-xs text-white/50 mb-1">
-                <span>{{ item.nome }}</span>
-                <span>{{ item.percentual }}%</span>
-              </div>
-              <div class="h-2 rounded-full bg-norte-800 overflow-hidden">
-                <div
-                  class="h-full bg-norte-accent transition-all duration-700 ease-out"
-                  [style.width.%]="item.percentual"
-                ></div>
+              <h1 class="font-display text-3xl sm:text-4xl tracking-tight">Seu perfil de carreira</h1>
+              <p class="norte-muted mt-2 max-w-2xl">Um ponto de partida para entender seus interesses e escolher os próximos caminhos para explorar.</p>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
+              Teste concluído
+            </span>
+          </div>
+        </header>
+
+        <section class="norte-card mb-6 p-6 sm:p-8">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-norte-accent-light/80 mb-3">Perfil dominante</p>
+          <h2 class="font-display text-3xl sm:text-4xl mb-4">{{ resultado()!.perfilDominante }}</h2>
+          <p class="text-white/65 leading-relaxed max-w-3xl">{{ resultado()!.descricao }}</p>
+          @if (resultado()!.geradoPorIA) {
+            <p class="text-xs text-white/30 mt-5">Descrição personalizada com base nas respostas do seu perfil.</p>
+          }
+        </section>
+
+        @if (breakdown().length) {
+          <section class="norte-card mb-6 p-6 sm:p-7">
+            <div class="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <p class="text-base font-semibold">Como seu perfil se distribui</p>
+                <p class="text-sm text-white/45 mt-1">Veja a intensidade de cada categoria identificada.</p>
               </div>
             </div>
-          }
-        </div>
-      }
-
-      <p class="text-sm text-white/50 mb-3">Áreas sugeridas pra você explorar:</p>
-      <div class="flex flex-wrap gap-2 mb-6">
-        @for (area of resultado()!.areasSugeridas; track area) {
-          <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-sm px-3 py-1">
-            {{ area }}
-          </span>
+            <div class="space-y-5">
+              @for (item of breakdown(); track item.categoria) {
+                <div>
+                  <div class="flex justify-between text-sm mb-2">
+                    <span class="text-white/70">{{ item.nome }}</span>
+                    <span class="text-white/45 tabular-nums">{{ item.percentual }}%</span>
+                  </div>
+                  <div class="h-2 rounded-full bg-white/5 overflow-hidden">
+                    <div class="h-full rounded-full bg-norte-accent transition-all duration-700 ease-out" [style.width.%]="item.percentual"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
         }
-      </div>
 
-      @if (resultado()!.areasSecundarias?.length) {
-        <p class="text-sm text-white/40 mb-3">Vale explorar também:</p>
-        <div class="flex flex-wrap gap-2 mb-10">
-          @for (area of resultado()!.areasSecundarias; track area) {
-            <span class="rounded-full border border-norte-800 bg-norte-900/40 text-white/50 text-sm px-3 py-1">
-              {{ area }}
-            </span>
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+          <section class="norte-card p-6">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/40 mb-3">Áreas sugeridas</p>
+            <p class="text-sm text-white/45 mb-5">Caminhos que combinam com os sinais do seu resultado.</p>
+            <div class="flex flex-wrap gap-2">
+              @for (area of resultado()!.areasSugeridas; track area) {
+                <span class="rounded-lg border border-norte-accent/25 bg-norte-accent/10 px-3 py-2 text-sm text-norte-accent-light">{{ area }}</span>
+              }
+            </div>
+          </section>
+
+          @if (resultado()!.areasSecundarias?.length) {
+            <section class="norte-card p-6">
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/40 mb-3">Para explorar também</p>
+              <p class="text-sm text-white/45 mb-5">Outras possibilidades que podem fazer sentido para você.</p>
+              <div class="flex flex-wrap gap-2">
+                @for (area of resultado()!.areasSecundarias; track area) {
+                  <span class="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-sm text-white/60">{{ area }}</span>
+                }
+              </div>
+            </section>
           }
         </div>
-      } @else {
-        <div class="mb-10"></div>
-      }
 
-      @if (recap().length) {
-        <button
-          (click)="mostrarRecap.set(!mostrarRecap())"
-          class="text-sm text-white/40 hover:text-white/70 mb-10 flex items-center gap-1"
-        >
-          {{ mostrarRecap() ? '▲' : '▼' }} Ver suas respostas
-        </button>
+        @if (recap().length) {
+          <section class="mb-8">
+            <button (click)="mostrarRecap.set(!mostrarRecap())" class="flex items-center gap-2 text-sm text-white/45 hover:text-white transition-colors">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/[0.02]">{{ mostrarRecap() ? '−' : '+' }}</span>
+              Ver suas respostas
+            </button>
+            @if (mostrarRecap()) {
+              <div class="grid gap-3 mt-4">
+                @for (item of recap(); track item.pergunta) {
+                  <div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                    <p class="text-xs text-white/35 mb-1.5">{{ item.pergunta }}</p>
+                    <p class="text-sm text-white/75">{{ item.resposta }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
 
-        @if (mostrarRecap()) {
-          <div class="space-y-3 mb-10 -mt-6">
-            @for (item of recap(); track item.pergunta) {
-              <div class="rounded-lg border border-norte-800 bg-norte-900/40 p-3">
-                <p class="text-xs text-white/40 mb-1">{{ item.pergunta }}</p>
-                <p class="text-sm text-white/80">{{ item.resposta }}</p>
+        <section class="rounded-2xl border border-norte-accent/20 bg-norte-accent/[0.06] p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div>
+            <p class="text-base font-semibold">Agora transforme descoberta em movimento.</p>
+            <p class="text-sm text-white/50 mt-1">Use seu resultado como base para definir o próximo passo da sua jornada.</p>
+          </div>
+          <div class="flex flex-wrap gap-3 shrink-0">
+            <button (click)="irParaDashboard()" class="norte-button-primary">Ir para o dashboard</button>
+            <button (click)="refazerTeste()" class="norte-button-secondary">Refazer teste</button>
+          </div>
+        </section>
+      </div>
+    } @else if (mostrandoReflexao()) {
+      <div class="max-w-3xl mx-auto stagger">
+        <header class="mb-8">
+          <p class="norte-eyebrow">Descoberta · etapa final</p>
+          <h1 class="font-display text-3xl sm:text-4xl tracking-tight">Quase lá.</h1>
+          <p class="norte-muted mt-2">Duas perguntas rápidas para contextualizar melhor seu momento.</p>
+        </header>
+
+        <section class="norte-card p-6 sm:p-8">
+          <div class="mb-7 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <p class="text-sm text-white/60 leading-relaxed">As respostas são opcionais. Elas ajudam a personalizar sua experiência daqui para frente.</p>
+          </div>
+
+          <div class="space-y-6">
+            @for (pergunta of perguntasReflexao; track pergunta.chave) {
+              <div>
+                <label class="block text-sm font-medium text-white/75 mb-2">{{ pergunta.texto }}</label>
+                <textarea [(ngModel)]="respostasReflexao[pergunta.chave]" rows="4" class="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/25 focus:border-norte-accent/50 focus:bg-white/[0.03]" placeholder="Fique à vontade — ou deixe em branco"></textarea>
               </div>
             }
           </div>
-        }
-      } @else {
-        <div class="mb-10"></div>
-      }
 
-      <div class="flex flex-wrap gap-3">
-        <button
-          (click)="irParaDashboard()"
-          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
-        >
-          Ir para o dashboard
-        </button>
-        <button
-          (click)="refazerTeste()"
-          class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-6 py-2.5"
-        >
-          Refazer teste
-        </button>
-      </div>
-    </div>
-  } @else if (mostrandoReflexao()) {
-    <!-- Perguntas reflexivas abertas, antes de calcular o resultado -->
-    <div class="stagger">
-      <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80 mb-2">Quase lá</p>
-      <h1 class="font-display text-2xl mb-2">Duas perguntas rápidas (opcionais)</h1>
-      <p class="text-white/50 text-sm mb-8">
-        Suas respostas ajudam o mentor IA a te conhecer melhor daqui pra frente.
-      </p>
+          @if (erro()) {
+            <p class="mt-5 text-sm text-red-300">{{ erro() }}</p>
+          }
 
-      <div class="space-y-6 mb-8">
-        @for (pergunta of perguntasReflexao; track pergunta.chave) {
-          <div>
-            <label class="block text-sm text-white/70 mb-2">{{ pergunta.texto }}</label>
-            <textarea
-              [(ngModel)]="respostasReflexao[pergunta.chave]"
-              rows="2"
-              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-              placeholder="Fique à vontade — ou deixe em branco e pule essa"
-            ></textarea>
+          <div class="flex justify-end mt-7 pt-6 border-t border-white/10">
+            <button (click)="finalizarReflexao()" [disabled]="enviando()" class="norte-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ enviando() ? 'Calculando resultado...' : 'Ver meu resultado' }}
+            </button>
           </div>
-        }
+        </section>
       </div>
+    } @else if (perguntaAtual()) {
+      <div class="max-w-3xl mx-auto stagger">
+        <header class="mb-7">
+          <p class="norte-eyebrow">Descoberta · perguntas</p>
+          <div class="flex items-end justify-between gap-4 mb-3">
+            <div>
+              <p class="text-sm font-medium text-white/65">Pergunta {{ passoAtual() + 1 }} de {{ perguntas().length }}</p>
+            </div>
+            <span class="text-sm text-white/40 tabular-nums">{{ progresso() }}%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div class="h-full rounded-full bg-norte-accent transition-all duration-500 ease-out" [style.width.%]="progresso()"></div>
+          </div>
+        </header>
 
-      @if (erro()) {
-        <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
-      }
+        <section class="norte-card p-6 sm:p-8 lg:p-10">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-norte-accent-light/70 mb-4">Sobre você</p>
+          <h1 class="font-display text-2xl sm:text-3xl leading-tight mb-8">{{ perguntaAtual()!.texto }}</h1>
 
-      <button
-        (click)="finalizarReflexao()"
-        [disabled]="enviando()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-      >
-        {{ enviando() ? 'Calculando resultado...' : 'Ver meu resultado' }}
-      </button>
-    </div>
-  } @else if (perguntaAtual()) {
-    <!-- Quiz -->
-    <div class="mb-8">
-      <div class="flex justify-between text-xs text-white/40 mb-2">
-        <span>Pergunta {{ passoAtual() + 1 }} de {{ perguntas().length }}</span>
-        <span>{{ progresso() }}%</span>
+          <div class="space-y-3">
+            @for (opcao of perguntaAtual()!.opcoes; track opcao.id) {
+              <button (click)="escolher(opcao.id)" [disabled]="enviando()" class="norte-card-interactive w-full flex items-center gap-4 text-left rounded-xl border border-white/10 bg-white/[0.02] px-5 py-4 text-white/70 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="h-8 w-8 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center text-xs text-white/35">{{ $index + 1 }}</span>
+                <span class="text-sm sm:text-base leading-relaxed">{{ opcao.texto }}</span>
+              </button>
+            }
+          </div>
+
+          @if (passoAtual() > 0) {
+            <div class="mt-7 pt-5 border-t border-white/10">
+              <button (click)="voltar()" class="text-sm text-white/45 hover:text-white transition-colors">← Voltar para a pergunta anterior</button>
+            </div>
+          }
+
+          @if (erro()) {
+            <p class="text-sm text-red-300 mt-5">{{ erro() }}</p>
+          }
+        </section>
       </div>
-      <div class="h-1.5 rounded-full bg-norte-800 overflow-hidden">
-        <div
-          class="h-full bg-norte-accent transition-all duration-500 ease-out"
-          [style.width.%]="progresso()"
-        ></div>
-      </div>
-    </div>
-
-    <h1 class="font-display text-2xl mb-6">{{ perguntaAtual()!.texto }}</h1>
-
-    <div class="stagger space-y-3">
-      @for (opcao of perguntaAtual()!.opcoes; track opcao.id) {
-        <button
-          (click)="escolher(opcao.id)"
-          [disabled]="enviando()"
-          class="card-hover w-full text-left rounded-xl border border-norte-800 bg-norte-900/60 px-5 py-4 text-white/80 hover:text-white transition-colors disabled:opacity-50"
-        >
-          {{ opcao.texto }}
-        </button>
-      }
-    </div>
-
-    @if (passoAtual() > 0) {
-      <button (click)="voltar()" class="mt-6 text-sm text-white/40 hover:text-white/70">
-        ← Voltar
-      </button>
     }
-
-    @if (erro()) {
-      <p class="text-sm text-red-400 mt-4">{{ erro() }}</p>
-    }
-  }
-</main>
+  </main>
 </div>

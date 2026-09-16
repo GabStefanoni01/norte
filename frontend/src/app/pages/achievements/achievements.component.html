@@ -1,61 +1,90 @@
 <norte-sidebar />
 
-<div class="pl-16">
+<div class="min-h-screen lg:pl-64 pb-24 lg:pb-0">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <header class="mb-8">
+      <p class="norte-eyebrow">Progresso</p>
+      <h1 class="font-display text-3xl sm:text-4xl text-white">Suas conquistas</h1>
+      <p class="mt-3 text-white/55 max-w-2xl">Cada passo que você dá no Norte conta para construir sua jornada profissional.</p>
+    </header>
 
-<main class="max-w-3xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-2">Suas conquistas</h1>
-  <p class="text-white/60 mb-8">Cada passo que você dá no Norte conta pra algo.</p>
-
-  @if (carregando()) {
-    <p class="text-white/50">Carregando...</p>
-  } @else if (status()) {
-    <div class="stagger">
-      <!-- Nível atual -->
-      <div class="card-glow rounded-xl border border-norte-accent/40 bg-norte-accent/5 p-6 mb-8">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <p class="text-xs uppercase tracking-wide text-norte-accent-light/80">Seu nível</p>
-            <p class="font-display text-2xl">{{ status()!.nivel }}</p>
-          </div>
-          <p class="text-sm text-white/50">{{ status()!.totalConquistas }} / {{ status()!.totalPossivel }}</p>
-        </div>
-
-        @if (status()!.proximoNivel) {
-          <div class="h-2 rounded-full bg-norte-800 overflow-hidden mb-2">
-            <div
-              class="h-full bg-norte-accent transition-all duration-700 ease-out"
-              [style.width.%]="progressoNivel()"
-            ></div>
-          </div>
-          <p class="text-xs text-white/40">
-            Faltam {{ status()!.proximoNivel!.minimo - status()!.totalConquistas }} conquista(s) pra chegar a
-            {{ status()!.proximoNivel!.nome }}
-          </p>
-        } @else {
-          <p class="text-xs text-emerald-400">🎉 Você chegou ao nível máximo!</p>
-        }
-      </div>
-
-      <!-- Grid de conquistas -->
-      <div class="grid gap-3 sm:grid-cols-2">
-        @for (conquista of status()!.conquistas; track conquista.codigo) {
-          <div
-            class="card-hover rounded-xl border p-4 flex items-start gap-3"
-            [class]="
-              conquista.conquistada
-                ? 'border-norte-accent/40 bg-norte-accent/5'
-                : 'border-norte-800 bg-norte-900/40 opacity-50'
-            "
-          >
-            <span class="text-2xl shrink-0">{{ conquista.icone }}</span>
+    @if (carregando()) {
+      <section class="norte-card p-6 mb-6"><norte-skeleton-loader /></section>
+    } @else if (status()) {
+      <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <section class="norte-card p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p class="font-medium text-sm">{{ conquista.titulo }}</p>
-              <p class="text-xs text-white/50">{{ conquista.descricao }}</p>
+              <p class="norte-eyebrow mb-2">Seu nível atual</p>
+              <h2 class="font-display text-3xl text-white">{{ status()!.nivel }}</h2>
+            </div>
+            <div class="rounded-2xl border border-norte-800 bg-norte-950/60 px-4 py-3 text-center">
+              <p class="text-2xl font-semibold text-white">{{ status()!.totalConquistas }}</p>
+              <p class="text-xs text-white/40">de {{ status()!.totalPossivel }} conquistas</p>
             </div>
           </div>
-        }
+
+          @if (status()!.proximoNivel) {
+            <div class="mt-7">
+              <div class="flex justify-between text-xs text-white/45 mb-2">
+                <span>Progresso para {{ status()!.proximoNivel!.nome }}</span>
+                <span>{{ progressoNivel() | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-3 rounded-full bg-norte-950 overflow-hidden border border-norte-800">
+                <div class="h-full bg-norte-accent rounded-full transition-all duration-700 ease-out" [style.width.%]="progressoNivel()"></div>
+              </div>
+              <p class="mt-2 text-xs text-white/40">
+                Faltam {{ status()!.proximoNivel!.minimo - status()!.totalConquistas }} conquista(s) para chegar a {{ status()!.proximoNivel!.nome }}.
+              </p>
+            </div>
+          } @else {
+            <div class="mt-6 rounded-2xl border border-norte-accent/20 bg-norte-accent/5 p-4 text-sm text-norte-accent-light">
+              Você chegou ao nível máximo. Continue explorando novas etapas da sua jornada.
+            </div>
+          }
+        </section>
+
+        <aside class="norte-card p-6">
+          <p class="norte-eyebrow">Por que isso importa?</p>
+          <h2 class="mt-2 text-lg font-semibold text-white">Consistência também é progresso.</h2>
+          <p class="mt-3 text-sm text-white/50 leading-relaxed">
+            As conquistas registram ações reais dentro da plataforma e ajudam você a enxergar a evolução ao longo do tempo.
+          </p>
+        </aside>
       </div>
+
+      <section class="mt-8">
+        <div class="flex items-end justify-between mb-4">
+          <div>
+            <p class="norte-eyebrow">Sua coleção</p>
+            <h2 class="mt-1 text-xl font-semibold text-white">Conquistas</h2>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          @for (conquista of status()!.conquistas; track conquista.codigo) {
+            <article
+              class="rounded-2xl border p-5 transition duration-200"
+              [class]="conquista.conquistada
+                ? 'border-norte-accent/25 bg-norte-accent/5 hover:border-norte-accent/40'
+                : 'border-norte-800 bg-norte-950/50 opacity-55'"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="h-11 w-11 rounded-2xl flex items-center justify-center bg-norte-950 border border-norte-800 text-2xl">
+                  {{ conquista.icone }}
+                </div>
+                @if (conquista.conquistada) {
+                  <span class="rounded-full border border-norte-accent/20 bg-norte-accent/5 px-2.5 py-1 text-[10px] uppercase tracking-wider text-norte-accent-light">Conquistada</span>
+                } @else {
+                  <span class="rounded-full border border-norte-800 px-2.5 py-1 text-[10px] uppercase tracking-wider text-white/35">Bloqueada</span>
+                }
+              </div>
+              <h3 class="mt-5 font-semibold text-white">{{ conquista.titulo }}</h3>
+              <p class="mt-2 text-sm text-white/45 leading-relaxed">{{ conquista.descricao }}</p>
+            </article>
+          }
+        </div>
+      </section>
     </div>
-  }
-</main>
+  </main>
 </div>

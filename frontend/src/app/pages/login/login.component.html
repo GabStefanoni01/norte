@@ -1,72 +1,90 @@
-<main class="relative min-h-screen overflow-hidden flex items-center justify-center px-4">
-  <norte-starfield />
-
-  <div class="stagger relative z-10 w-full max-w-sm">
-    <div class="text-center mb-10">
-      <div class="flex justify-center mb-1 float">
-        <norte-logo-mark [tamanho]="40" />
+<main class="min-h-screen bg-norte-950 text-white flex items-center justify-center px-4 py-10">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-3">
+        <norte-logo-mark [tamanho]="42" />
+        <span class="font-display text-4xl text-norte-accent-light">Norte</span>
       </div>
-      <p class="font-display text-4xl text-norte-accent-light">Norte</p>
-      <p class="text-white/60 mt-2">Encontre seu norte.</p>
+      <p class="mt-3 text-sm text-white/55">Encontre seu norte.</p>
     </div>
 
-    <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
-      <form [formGroup]="form" (ngSubmit)="entrar()" class="stagger space-y-4">
+    <section class="rounded-2xl border border-norte-700/70 bg-norte-900/80 p-6 sm:p-8 shadow-xl">
+      <div class="mb-7">
+        <p class="norte-eyebrow">Bem-vindo de volta</p>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight">Entre na sua conta</h1>
+        <p class="mt-2 text-sm leading-6 text-white/55">Continue sua jornada profissional de onde parou.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="entrar()" class="space-y-5">
         <div>
-          <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
+          <label class="mb-2 block text-sm font-medium text-white/80" for="email">E-mail</label>
           <input
             id="email"
             type="email"
             formControlName="email"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 transition-shadow focus:outline-none focus:ring-2 focus:ring-norte-accent"
+            autocomplete="email"
+            class="w-full rounded-xl border border-norte-700 bg-norte-950 px-4 py-3 text-white placeholder-white/25 outline-none transition focus:border-norte-accent focus:ring-2 focus:ring-norte-accent/20"
             placeholder="voce@exemplo.com"
           />
         </div>
 
         <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm text-white/70" for="senha">Senha</label>
-            <a routerLink="/esqueci-senha" class="text-xs text-norte-accent-light hover:underline">Esqueci minha senha</a>
+          <div class="mb-2 flex items-center justify-between gap-4">
+            <label class="block text-sm font-medium text-white/80" for="senha">Senha</label>
+            <a routerLink="/esqueci-senha" class="text-xs font-medium text-norte-accent-light hover:text-white transition-colors">Esqueci minha senha</a>
           </div>
           <input
             id="senha"
             type="password"
             formControlName="senha"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 transition-shadow focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="••••••••"
+            autocomplete="current-password"
+            class="w-full rounded-xl border border-norte-700 bg-norte-950 px-4 py-3 text-white placeholder-white/25 outline-none transition focus:border-norte-accent focus:ring-2 focus:ring-norte-accent/20"
+            placeholder="Sua senha"
           />
         </div>
 
         @if (sucesso()) {
-          <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
+          <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            {{ sucesso() }}
+          </div>
         }
 
         @if (erro()) {
-          <p class="text-sm text-red-400">{{ erro() }}</p>
-          @if (emailNaoVerificado()) {
-            <a
-              routerLink="/verificar-email"
-              [queryParams]="{ email: form.value.email }"
-              class="block text-xs text-norte-accent-light hover:underline"
-            >
-              Confirmar e-mail agora
-            </a>
-          }
+          <div class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <p>{{ erro() }}</p>
+            @if (emailNaoVerificado()) {
+              <a
+                routerLink="/verificar-email"
+                [queryParams]="{ email: form.value.email }"
+                class="mt-2 inline-block font-medium text-norte-accent-light hover:text-white transition-colors"
+              >
+                Confirmar e-mail agora →
+              </a>
+            }
+          </div>
         }
 
         <button
           type="submit"
           [disabled]="carregando()"
-          class="btn-shine w-full rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold py-2.5 disabled:opacity-60 disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-[0.98]"
+          class="norte-button-primary w-full justify-center rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {{ carregando() ? 'Entrando...' : 'Entrar' }}
         </button>
       </form>
-    </div>
 
-    <p class="text-center text-sm text-white/50 mt-6">
-      Ainda não tem conta?
-      <a routerLink="/cadastro" class="text-norte-accent-light hover:underline">Criar conta</a>
-    </p>
+      <div class="my-6 flex items-center gap-3 text-xs text-white/25">
+        <span class="h-px flex-1 bg-norte-700/70"></span>
+        <span>ou</span>
+        <span class="h-px flex-1 bg-norte-700/70"></span>
+      </div>
+
+      <p class="text-center text-sm text-white/50">
+        Ainda não tem conta?
+        <a routerLink="/cadastro" class="font-medium text-norte-accent-light hover:text-white transition-colors">Criar conta</a>
+      </p>
+    </section>
+
+    <p class="mt-6 text-center text-xs text-white/30">Sua jornada começa com um primeiro passo.</p>
   </div>
 </main>

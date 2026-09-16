@@ -2,74 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  height: 100%;
-  margin: 0;
+@layer base {
+  html, body {
+    min-height: 100%;
+    margin: 0;
+  }
+
+  html {
+    background: #080d18;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 75% -10%, rgba(224, 169, 68, 0.07), transparent 28rem),
+      #080d18;
+    color: #f8fafc;
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(224, 169, 68, 0.28);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid #f2c979;
+    outline-offset: 3px;
+  }
 }
 
-/* ---- Animações da atmosfera "Norte" (tela de login/cadastro) ---- */
+@layer components {
+  .norte-page {
+    @apply min-h-screen bg-norte-950;
+  }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.85); }
-  50% { opacity: 0.95; transform: scale(1); }
+  .norte-card {
+    @apply rounded-2xl border border-white/[0.08] bg-white/[0.035] shadow-[0_12px_40px_rgba(0,0,0,0.18)];
+  }
+
+  .norte-card-interactive {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-norte-accent/30 hover:bg-white/[0.05] hover:shadow-[0_18px_45px_rgba(0,0,0,0.24)];
+  }
+
+  .norte-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-norte-accent-light/80;
+  }
+
+  .norte-muted {
+    @apply text-white/55;
+  }
+
+  .norte-button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-norte-accent px-4 py-2.5 text-sm font-semibold text-norte-950 transition-all duration-200 hover:-translate-y-0.5 hover:bg-norte-accent-light hover:shadow-[0_10px_28px_rgba(224,169,68,0.2)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .norte-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .norte-divider {
+    @apply border-white/[0.07];
+  }
 }
 
-@keyframes drift-compass {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse-star {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 201, 121, 0.55); opacity: 0.8; }
-  50% { box-shadow: 0 0 16px 6px rgba(242, 201, 121, 0.35); opacity: 1; }
-}
-
+/* Decorative atmosphere is intentionally subtle. */
 @keyframes fade-slide-up {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes card-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 169, 68, 0.12); }
-  50% { box-shadow: 0 0 40px 6px rgba(224, 169, 68, 0.14); }
-}
-
-.star {
-  animation: twinkle ease-in-out infinite;
-}
-
-.north-star {
-  animation: pulse-star 2.6s ease-in-out infinite, float 6s ease-in-out infinite;
-}
-
-.compass-rotate {
-  animation: drift-compass 140s linear infinite;
-}
-
-.card-glow {
-  animation: card-glow 5s ease-in-out infinite;
-}
-
 .stagger > * {
-  animation: fade-slide-up 0.6s ease both;
+  animation: fade-slide-up 0.45s ease both;
 }
 
-.stagger > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger > *:nth-child(2) { animation-delay: 0.12s; }
-.stagger > *:nth-child(3) { animation-delay: 0.19s; }
-.stagger > *:nth-child(4) { animation-delay: 0.26s; }
-.stagger > *:nth-child(5) { animation-delay: 0.33s; }
-.stagger > *:nth-child(6) { animation-delay: 0.40s; }
-.stagger > *:nth-child(7) { animation-delay: 0.47s; }
-.stagger > *:nth-child(8) { animation-delay: 0.54s; }
-.stagger > *:nth-child(9) { animation-delay: 0.61s; }
-
-/* ---- Revelar ao rolar (usado com [norteReveal]) ---- */
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.16s; }
+.stagger > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger > *:nth-child(6) { animation-delay: 0.24s; }
 
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
 .reveal.is-visible {
@@ -77,19 +96,16 @@ html, body {
   transform: translateY(0);
 }
 
-/* ---- Cards com hover mais vivo ---- */
-
+/* Kept for existing pages; toned down so the UI does not feel animated everywhere. */
 .card-hover {
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card-hover:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-  border-color: rgba(224, 169, 68, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+  border-color: rgba(224, 169, 68, 0.25);
 }
-
-/* ---- Botões com brilho passando (shine sweep) ---- */
 
 .btn-shine {
   position: relative;
@@ -97,78 +113,45 @@ html, body {
 }
 
 .btn-shine::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-  transform: skewX(-20deg);
-  transition: left 0.6s ease;
+  inset: 0 auto 0 -80%;
+  width: 45%;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.55s ease;
 }
 
-.btn-shine:hover::before {
-  left: 125%;
+.btn-shine:hover::before { left: 130%; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.9); }
+  50% { opacity: 0.7; transform: scale(1); }
 }
 
-/* ---- Flutuação suave (elementos decorativos) ---- */
+.star { animation: twinkle 4s ease-in-out infinite; }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.float {
-  animation: float 5s ease-in-out infinite;
-}
-
-/* ---- Gradiente animado no texto de destaque ---- */
-
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
+.compass-rotate { animation: none; }
+.card-glow { animation: none; }
+.float { animation: none; }
 
 .text-gradient-gold {
-  background: linear-gradient(90deg, #f2c979, #e0a944, #f2c979);
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #f2c979, #e0a944);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gradient-shift 6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .north-star, .compass-rotate, .card-glow, .stagger > *, .float, .text-gradient-gold {
-    animation: none !important;
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
+
   .reveal {
     opacity: 1 !important;
     transform: none !important;
-    transition: none !important;
-  }
-  .card-hover:hover {
-    transform: none !important;
-  }
-  .btn-shine::before {
-    display: none !important;
-  }
-}
-
-/* ---- Micro-interação de foco em campos de formulário ---- */
-
-@keyframes focus-glow {
-  from { box-shadow: 0 0 0 0 rgba(224, 169, 68, 0.4); }
-  to { box-shadow: 0 0 0 4px rgba(224, 169, 68, 0); }
-}
-
-input:focus, textarea:focus, select:focus {
-  animation: focus-glow 0.5s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  input:focus, textarea:focus, select:focus {
-    animation: none !important;
   }
 }

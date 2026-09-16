@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-norte-950 text-white overflow-hidden">
-  <header class="relative z-50 border-b border-white/[0.06]">
+  <header class="relative z-50 border-b border-white/[0.06] bg-norte-950/95 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 h-20 flex items-center justify-between">
       <a routerLink="/" class="flex items-center gap-2.5" aria-label="Norte - início">
         <norte-logo-mark [tamanho]="30" />
@@ -8,9 +8,9 @@
 
       <nav class="hidden lg:flex items-center gap-1 text-sm">
         <a href="#como-funciona" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Como funciona</a>
-        <a href="#beneficios" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Benefícios</a>
+        <a href="#jornada" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Jornada</a>
+        <a href="#beneficios" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Recursos</a>
         <a href="#planos" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Planos</a>
-        <a href="#sobre" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Sobre</a>
       </nav>
 
       <div class="flex items-center gap-2 sm:gap-3">
@@ -27,9 +27,9 @@
           @if (menuAberto()) {
             <div class="absolute right-0 top-12 w-56 rounded-2xl border border-norte-800 bg-norte-900 p-2 shadow-2xl">
               <a (click)="menuAberto.set(false)" href="#como-funciona" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Como funciona</a>
-              <a (click)="menuAberto.set(false)" href="#beneficios" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Benefícios</a>
+              <a (click)="menuAberto.set(false)" href="#jornada" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Jornada</a>
+              <a (click)="menuAberto.set(false)" href="#beneficios" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Recursos</a>
               <a (click)="menuAberto.set(false)" href="#planos" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Planos</a>
-              <a (click)="menuAberto.set(false)" href="#sobre" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Sobre</a>
               <div class="my-2 border-t border-norte-800"></div>
               <a routerLink="/entrar" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Entrar</a>
             </div>
@@ -40,9 +40,9 @@
   </header>
 
   <main>
-    <section class="relative px-5 sm:px-8 lg:px-10 pt-20 sm:pt-28 pb-24 lg:pb-32">
+    <section class="relative px-5 sm:px-8 lg:px-10 pt-20 sm:pt-28 pb-20 lg:pb-28">
       <div class="absolute top-0 right-0 w-[520px] h-[520px] rounded-full bg-norte-accent/[0.045] blur-3xl pointer-events-none"></div>
-      <div class="relative max-w-7xl mx-auto grid lg:grid-cols-[1.05fr_.95fr] gap-14 lg:gap-20 items-center">
+      <div class="relative max-w-7xl mx-auto grid lg:grid-cols-[1.02fr_.98fr] gap-14 lg:gap-20 items-center">
         <div norteReveal class="max-w-3xl">
           <p class="norte-eyebrow">Mentoria de carreira para jovens</p>
           <h1 class="font-display text-5xl sm:text-6xl lg:text-[5.25rem] leading-[0.98] tracking-tight mt-5">
@@ -53,7 +53,7 @@
           </p>
           <div class="flex flex-col sm:flex-row gap-3 mt-9">
             <a routerLink="/cadastro" class="norte-button-primary justify-center">Começar agora — é grátis</a>
-            <a href="#como-funciona" class="norte-button-secondary justify-center">Conhecer a jornada</a>
+            <a href="#jornada" class="norte-button-secondary justify-center">Ver como funciona</a>
           </div>
           <div class="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/40">
             <span>✓ Descoberta de perfil</span>
@@ -62,41 +62,99 @@
           </div>
         </div>
 
-        <div norteReveal [revealDelay]="0.12" class="relative hidden md:block">
-          <div class="relative rounded-[2rem] border border-white/10 bg-norte-900/80 p-5 sm:p-6 shadow-2xl">
-            <div class="flex items-center justify-between pb-5 border-b border-white/[0.08]">
-              <div>
-                <p class="text-[10px] uppercase tracking-[0.18em] text-white/35">Sua jornada</p>
-                <p class="font-semibold text-white mt-1">Plano de evolução</p>
+        <div norteReveal [revealDelay]="0.12" class="relative">
+          <div class="absolute -inset-5 rounded-[2.5rem] bg-norte-accent/[0.035] blur-2xl pointer-events-none"></div>
+          <div class="relative rounded-[2rem] border border-white/10 bg-norte-900/90 p-4 sm:p-5 shadow-2xl">
+            <div class="rounded-[1.5rem] border border-white/[0.08] bg-norte-950 overflow-hidden">
+              <div class="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
+                <div class="flex items-center gap-3"><norte-logo-mark [tamanho]="22" /><span class="text-sm font-semibold">Meu Norte</span></div>
+                <span class="text-[10px] uppercase tracking-wider text-white/30">Dashboard</span>
               </div>
-              <span class="rounded-full border border-norte-accent/20 bg-norte-accent/10 px-3 py-1 text-xs text-norte-accent-light">Em andamento</span>
-            </div>
+              <div class="p-5 sm:p-6">
+                <p class="text-xs text-white/35">Sua jornada profissional</p>
+                <h2 class="text-xl font-semibold mt-1">Olá, Gabriel 👋</h2>
 
-            <div class="py-6">
-              <div class="flex items-center justify-between text-sm mb-2"><span class="text-white/50">Progresso do ciclo</span><span class="text-white/75">64%</span></div>
-              <div class="h-2 rounded-full bg-white/[0.06] overflow-hidden"><div class="h-full w-[64%] rounded-full bg-norte-accent"></div></div>
-            </div>
+                <div class="mt-5 rounded-2xl border border-norte-accent/20 bg-norte-accent/[0.07] p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div><p class="text-[10px] uppercase tracking-wider text-norte-accent-light/70">Seu próximo passo</p><p class="text-sm font-medium mt-1">Construir um projeto para praticar suas habilidades</p></div>
+                    <span class="h-8 w-8 shrink-0 rounded-xl bg-norte-accent text-norte-950 flex items-center justify-center font-semibold">→</span>
+                  </div>
+                  <div class="mt-4 h-1.5 rounded-full bg-white/[0.06] overflow-hidden"><div class="h-full w-[64%] rounded-full bg-norte-accent"></div></div>
+                  <p class="text-[10px] text-white/35 mt-2">64% do ciclo concluído</p>
+                </div>
 
-            <div class="space-y-3">
-              <div class="rounded-2xl border border-norte-accent/20 bg-norte-accent/[0.07] p-4 flex gap-3 items-start">
-                <span class="h-9 w-9 shrink-0 rounded-xl bg-norte-accent text-norte-950 flex items-center justify-center font-semibold">→</span>
-                <div><p class="text-[10px] uppercase tracking-wider text-norte-accent-light/70">Próximo passo</p><p class="text-sm text-white/85 mt-1">Construir um projeto para praticar suas habilidades</p></div>
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                  <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Oportunidades</p><p class="text-lg font-semibold mt-2">92%</p><p class="text-[10px] text-emerald-300/70 mt-1">compatibilidade</p></div>
+                  <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Perfil</p><p class="text-lg font-semibold mt-2">78%</p><p class="text-[10px] text-white/35 mt-1">completo</p></div>
+                </div>
+
+                <div class="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+                  <p class="text-[10px] uppercase tracking-wider text-white/30">Continue sua jornada</p>
+                  <div class="mt-3 space-y-2.5">
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-[10px]">✓</span><span class="text-xs text-white/55">Mapear habilidades atuais</span></div>
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-[10px]">✓</span><span class="text-xs text-white/55">Explorar carreiras compatíveis</span></div>
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-norte-accent/50 text-norte-accent-light flex items-center justify-center text-[10px]">3</span><span class="text-xs text-white/75">Construir um projeto prático</span></div>
+                  </div>
+                </div>
               </div>
-              <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 flex gap-3 items-center"><span class="h-7 w-7 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-xs">✓</span><span class="text-sm text-white/55">Definir área de interesse</span></div>
-              <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 flex gap-3 items-center"><span class="h-7 w-7 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-xs">✓</span><span class="text-sm text-white/55">Mapear habilidades atuais</span></div>
-              <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 flex gap-3 items-center"><span class="h-7 w-7 rounded-full border border-white/15 text-white/35 flex items-center justify-center text-xs">4</span><span class="text-sm text-white/35">Aplicar para oportunidades</span></div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="como-funciona" class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24 border-y border-norte-800 bg-norte-900/25">
+    <section id="jornada" class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24 border-y border-norte-800 bg-norte-900/25">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl mb-12">
+          <p class="norte-eyebrow">O produto na prática</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Não é só descobrir uma profissão. É descobrir um caminho.</h2>
+          <p class="norte-muted mt-4">O Norte conecta o que você já sabe, o que quer explorar e o que precisa desenvolver para transformar intenção em ação.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-5 items-stretch">
+          <article class="norte-card p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 border-b border-norte-800">
+              <div><p class="text-[10px] uppercase tracking-[0.18em] text-white/30">Seu ponto de partida</p><h3 class="text-xl font-semibold mt-1">Perfil profissional</h3></div>
+              <span class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/45">Personalizado</span>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-3 mt-6">
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Interesses</p><p class="text-sm font-medium mt-2">Tecnologia</p><p class="text-xs text-white/35 mt-1">Desenvolvimento</p></div>
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Escolaridade</p><p class="text-sm font-medium mt-2">Em andamento</p><p class="text-xs text-white/35 mt-1">Ensino superior</p></div>
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Habilidades</p><p class="text-sm font-medium mt-2">Java · SQL</p><p class="text-xs text-white/35 mt-1">+ outras</p></div>
+            </div>
+            <div class="mt-5 rounded-2xl border border-norte-accent/15 bg-norte-accent/[0.05] p-5 flex gap-4 items-start">
+              <span class="h-9 w-9 shrink-0 rounded-xl bg-norte-accent text-norte-950 flex items-center justify-center font-semibold">→</span>
+              <div><p class="text-[10px] uppercase tracking-wider text-norte-accent-light/70">A partir daqui</p><p class="text-sm text-white/80 mt-1">O Norte cruza seu perfil com caminhos possíveis e mostra o que pode fazer sentido explorar.</p></div>
+            </div>
+          </article>
+
+          <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-5">
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">01</span>
+              <h3 class="font-semibold mt-4">Descobrir possibilidades</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Explore áreas e carreiras sem precisar ter uma resposta definitiva.</p>
+            </article>
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">02</span>
+              <h3 class="font-semibold mt-4">Encontrar oportunidades</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Veja oportunidades relacionadas ao seu perfil e identifique lacunas.</p>
+            </article>
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">03</span>
+              <h3 class="font-semibold mt-4">Executar o próximo passo</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Transforme a direção encontrada em um plano que você consegue acompanhar.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24">
       <div class="max-w-7xl mx-auto">
         <div class="max-w-2xl mb-12">
           <p class="norte-eyebrow">Como funciona</p>
           <h2 class="font-display text-3xl sm:text-4xl mt-3">Uma jornada que começa onde você está.</h2>
-          <p class="norte-muted mt-4">Em vez de tentar escolher a profissão perfeita de uma vez, você avança por etapas.</p>
+          <p class="norte-muted mt-4">Você não precisa escolher a profissão perfeita de uma vez. Avance por etapas e construa clareza no caminho.</p>
         </div>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           @for (etapa of etapas; track etapa.titulo; let i = $index) {
@@ -110,12 +168,12 @@
       </div>
     </section>
 
-    <section id="beneficios" class="px-5 sm:px-8 lg:px-10 py-24">
+    <section id="beneficios" class="px-5 sm:px-8 lg:px-10 py-24 bg-norte-900/25 border-y border-norte-800">
       <div class="max-w-7xl mx-auto grid lg:grid-cols-[.72fr_1.28fr] gap-14 items-start">
         <div norteReveal class="lg:sticky lg:top-8">
-          <p class="norte-eyebrow">Por que o Norte</p>
-          <h2 class="font-display text-3xl sm:text-4xl mt-3">Menos conselho genérico. Mais direção.</h2>
-          <p class="norte-muted mt-5">A plataforma foi pensada para transformar uma dúvida difícil em pequenas decisões que você consegue colocar em prática.</p>
+          <p class="norte-eyebrow">Recursos</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Tudo em um só lugar para sair da dúvida e começar a agir.</h2>
+          <p class="norte-muted mt-5">Cada recurso resolve uma parte diferente da jornada. Juntos, eles ajudam você a construir direção com mais contexto.</p>
         </div>
         <div class="grid gap-0">
           @for (beneficio of beneficios; track beneficio.titulo; let i = $index) {
@@ -124,6 +182,22 @@
               <div><h3 class="font-semibold text-white">{{ beneficio.titulo }}</h3><p class="text-sm text-white/50 leading-relaxed mt-2 max-w-2xl">{{ beneficio.texto }}</p></div>
             </article>
           }
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24">
+      <div class="max-w-5xl mx-auto rounded-[2rem] border border-white/[0.08] bg-norte-900/70 p-7 sm:p-10 lg:p-12">
+        <div class="grid lg:grid-cols-[.8fr_1.2fr] gap-10 items-center">
+          <div>
+            <p class="norte-eyebrow">Para quem é</p>
+            <h2 class="font-display text-3xl sm:text-4xl mt-3">Você não precisa ter o próximo passo pronto.</h2>
+          </div>
+          <div class="space-y-5 text-sm text-white/55 leading-relaxed">
+            <p><span class="text-white font-medium">Está perdido?</span> Explore possibilidades e entenda melhor seus interesses, habilidades e caminhos.</p>
+            <p><span class="text-white font-medium">Está estudando?</span> Conecte o que aprende com carreiras e oportunidades que você pode começar a explorar.</p>
+            <p><span class="text-white font-medium">Quer mudar de área?</span> Organize sua experiência, descubra lacunas e transforme a mudança em um plano possível.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -189,6 +263,15 @@
         <h2 class="font-display text-3xl sm:text-4xl mt-3">Encontre seu norte.</h2>
         <p class="text-white/55 leading-relaxed mt-5">O Norte é desenvolvido por <span class="text-white">Gabriel Stefanoni</span>, desenvolvedor fullstack, como um projeto pessoal para ajudar jovens a encontrarem direção profissional de um jeito mais prático e acessível.</p>
         <a href="https://github.com/GabStefanoni01" target="_blank" rel="noopener noreferrer" class="inline-flex mt-6 text-sm text-norte-accent-light hover:underline">Conheça o projeto no GitHub ↗</a>
+      </div>
+    </section>
+
+    <section class="px-5 sm:px-8 lg:px-10 pb-24">
+      <div class="max-w-5xl mx-auto rounded-[2rem] border border-norte-accent/20 bg-norte-accent/[0.05] p-8 sm:p-12 text-center">
+        <p class="norte-eyebrow">Seu próximo passo começa agora</p>
+        <h2 class="font-display text-4xl sm:text-5xl mt-3">Encontre seu norte.</h2>
+        <p class="norte-muted mt-4 max-w-xl mx-auto">Você não precisa saber exatamente onde quer chegar. Comece descobrindo qual pode ser o seu próximo passo.</p>
+        <a routerLink="/cadastro" class="norte-button-primary inline-flex mt-8">Começar minha jornada</a>
       </div>
     </section>
   </main>

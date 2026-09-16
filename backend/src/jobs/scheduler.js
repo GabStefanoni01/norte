@@ -1,24 +1,29 @@
 const env = require('../config/env');
 const { executarRotinaDeLembretes } = require('../modules/plans/plans.reminders');
+const { obterCliente } = require('../config/redis');
 
-/**
- * Agendador interno opcional. Só faz sentido se o backend rodar como
- * processo contínuo (Railway, Docker, servidor tradicional) — em ambientes
- * serverless (ex: Vercel Functions), prefira um cron externo do provedor
- * chamando POST /admin/lembretes/enviar periodicamente, e deixe
- * ENABLE_CRON=false (ou nem defina).
- */
+async function comLockDistribuido(chave, ttlSegundos, tarefa) {
+  const client = obterCliente();
+  if (!client) { await tarefa(); return; }
+
+  const adquirido = await client.set(chave, '1', { NX: true, EX: ttlSegundos });
+  if (!adquirido) {
+    console.log(`Lock "${chave}" já está com outra instância — pulando este ciclo.`);
+    return;
+  }
+  await tarefa();
+}
+
 function iniciarAgendadorSeHabilitado() {
   if (!env.enableCron) return;
-
-  // require aqui dentro para não exigir node-cron instalado em quem não usa.
   const cron = require('node-cron');
 
-  // Todo dia às 9h (horário do servidor).
   cron.schedule('0 9 * * *', async () => {
     try {
-      const resultado = await executarRotinaDeLembretes();
-      console.log('Rotina de lembretes executada:', resultado);
+      await comLockDistribuido('lock:lembretes', 5 * 60, async () => {
+        const resultado = await executarRotinaDeLembretes();
+        console.log('Rotina de lembretes executada:', resultado);
+      });
     } catch (err) {
       console.error('Falha ao executar rotina de lembretes:', err.message);
     }

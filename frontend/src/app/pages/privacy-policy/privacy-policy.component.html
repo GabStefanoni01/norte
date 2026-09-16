@@ -1,69 +1,74 @@
-<header class="flex items-center justify-between px-6 py-6 md:px-12">
-  <a routerLink="/" class="flex items-center gap-2">
-    <norte-logo-mark [tamanho]="28" />
-    <span class="font-display text-2xl text-norte-accent-light">Norte</span>
-  </a>
-  <a routerLink="/" class="text-sm text-white/60 hover:text-white transition-colors">← Voltar ao início</a>
-</header>
-
-<main class="px-6 py-10 md:px-12">
-  <div class="mx-auto max-w-2xl">
-    <h1 class="font-display text-3xl mb-2">Política de Privacidade</h1>
-    <p class="text-sm text-white/40 mb-10">Última atualização: julho de 2026 (versão 1)</p>
-
-    <div class="space-y-6 text-white/70 leading-relaxed text-sm">
-      <section>
-        <h2 class="text-white font-semibold mb-2">1. Quem somos</h2>
-        <p>O Norte é uma plataforma de mentoria de carreira para jovens, operada de forma independente. Esta política explica como coletamos, usamos e protegemos seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">2. Quais dados coletamos</h2>
-        <p>Nome, e-mail, data de nascimento, cidade/estado, senha (armazenada com hash, nunca em texto puro), respostas do teste de descoberta pessoal, progresso no plano de evolução, mensagens trocadas com o mentor IA, e conteúdo de currículos/entrevistas simuladas gerados na plataforma.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">3. Para que usamos seus dados</h2>
-        <p>Pra criar e manter sua conta, personalizar seu plano de evolução e recomendações, gerar seu currículo e simulações de entrevista, e enviar comunicações relacionadas à sua conta (confirmação de cadastro, redefinição de senha, lembretes de progresso).</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">4. Compartilhamento com terceiros</h2>
-        <p>Usamos os seguintes prestadores de serviço (operadores, na terminologia da LGPD) pra operar a plataforma:</p>
-        <ul class="list-disc pl-5 mt-2 space-y-1">
-          <li><strong class="text-white/85">Google (Gemini API)</strong> — processa mensagens do mentor IA e gera sugestões personalizadas. Só é usado se você aceitar esses termos.</li>
-          <li><strong class="text-white/85">Neon</strong> — hospedagem do banco de dados.</li>
-          <li><strong class="text-white/85">Provedor de e-mail (SMTP)</strong> — envio de e-mails transacionais (confirmação, redefinição de senha, lembretes).</li>
-        </ul>
-        <p class="mt-2">Não vendemos nem compartilhamos seus dados com terceiros para fins de publicidade.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">5. Seus direitos</h2>
-        <p>Você pode, a qualquer momento: acessar e corrigir seus dados (na página de Perfil), solicitar a exclusão da sua conta, revogar o consentimento pro compartilhamento com o provedor de IA (o que desativa o mentor e as sugestões personalizadas, mas não o resto da plataforma), e solicitar uma cópia dos seus dados. Pra isso, use a página de Contato.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">6. Armazenamento e segurança</h2>
-        <p>Senhas são armazenadas com hash (bcrypt), nunca em texto puro. Conexões com o banco de dados usam criptografia (SSL/TLS). O acesso a dados administrativos é restrito a contas com permissão de administrador.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">7. Cookies</h2>
-        <p>O Norte não usa cookies de rastreamento. A sessão de login é mantida via token local no seu navegador.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">8. Mudanças nesta política</h2>
-        <p>Se fizermos mudanças relevantes, você será notificado por e-mail e poderá precisar reaceitar os termos pra continuar usando funcionalidades que envolvem compartilhamento de dados.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">9. Contato</h2>
-        <p>Dúvidas sobre esta política? Fale com a gente pela <a routerLink="/contato" class="text-norte-accent-light hover:underline">página de Contato</a>.</p>
-      </section>
+<main class="min-h-screen bg-norte-950 text-white">
+  <header class="border-b border-white/[0.06]">
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
+      <a routerLink="/" class="flex items-center gap-2.5" aria-label="Norte - início">
+        <norte-logo-mark [tamanho]="30" />
+        <span class="font-display text-2xl">Norte</span>
+      </a>
+      <a routerLink="/" class="rounded-lg px-3 py-2 text-sm text-white/55 transition hover:bg-white/[0.04] hover:text-white">← Voltar ao início</a>
     </div>
-  </div>
-</main>
+  </header>
 
-<norte-footer />
+  <section class="px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-24">
+    <div class="mx-auto max-w-4xl">
+      <div class="mb-10 border-b border-white/[0.08] pb-8">
+        <p class="norte-eyebrow">Legal</p>
+        <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">Política de Privacidade</h1>
+        <p class="mt-4 text-sm text-white/40">Última atualização: julho de 2026 (versão 1)</p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[180px_1fr] lg:gap-14">
+        <aside class="hidden lg:block">
+          <p class="sticky top-8 text-xs uppercase tracking-[0.16em] leading-6 text-white/30">Privacidade<br />e proteção de dados</p>
+        </aside>
+
+        <div class="space-y-8 text-[15px] leading-7 text-white/60">
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">1. Quem somos</h2>
+            <p>O Norte é uma plataforma de mentoria de carreira para jovens, operada de forma independente. Esta política explica como coletamos, usamos e protegemos seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">2. Quais dados coletamos</h2>
+            <p>Nome, e-mail, data de nascimento, cidade/estado, senha (armazenada com hash, nunca em texto puro), respostas do teste de descoberta pessoal, progresso no plano de evolução, mensagens trocadas com o mentor IA, e conteúdo de currículos/entrevistas simuladas gerados na plataforma.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">3. Para que usamos seus dados</h2>
+            <p>Pra criar e manter sua conta, personalizar seu plano de evolução e recomendações, gerar seu currículo e simulações de entrevista, e enviar comunicações relacionadas à sua conta (confirmação de cadastro, redefinição de senha, lembretes de progresso).</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">4. Compartilhamento com terceiros</h2>
+            <p>Usamos os seguintes prestadores de serviço (operadores, na terminologia da LGPD) pra operar a plataforma:</p>
+            <ul class="mt-3 list-disc space-y-2 pl-5">
+              <li><strong class="text-white/85">Google (Gemini API)</strong> — processa mensagens do mentor IA e gera sugestões personalizadas. Só é usado se você aceitar esses termos.</li>
+              <li><strong class="text-white/85">Neon</strong> — hospedagem do banco de dados.</li>
+              <li><strong class="text-white/85">Provedor de e-mail (SMTP)</strong> — envio de e-mails transacionais (confirmação, redefinição de senha, lembretes).</li>
+            </ul>
+            <p class="mt-3">Não vendemos nem compartilhamos seus dados com terceiros para fins de publicidade.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">5. Seus direitos</h2>
+            <p>Você pode, a qualquer momento: acessar e corrigir seus dados (na página de Perfil), solicitar a exclusão da sua conta, revogar o consentimento pro compartilhamento com o provedor de IA (o que desativa o mentor e as sugestões personalizadas, mas não o resto da plataforma), e solicitar uma cópia dos seus dados. Pra isso, use a página de Contato.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">6. Armazenamento e segurança</h2>
+            <p>Senhas são armazenadas com hash (bcrypt), nunca em texto puro. Conexões com o banco de dados usam criptografia (SSL/TLS). O acesso a dados administrativos é restrito a contas com permissão de administrador.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">7. Cookies</h2>
+            <p>O Norte não usa cookies de rastreamento. A sessão de login é mantida via token local no seu navegador.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">8. Mudanças nesta política</h2>
+            <p>Se fizermos mudanças relevantes, você será notificado por e-mail e poderá precisar reaceitar os termos pra continuar usando funcionalidades que envolvem compartilhamento de dados.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">9. Contato</h2>
+            <p>Dúvidas sobre esta política? Fale com a gente pela <a routerLink="/contato" class="text-norte-accent-light hover:underline">página de Contato</a>.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <norte-footer />
+</main>

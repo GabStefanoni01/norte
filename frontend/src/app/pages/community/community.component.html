@@ -1,149 +1,145 @@
 <norte-sidebar />
 
-<div class="pl-16">
-  <main class="max-w-5xl mx-auto px-6 py-10">
-    <div class="flex flex-col gap-6 mb-8">
-      <div>
-        <p class="text-sm uppercase tracking-[0.3em] text-norte-accent-light/80 mb-2">Comunidade Norte</p>
-        <h1 class="font-display text-3xl">Converse com outros usuários</h1>
+<div class="min-h-screen lg:pl-64 pb-24 lg:pb-0">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <header class="mb-8">
+      <p class="norte-eyebrow">Comunidade Norte</p>
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+        <div>
+          <h1 class="font-display text-3xl sm:text-4xl text-white">Troque experiências com a comunidade</h1>
+          <p class="mt-3 text-white/60 max-w-2xl leading-relaxed">
+            Encontre conversas sobre carreira, aprendizado e mercado de tecnologia. Compartilhe sua experiência e avance junto com outras pessoas.
+          </p>
+        </div>
+        <button
+          class="norte-button-primary shrink-0"
+          (click)="router.navigate(['/comunidade/novo'])"
+        >
+          + Nova publicação
+        </button>
       </div>
-      <p class="text-white/60 max-w-3xl">
-        Leia publicações, comente e reaja às conversas da comunidade. Não logado? Você pode ver as postagens, mas precisa entrar para criar, reagir ou comentar.
-      </p>
+    </header>
+
+    <section class="norte-card p-4 sm:p-5 mb-6">
+      <div class="flex flex-col lg:flex-row gap-3">
+        <label class="flex-1 block text-sm text-white/60">
+          <span class="sr-only">Buscar</span>
+          <input
+            class="w-full rounded-2xl bg-norte-950/70 border border-norte-800 px-4 py-3 text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-norte-accent/50"
+            type="text"
+            placeholder="Buscar por título ou conteúdo..."
+            [value]="query()"
+            (input)="query.set($any($event.target).value)"
+          />
+        </label>
+        <label class="lg:w-56 block text-sm text-white/60">
+          <span class="sr-only">Categoria</span>
+          <select
+            class="w-full rounded-2xl bg-norte-950/70 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent/50"
+            [value]="filtroCategoria()"
+            (change)="filtroCategoria.set($any($event.target).value); atualizarFiltros()"
+          >
+            <option value="">Todas as categorias</option>
+            <option *ngFor="let categoria of categorias()" [value]="categoria">{{ categoria }}</option>
+          </select>
+        </label>
+        <button class="norte-button-secondary" (click)="atualizarFiltros()">Filtrar</button>
+      </div>
+    </section>
+
+    <div *ngIf="mensagem()" class="rounded-2xl border border-norte-accent/20 bg-norte-accent/5 p-4 text-sm text-norte-accent-light mb-6">
+      {{ mensagem() }}
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_320px] mb-8">
-      <section class="rounded-3xl border border-norte-800 bg-norte-900/70 p-6">
-        <div class="grid gap-4 mb-6">
-          <div class="grid gap-3 lg:grid-cols-[1fr_180px]">
-            <label class="block text-sm text-white/70">
-              <span class="mb-2 inline-block">Categoria</span>
-              <select
-                class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-                [value]="filtroCategoria()"
-                (change)="filtroCategoria.set($any($event.target).value); atualizarFiltros()"
-              >
-                <option value="">Todas</option>
-                <option *ngFor="let categoria of categorias()" [value]="categoria">{{ categoria }}</option>
-              </select>
-            </label>
+    <section *ngIf="!auth.estaAutenticado()" class="norte-card-interactive p-5 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold text-white">Quer participar da conversa?</p>
+        <p class="text-sm text-white/55 mt-1">Faça login para publicar, reagir e comentar.</p>
+      </div>
+      <button class="norte-button-secondary" (click)="router.navigate(['/login'])">Entrar</button>
+    </section>
 
-            <label class="block text-sm text-white/70">
-              <span class="mb-2 inline-block">Buscar</span>
-              <input
-                class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-                type="text"
-                placeholder="Título ou conteúdo"
-                [value]="query()"
-                (input)="query.set($any($event.target).value)"
-              />
-            </label>
+    <div *ngIf="carregando()" class="grid gap-4">
+      <norte-skeleton-loader />
+    </div>
+
+    <div *ngIf="!carregando() && posts().length === 0" class="norte-card p-10 text-center">
+      <div class="mx-auto h-12 w-12 rounded-2xl border border-norte-800 bg-norte-950 flex items-center justify-center text-norte-accent text-xl">◎</div>
+      <h2 class="mt-5 text-lg font-semibold text-white">Nenhuma publicação encontrada</h2>
+      <p class="mt-2 text-sm text-white/50">Tente mudar os filtros ou seja a primeira pessoa a iniciar uma conversa.</p>
+      <button class="norte-button-primary mt-5" (click)="router.navigate(['/comunidade/novo'])">Criar publicação</button>
+    </div>
+
+    <div *ngIf="!carregando() && posts().length > 0" class="grid gap-4">
+      <article *ngFor="let post of posts()" norteReveal class="norte-card-interactive p-5 sm:p-6">
+        <div class="flex items-start gap-4">
+          <div class="h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center text-white font-semibold" [style.background]="avatarColor(post.autor_nome)" title="{{ post.autor_nome }}">
+            {{ avatarInitials(post.autor_nome) }}
           </div>
 
-          <button
-            class="w-full rounded-full bg-norte-accent px-5 py-3 text-sm font-semibold text-norte-950 hover:bg-norte-accent-light transition"
-            (click)="atualizarFiltros()"
-          >
-            Atualizar lista
-          </button>
-        </div>
-
-        <div *ngIf="mensagem()" class="rounded-2xl border border-norte-700 bg-norte-yellow/10 p-4 text-yellow-200 mb-6">
-          {{ mensagem() }}
-        </div>
-
-        <div class="mb-6 rounded-3xl border border-norte-800 bg-norte-900/70 p-5">
-          <h2 class="text-lg font-semibold text-white mb-3">Gostaria de publicar?</h2>
-          <p class="text-white/60 text-sm mb-4">
-            Qualquer pessoa pode ver as publicações. Para criar uma nova publicação, faça login e siga para a página de criação.
-          </p>
-          <button
-            class="w-full rounded-full bg-norte-accent px-5 py-3 text-sm font-semibold text-norte-950 hover:bg-norte-accent-light transition"
-            (click)="router.navigate(['/comunidade/novo'])"
-          >
-            Criar publicação
-          </button>
-        </div>
-
-        <div *ngIf="carregando()">
-          <norte-skeleton-loader />
-        </div>
-
-        <div *ngIf="!carregando() && posts().length === 0" class="rounded-3xl border border-norte-800 bg-norte-950/60 p-6 text-white/70">
-          Nenhuma publicação encontrada.
-        </div>
-
-        <div *ngIf="!carregando() && posts().length > 0" class="transition-opacity duration-300" [class.opacity-0]="carregando()" [class.opacity-100]="!carregando()">
-          <article *ngFor="let post of posts()" norteReveal class="rounded-3xl border border-norte-800 bg-norte-950/70 p-5 card-hover">
-            <div class="flex items-start gap-4">
-              <div class="shrink-0">
-                <div
-                  class="h-12 w-12 flex items-center justify-center rounded-full text-white font-semibold"
-                  [style.background]="avatarColor(post.autor_nome)"
-                  title="{{ post.autor_nome }}"
-                >
-                  {{ avatarInitials(post.autor_nome) }}
-                </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div class="min-w-0">
+                <span class="inline-flex rounded-full border border-norte-accent/20 bg-norte-accent/5 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-norte-accent-light">
+                  {{ post.categoria }}
+                </span>
+                <h2 class="mt-2 text-xl font-semibold text-white leading-snug">{{ post.titulo }}</h2>
               </div>
-              <div class="flex-1">
-                <div class="flex items-center justify-between gap-3">
-                  <div>
-                    <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light">{{ post.categoria }}</p>
-                    <h2 class="text-xl font-semibold text-white">{{ post.titulo }}</h2>
-                  </div>
-                  <div class="text-sm text-white/50 text-right">
-                    <div>{{ post.autor_nome }}</div>
-                    <div>{{ timeAgo(post.created_at) }}</div>
-                  </div>
-                </div>
-                <p class="mt-3 text-white/70 line-clamp-4">{{ post.conteudo }}</p>
-
-                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/60">
-                  <button
-                    class="rounded-full bg-norte-800 px-3 py-1.5 hover:bg-norte-700 transition"
-                    (click)="curtir(post.id)"
-                    [disabled]="enviandoReacao() === post.id"
-                  >
-                    {{ enviandoReacao() === post.id ? 'Enviando...' : 'Curtir' }}
-                  </button>
-                  <span>{{ post.reacoes }} reações</span>
-                  <span>{{ post.comentarios }} comentários</span>
-                  <button
-                    *ngIf="auth.ehAdmin()"
-                    type="button"
-                    class="rounded-full border border-red-500 bg-red-600 px-3 py-1.5 text-red-50 hover:bg-red-700 transition"
-                    (click)="excluirPost(post.id)"
-                  >
-                    Excluir
-                  </button>
-                </div>
-
-                <div class="mt-4 rounded-2xl border border-norte-800 bg-norte-950/60 p-4">
-                  <label class="block text-sm text-white/70 mb-2">Comentar</label>
-                  <textarea
-                    class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-norte-accent"
-                    rows="3"
-                    [value]="comentariosPorPost()[post.id] || ''"
-                    (input)="setComentario(post.id, $any($event.target).value)"
-                    [disabled]="!auth.estaAutenticado()"
-                    placeholder="Adicione um comentário..."
-                  ></textarea>
-                  <button
-                    class="mt-3 rounded-full bg-norte-accent px-4 py-2 text-sm font-semibold text-norte-950 hover:bg-norte-accent-light transition"
-                    [disabled]="enviandoComentario() === post.id || !auth.estaAutenticado()"
-                    (click)="comentar(post.id)"
-                  >
-                    {{ enviandoComentario() === post.id ? 'Enviando...' : 'Enviar comentário' }}
-                  </button>
-                  <p class="mt-3 text-xs text-white/50">
-                    {{ auth.estaAutenticado() ? 'Seu comentário será adicionado à conversa.' : 'Faça login para comentar.' }}
-                  </p>
-                </div>
+              <div class="text-xs text-white/40 sm:text-right shrink-0">
+                <div>{{ post.autor_nome }}</div>
+                <div class="mt-1">{{ timeAgo(post.created_at) }}</div>
               </div>
             </div>
-          </article>
+
+            <p class="mt-4 text-sm sm:text-base text-white/65 leading-relaxed whitespace-pre-line line-clamp-5">{{ post.conteudo }}</p>
+
+            <div class="mt-5 flex flex-wrap items-center gap-2 text-sm text-white/45">
+              <button
+                class="rounded-full border border-norte-800 bg-norte-950/60 px-3.5 py-2 text-white/70 hover:border-norte-accent/30 hover:text-norte-accent-light transition"
+                (click)="curtir(post.id)"
+                [disabled]="enviandoReacao() === post.id"
+              >
+                {{ enviandoReacao() === post.id ? 'Enviando...' : 'Curtir' }}
+              </button>
+              <span>{{ post.reacoes }} reações</span>
+              <span>•</span>
+              <span>{{ post.comentarios }} comentários</span>
+              <button
+                *ngIf="auth.ehAdmin()"
+                type="button"
+                class="ml-auto rounded-full border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20 transition"
+                (click)="excluirPost(post.id)"
+              >
+                Excluir
+              </button>
+            </div>
+
+            <div class="mt-5 border-t border-norte-800 pt-5">
+              <label class="block text-xs font-medium uppercase tracking-wider text-white/40 mb-2">Comentar</label>
+              <textarea
+                class="w-full rounded-2xl bg-norte-950/70 border border-norte-800 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent/40 resize-none"
+                rows="2"
+                [value]="comentariosPorPost()[post.id] || ''"
+                (input)="setComentario(post.id, $any($event.target).value)"
+                [disabled]="!auth.estaAutenticado()"
+                placeholder="Compartilhe uma ideia ou experiência..."
+              ></textarea>
+              <div class="mt-2 flex items-center justify-between gap-3">
+                <p class="text-xs text-white/35">
+                  {{ auth.estaAutenticado() ? 'Contribua de forma respeitosa e construtiva.' : 'Faça login para comentar.' }}
+                </p>
+                <button
+                  class="norte-button-secondary text-xs"
+                  [disabled]="enviandoComentario() === post.id || !auth.estaAutenticado()"
+                  (click)="comentar(post.id)"
+                >
+                  {{ enviandoComentario() === post.id ? 'Enviando...' : 'Comentar' }}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </article>
     </div>
   </main>
 </div>

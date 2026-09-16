@@ -1,76 +1,111 @@
 <norte-sidebar />
 
-<div class="pl-16">
-<main class="max-w-3xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-2">Oportunidades</h1>
-  <p class="text-white/60 mb-8">Vagas, cursos e bolsas com sua % de compatibilidade calculada automaticamente.</p>
-
-  <select
-    [(ngModel)]="filtroTipo"
-    (ngModelChange)="carregar()"
-    class="rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2 text-sm text-white mb-6 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-  >
-    <option value="">Todos os tipos</option>
-    @for (tipo of tipos; track tipo.valor) {
-      <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-    }
-  </select>
-
-  @if (mensagemLacuna()) {
-    <p class="text-sm text-emerald-400 mb-4">{{ mensagemLacuna() }}</p>
-  }
-
-  @if (carregando()) {
-    <p class="text-white/50">Carregando...</p>
-  } @else if (erro()) {
-    <p class="text-sm text-red-400">{{ erro() }}</p>
-  } @else if (oportunidades().length === 0) {
-    <div class="rounded-xl border border-norte-800 bg-norte-900/40 p-8 text-center">
-      <p class="text-white/60">Nenhuma oportunidade encontrada.</p>
-    </div>
-  } @else {
-    <div class="stagger space-y-4">
-      @for (op of oportunidades(); track op.id) {
-        <div class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-5">
-          <div class="flex items-start justify-between gap-3 mb-2">
-            <div>
-              <span class="text-xs uppercase tracking-wide text-norte-accent-light/80">{{ op.tipo }}</span>
-              <h3 class="font-semibold">{{ op.titulo }}</h3>
-              @if (op.empresa) { <p class="text-sm text-white/50">{{ op.empresa }}</p> }
-            </div>
-            <span class="text-2xl font-display shrink-0" [class]="corMatch(op.matchPercent)">
-              {{ op.matchPercent }}%
-            </span>
-          </div>
-
-          @if (op.descricao) {
-            <p class="text-sm text-white/60 mb-3">{{ op.descricao }}</p>
-          }
-
-          @if (op.faltantes.length > 0) {
-            <div class="mb-3">
-              <p class="text-xs text-white/40 mb-1.5">Falta: {{ op.faltantes.join(', ') }}</p>
-              <button
-                (click)="fecharLacuna(op)"
-                [disabled]="fechandoLacunaId() === op.id"
-                class="text-xs text-norte-accent-light hover:underline disabled:opacity-50"
-              >
-                {{ fechandoLacunaId() === op.id ? 'Gerando...' : 'Quer um plano pra chegar a 100%?' }}
-              </button>
-            </div>
-          }
-
-          <a
-            [href]="op.link"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-block text-sm text-norte-accent-light hover:underline"
-          >
-            Ver oportunidade →
-          </a>
+<div class="min-h-screen lg:pl-64">
+  <main class="norte-page mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="norte-eyebrow">Oportunidades</p>
+        <h1 class="font-display text-3xl tracking-tight sm:text-4xl">Encontre seu próximo passo</h1>
+        <p class="norte-muted mt-2 max-w-2xl">Vagas, cursos e bolsas organizados pela compatibilidade com o seu perfil.</p>
+      </div>
+      <div class="norte-card flex items-center gap-3 px-4 py-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent">%</div>
+        <div>
+          <p class="text-xs text-white/40">Match personalizado</p>
+          <p class="text-sm font-medium text-white/80">Baseado no seu perfil</p>
         </div>
-      }
-    </div>
-  }
-</main>
+      </div>
+    </header>
+
+    <section class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
+        <p class="text-xs text-white/40">A lista é atualizada automaticamente.</p>
+      </div>
+      <select
+        [(ngModel)]="filtroTipo"
+        (ngModelChange)="carregar()"
+        aria-label="Filtrar oportunidades por tipo"
+        class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
+      >
+        <option value="">Todos os tipos</option>
+        @for (tipo of tipos; track tipo.valor) {
+          <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
+        }
+      </select>
+    </section>
+
+    @if (mensagemLacuna()) {
+      <div class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300">
+        <span class="mt-0.5">✓</span>
+        <span>{{ mensagemLacuna() }}</span>
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="grid gap-4 lg:grid-cols-2">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="norte-card p-6">
+            <div class="mb-5 h-3 w-20 animate-pulse rounded bg-norte-800"></div>
+            <div class="mb-2 h-5 w-3/4 animate-pulse rounded bg-norte-800"></div>
+            <div class="mb-6 h-3 w-1/3 animate-pulse rounded bg-norte-800"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-norte-800"></div>
+          </div>
+        }
+      </div>
+    } @else if (erro()) {
+      <div class="norte-card border-red-500/20 bg-red-500/5 p-8 text-center">
+        <p class="mb-1 font-medium text-white">Não foi possível carregar as oportunidades</p>
+        <p class="text-sm text-red-300">{{ erro() }}</p>
+      </div>
+    } @else if (oportunidades().length === 0) {
+      <div class="norte-card p-10 text-center">
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">⌕</div>
+        <p class="font-medium text-white">Nenhuma oportunidade encontrada</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">Tente outro filtro ou volte mais tarde para conferir novas oportunidades.</p>
+      </div>
+    } @else {
+      <div class="grid gap-4 lg:grid-cols-2">
+        @for (op of oportunidades(); track op.id) {
+          <article class="norte-card-interactive group flex flex-col p-5 sm:p-6">
+            <div class="mb-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <span class="inline-flex rounded-full border border-norte-700 bg-norte-950/50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-norte-accent-light/80">{{ op.tipo }}</span>
+                <h2 class="mt-3 text-lg font-semibold leading-snug text-white">{{ op.titulo }}</h2>
+                @if (op.empresa) { <p class="mt-1 text-sm text-white/45">{{ op.empresa }}</p> }
+              </div>
+              <div class="shrink-0 text-right">
+                <p class="text-2xl font-semibold tracking-tight" [class]="corMatch(op.matchPercent)">{{ op.matchPercent }}%</p>
+                <p class="text-[10px] uppercase tracking-wider text-white/30">compatibilidade</p>
+              </div>
+            </div>
+
+            @if (op.descricao) {
+              <p class="mb-5 line-clamp-3 text-sm leading-6 text-white/55">{{ op.descricao }}</p>
+            }
+
+            <div class="mt-auto border-t border-norte-800/80 pt-4">
+              @if (op.faltantes.length > 0) {
+                <div class="mb-4 rounded-xl border border-norte-800 bg-norte-950/40 p-3.5">
+                  <p class="text-[11px] font-medium uppercase tracking-wide text-white/35">Para aumentar seu match</p>
+                  <p class="mt-1 text-xs leading-5 text-white/55">{{ op.faltantes.join(', ') }}</p>
+                  <button
+                    (click)="fecharLacuna(op)"
+                    [disabled]="fechandoLacunaId() === op.id"
+                    class="mt-2 text-xs font-medium text-norte-accent-light transition hover:text-white disabled:opacity-50"
+                  >
+                    {{ fechandoLacunaId() === op.id ? 'Gerando plano...' : 'Criar plano para evoluir →' }}
+                  </button>
+                </div>
+              }
+
+              <a [href]="op.link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-medium text-norte-accent-light transition group-hover:text-norte-accent hover:text-white">
+                Ver oportunidade <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </main>
 </div>

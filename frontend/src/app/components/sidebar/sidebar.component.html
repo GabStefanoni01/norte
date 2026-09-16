@@ -1,142 +1,105 @@
-<aside
-  class="group fixed left-0 top-0 z-40 flex h-screen w-16 hover:w-56 flex-col overflow-hidden border-r border-norte-800 bg-norte-950 transition-all duration-300 ease-out"
->
-  <!-- Logo -->
-  <a routerLink="/dashboard" class="flex items-center gap-3 px-4 py-5 shrink-0">
-    <norte-logo-mark [tamanho]="32" />
-    <span class="font-display text-lg text-norte-accent-light opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-      Norte
-    </span>
+<aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-white/[0.07] bg-norte-950/95 px-3 py-4 backdrop-blur-xl lg:flex">
+  <a routerLink="/dashboard" class="mb-6 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/[0.04]">
+    <norte-logo-mark [tamanho]="34" />
+    <div>
+      <span class="block font-display text-xl leading-none text-norte-accent-light">Norte</span>
+      <span class="mt-1 block text-[10px] font-medium uppercase tracking-[0.14em] text-white/35">Sua jornada</span>
+    </div>
   </a>
 
-  <!-- Navegação -->
-  <nav class="flex-1 flex flex-col gap-1 px-3 mt-2">
-    <a
-      routerLink="/dashboard"
-      routerLinkActive="bg-norte-900 text-white"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Dashboard</span>
+  <nav class="flex-1 overflow-y-auto px-1" aria-label="Navegação principal">
+    <p class="norte-eyebrow mb-2 px-3">Principal</p>
+
+    <a routerLink="/dashboard" routerLinkActive="bg-white/[0.07] text-white" [routerLinkActiveOptions]="{ exact: true }" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Visão geral</span>
     </a>
 
-    <a
-      routerLink="/plano"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 21V3" /><path d="M6 4l10 3-10 3" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Meu plano</span>
+    <a routerLink="/plano" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V3"/><path d="M6 4l10 3-10 3"/></svg>
+      <span>Meu plano</span>
     </a>
 
-    <a
-      routerLink="/oportunidades"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Oportunidades</span>
+    <a routerLink="/oportunidades" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.4 5.9.9-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.9L12 3z"/></svg>
+      <span>Oportunidades</span>
     </a>
 
-    <a
-      routerLink="/descoberta"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M14.5 9.5 L11 13 L9.5 14.5 L13 11 Z" fill="currentColor" stroke="none" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Descoberta</span>
+    <p class="norte-eyebrow mb-2 mt-7 px-3">Desenvolvimento</p>
+
+    <a routerLink="/descoberta" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 11 13l-1.5 1.5L13 11z" fill="currentColor" stroke="none"/></svg>
+      <span>Descoberta</span>
     </a>
 
-    <a
-      routerLink="/chat"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 5h16v10H8l-4 4V5Z" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Mentor IA</span>
+    <a routerLink="/chat" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4V5Z"/></svg>
+      <span>Mentor</span>
     </a>
 
-    <a
-      routerLink="/carreira"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Carreira</span>
+    <a routerLink="/carreira" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V5M5 19h14"/><path d="m8 15 3-4 3 2 4-6"/></svg>
+      <span>Carreira</span>
     </a>
 
-    <a
-      routerLink="/comunidade"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 4h16v12H4z" /><path d="M8 20h8" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Comunidade</span>
+    <a routerLink="/curriculo" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h5M10 13h6M10 17h6"/></svg>
+      <span>Currículo</span>
     </a>
 
-    <a
-      routerLink="/curriculo"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-        <path d="M12 2 L14.5 8.5 L21.5 9 L16 13.5 L18 20.5 L12 16.5 L6 20.5 L8 13.5 L2.5 9 L9.5 8.5 Z" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Conquistas</span>
+    <a routerLink="/comunidade" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H4z"/><path d="M8 21h8"/><path d="M8 9h8M8 13h5"/></svg>
+      <span>Comunidade</span>
     </a>
 
-    <a
-      routerLink="/perfil"
-      routerLinkActive="bg-norte-900 text-white"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-white/60 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Perfil</span>
+    <a routerLink="/conquistas" routerLinkActive="bg-white/[0.07] text-white" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 14.5 8l5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9L9.5 8 12 3z"/></svg>
+      <span>Conquistas</span>
     </a>
 
     @if (auth.ehAdmin()) {
-      <a
-        routerLink="/admin"
-        routerLinkActive="bg-norte-900 text-white"
-        class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-norte-accent-light/80 hover:text-norte-accent-light hover:bg-norte-900/60 transition-colors"
-      >
-        <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-          <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" />
-        </svg>
-        <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Admin</span>
+      <a routerLink="/admin" routerLinkActive="bg-norte-accent/10 text-norte-accent-light" class="mt-5 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-norte-accent-light/65 transition-colors hover:bg-norte-accent/10 hover:text-norte-accent-light">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2 20 5v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg>
+        <span>Administração</span>
       </a>
     }
   </nav>
 
-  <!-- Usuário / sair -->
-  <div class="px-3 py-4 border-t border-norte-800">
-    <button
-      (click)="auth.logout()"
-      class="flex items-center gap-3 rounded-lg px-2.5 py-2.5 w-full text-white/40 hover:text-white hover:bg-norte-900/60 transition-colors"
-    >
-      <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 5H5a2 2 0 00-2 2v10a2 2 0 002 2h4M16 15l4-4-4-4M20 11H9" />
-      </svg>
-      <span class="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Sair</span>
+  <div class="mt-3 border-t border-white/[0.07] pt-3">
+    <a routerLink="/perfil" routerLinkActive="bg-white/[0.07]" class="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-norte-accent/15 text-xs font-semibold text-norte-accent-light">
+        {{ auth.usuarioAtual()?.nome?.charAt(0)?.toUpperCase() || 'U' }}
+      </div>
+      <div class="min-w-0">
+        <p class="truncate font-medium text-white/85">{{ auth.usuarioAtual()?.nome || 'Meu perfil' }}</p>
+        <p class="text-xs text-white/35">Meu perfil</p>
+      </div>
+    </a>
+
+    <button (click)="auth.logout()" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/35 transition-colors hover:bg-white/[0.045] hover:text-white">
+      <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M16 15l4-4-4-4M20 11H9"/></svg>
+      <span>Sair</span>
     </button>
   </div>
 </aside>
+
+<!-- Mobile navigation is intentionally kept simple for the first pass. -->
+<div class="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-norte-950/95 px-2 py-2 backdrop-blur-xl lg:hidden">
+  <nav class="mx-auto flex max-w-md items-center justify-around" aria-label="Navegação mobile">
+    <a routerLink="/dashboard" routerLinkActive="text-norte-accent-light" [routerLinkActiveOptions]="{ exact: true }" class="flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] text-white/45 transition-colors">
+      <span class="text-lg leading-none">⌂</span><span>Início</span>
+    </a>
+    <a routerLink="/plano" routerLinkActive="text-norte-accent-light" class="flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] text-white/45 transition-colors">
+      <span class="text-lg leading-none">◈</span><span>Plano</span>
+    </a>
+    <a routerLink="/oportunidades" routerLinkActive="text-norte-accent-light" class="flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] text-white/45 transition-colors">
+      <span class="text-lg leading-none">✦</span><span>Vagas</span>
+    </a>
+    <a routerLink="/chat" routerLinkActive="text-norte-accent-light" class="flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] text-white/45 transition-colors">
+      <span class="text-lg leading-none">○</span><span>Mentor</span>
+    </a>
+    <a routerLink="/perfil" routerLinkActive="text-norte-accent-light" class="flex min-w-0 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] text-white/45 transition-colors">
+      <span class="text-lg leading-none">◯</span><span>Perfil</span>
+    </a>
+  </nav>
+</div>

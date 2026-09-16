@@ -1,116 +1,138 @@
 <norte-sidebar />
 
-<div class="pl-16">
+<main class="min-h-screen bg-norte-950 lg:pl-64">
+  <div class="mx-auto max-w-7xl px-5 pb-24 pt-8 sm:px-8 lg:px-10 lg:pb-10">
+    <header class="mb-8">
+      <p class="norte-eyebrow mb-2">Sua jornada profissional</p>
+      <h1 class="font-display text-3xl tracking-tight text-white sm:text-4xl">
+        Olá{{ auth.usuarioAtual()?.nome ? ', ' + auth.usuarioAtual()?.nome : '' }} 👋
+      </h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">
+        Um passo de cada vez. Veja onde você está e continue de onde parou.
+      </p>
+    </header>
 
-<main class="max-w-4xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-2">
-    Olá{{ auth.usuarioAtual()?.nome ? ', ' + auth.usuarioAtual()?.nome : '' }} 👋
-  </h1>
-  <p class="text-white/60 mb-8">Este é o seu ponto de partida no Norte.</p>
-
-  @if (!carregando()) {
-    @if (!perfil()) {
-      <div class="card-hover rounded-lg border border-norte-accent/40 bg-norte-accent/10 p-6 mb-6">
-        <p class="font-semibold mb-1">Complete seu perfil</p>
-        <p class="text-sm text-white/60 mb-4">
-          Conte um pouco sobre você pra gente montar seu plano de evolução e sugerir áreas com o teste de
-          descoberta.
-        </p>
-        <a
-          routerLink="/perfil"
-          class="inline-block rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2 text-sm"
-        >
-          Completar perfil
-        </a>
-      </div>
-    } @else if (!perfil()?.perfil_dominante) {
-      <div class="card-hover rounded-lg border border-norte-accent/40 bg-norte-accent/10 p-6 mb-6">
-        <p class="font-semibold mb-1">Faça o teste de descoberta</p>
-        <p class="text-sm text-white/60 mb-4">
-          Perfil salvo! Agora faça o teste rápido pra descobrirmos as áreas que mais combinam com você.
-        </p>
-        <a
-          routerLink="/descoberta"
-          class="inline-block rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2 text-sm"
-        >
-          Fazer o teste
-        </a>
-      </div>
+    @if (carregando()) {
+      <section class="grid gap-4 lg:grid-cols-[1.55fr_1fr]" aria-label="Carregando dashboard">
+        <div class="norte-card h-56 animate-pulse"></div>
+        <div class="norte-card h-56 animate-pulse"></div>
+      </section>
     } @else {
-      <div class="rounded-lg border border-norte-800 bg-norte-900 p-6 mb-6">
-        <p class="text-sm text-white/50 mb-1">Seu perfil</p>
-        <p class="font-semibold text-lg mb-3">{{ perfil()!.perfil_dominante }}</p>
-        <div class="flex flex-wrap gap-2">
-          @for (area of perfil()!.areas_sugeridas; track area) {
-            <span class="rounded-full border border-norte-accent/40 bg-norte-accent/10 text-norte-accent-light text-xs px-2.5 py-1">
-              {{ area }}
-            </span>
-          }
-        </div>
-      </div>
-    }
-  }
-
-  <div class="rounded-lg border border-norte-800 bg-norte-900 p-6">
-    @if (!carregando() && plano()) {
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm text-white/50">Plano de evolução</p>
-        <span class="text-sm text-norte-accent-light">{{ plano()!.progresso }}%</span>
-      </div>
-      <div class="h-2 rounded-full bg-norte-800 overflow-hidden mb-4">
-        <div
-          class="h-full bg-norte-accent transition-all duration-700 ease-out"
-          [style.width.%]="plano()!.progresso"
-        ></div>
-      </div>
-
-      @if (plano()!.proximoPasso) {
-        <p class="text-xs text-white/40 mb-1">Próximo passo</p>
-        <p class="font-medium mb-4">{{ plano()!.proximoPasso!.item.descricao }}</p>
+      @if (!perfil()) {
+        <section class="norte-card overflow-hidden border-norte-accent/20 bg-gradient-to-br from-norte-accent/10 to-transparent p-6 sm:p-8">
+          <p class="norte-eyebrow">Primeiro passo</p>
+          <h2 class="mt-2 font-display text-2xl text-white">Vamos começar pelo seu perfil.</h2>
+          <p class="mt-2 max-w-xl text-sm leading-6 text-white/55">Conte um pouco sobre você para o Norte construir uma jornada mais relevante para o seu momento.</p>
+          <a routerLink="/perfil" class="norte-button-primary mt-6">Completar perfil <span aria-hidden="true">→</span></a>
+        </section>
+      } @else if (!perfil()?.perfil_dominante) {
+        <section class="norte-card overflow-hidden border-norte-accent/20 bg-gradient-to-br from-norte-accent/10 to-transparent p-6 sm:p-8">
+          <p class="norte-eyebrow">Próximo passo</p>
+          <h2 class="mt-2 font-display text-2xl text-white">Descubra caminhos que combinam com você.</h2>
+          <p class="mt-2 max-w-xl text-sm leading-6 text-white/55">Faça o teste de descoberta para entender melhor seus interesses e receber sugestões de áreas profissionais.</p>
+          <a routerLink="/descoberta" class="norte-button-primary mt-6">Fazer descoberta <span aria-hidden="true">→</span></a>
+        </section>
       } @else {
-        <p class="font-medium mb-4">🎉 Plano concluído! Bora gerar um novo?</p>
+        <section class="grid gap-4 lg:grid-cols-[1.55fr_1fr]">
+          <article class="norte-card overflow-hidden border-norte-accent/20 bg-gradient-to-br from-norte-accent/[0.12] via-white/[0.025] to-transparent p-6 sm:p-8">
+            <div class="flex flex-col justify-between gap-7 sm:flex-row sm:items-start">
+              <div>
+                <p class="norte-eyebrow">Seu próximo passo</p>
+                @if (plano()?.proximoPasso) {
+                  <h2 class="mt-2 max-w-xl font-display text-2xl leading-tight text-white sm:text-3xl">{{ plano()!.proximoPasso!.item.descricao }}</h2>
+                } @else {
+                  <h2 class="mt-2 font-display text-2xl text-white">Sua jornada está em dia.</h2>
+                }
+                <p class="mt-3 max-w-lg text-sm leading-6 text-white/50">Continue seu plano e transforme o próximo objetivo em uma ação concreta.</p>
+              </div>
+              @if (plano()) {
+                <div class="shrink-0 text-left sm:text-right">
+                  <span class="text-3xl font-semibold tracking-tight text-norte-accent-light">{{ plano()!.progresso }}%</span>
+                  <p class="mt-1 text-xs text-white/40">plano concluído</p>
+                </div>
+              }
+            </div>
+
+            @if (plano()) {
+              <div class="mt-7 h-2 overflow-hidden rounded-full bg-white/[0.08]" role="progressbar" [attr.aria-valuenow]="plano()!.progresso" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'Progresso do plano: ' + plano()!.progresso + '%'">
+                <div class="h-full rounded-full bg-norte-accent transition-all duration-700" [style.width.%]="plano()!.progresso"></div>
+              </div>
+              <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+                @if (plano()!.perfilDesatualizado) {
+                  <span class="text-xs text-norte-accent-light">Seu perfil mudou — atualize seu plano.</span>
+                } @else if (plano()!.precisaRenovar) {
+                  <span class="text-xs text-white/40">Este plano já pode ser renovado.</span>
+                } @else {
+                  <span class="text-xs text-white/35">Continue avançando no seu ritmo.</span>
+                }
+                <a routerLink="/plano" class="text-sm font-medium text-norte-accent-light hover:text-white">Ver meu plano →</a>
+              </div>
+            } @else {
+              <a routerLink="/plano" class="norte-button-primary mt-6">Gerar meu plano <span aria-hidden="true">→</span></a>
+            }
+          </article>
+
+          <article class="norte-card p-6 sm:p-7">
+            <p class="norte-eyebrow">Seu perfil</p>
+            <h2 class="mt-2 font-display text-2xl text-white">{{ perfil()!.perfil_dominante }}</h2>
+            <p class="mt-2 text-sm text-white/45">Áreas que apareceram na sua descoberta</p>
+            <div class="mt-5 flex flex-wrap gap-2">
+              @for (area of perfil()!.areas_sugeridas; track area) {
+                <span class="rounded-full border border-white/[0.09] bg-white/[0.04] px-3 py-1.5 text-xs text-white/70">{{ area }}</span>
+              }
+            </div>
+            <a routerLink="/perfil" class="mt-6 inline-flex text-sm font-medium text-white/60 transition-colors hover:text-norte-accent-light">Ver perfil completo →</a>
+          </article>
+        </section>
+
+        <section class="mt-8">
+          <div class="mb-4">
+            <p class="norte-eyebrow">Continue explorando</p>
+            <h2 class="mt-1 font-display text-2xl text-white">Ferramentas para sua jornada</h2>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <a routerLink="/oportunidades" class="norte-card norte-card-interactive group p-5">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent-light">✦</span>
+              <h3 class="mt-4 font-semibold text-white">Oportunidades</h3>
+              <p class="mt-1 text-sm leading-5 text-white/45">Encontre vagas alinhadas ao seu perfil.</p>
+              <span class="mt-4 block text-xs font-medium text-white/40 group-hover:text-norte-accent-light">Explorar →</span>
+            </a>
+            <a routerLink="/chat" class="norte-card norte-card-interactive group p-5">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent-light">✦</span>
+              <h3 class="mt-4 font-semibold text-white">Mentor</h3>
+              <p class="mt-1 text-sm leading-5 text-white/45">Converse sobre suas dúvidas de carreira.</p>
+              <span class="mt-4 block text-xs font-medium text-white/40 group-hover:text-norte-accent-light">Conversar →</span>
+            </a>
+            <a routerLink="/curriculo" class="norte-card norte-card-interactive group p-5">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent-light">▤</span>
+              <h3 class="mt-4 font-semibold text-white">Currículo</h3>
+              <p class="mt-1 text-sm leading-5 text-white/45">Organize sua experiência em um currículo.</p>
+              <span class="mt-4 block text-xs font-medium text-white/40 group-hover:text-norte-accent-light">Abrir →</span>
+            </a>
+            <a routerLink="/carreira" class="norte-card norte-card-interactive group p-5">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent-light">↗</span>
+              <h3 class="mt-4 font-semibold text-white">Carreira</h3>
+              <p class="mt-1 text-sm leading-5 text-white/45">Visualize possibilidades e próximos caminhos.</p>
+              <span class="mt-4 block text-xs font-medium text-white/40 group-hover:text-norte-accent-light">Explorar →</span>
+            </a>
+          </div>
+        </section>
       }
 
-      @if (plano()!.perfilDesatualizado) {
-        <p class="text-xs text-norte-accent-light mb-3">🔄 Seu perfil mudou — atualize seu plano</p>
-      } @else if (plano()!.precisaRenovar) {
-        <p class="text-xs text-white/40 mb-3">📅 Esse plano já pode ser renovado</p>
+      @if (gamificacao()) {
+        <a routerLink="/conquistas" class="norte-card norte-card-interactive mt-8 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="norte-eyebrow">Progresso</p>
+            <p class="mt-1 font-semibold text-white">Nível {{ gamificacao()!.nivel }}</p>
+            <p class="mt-1 text-sm text-white/40">Continue acumulando conquistas enquanto avança.</p>
+          </div>
+          <div class="text-left sm:text-right">
+            <p class="text-lg font-semibold text-norte-accent-light">{{ gamificacao()!.totalConquistas }} / {{ gamificacao()!.totalPossivel }}</p>
+            <p class="text-xs text-white/40">conquistas</p>
+          </div>
+        </a>
       }
-
-      <a routerLink="/plano" class="text-sm text-norte-accent-light hover:underline">Ver plano completo →</a>
-    } @else if (!carregando() && !plano() && perfil()?.perfil_dominante) {
-      <p class="font-semibold mb-1">Gere seu plano de evolução</p>
-      <p class="text-sm text-white/60 mb-4">
-        Com seu perfil já mapeado, é hora de montar seu plano de 3 meses.
-      </p>
-      <a
-        routerLink="/plano"
-        class="inline-block rounded-md bg-norte-accent hover:bg-norte-accent-light transition-colors text-norte-950 font-semibold px-4 py-2 text-sm"
-      >
-        Gerar meu plano
-      </a>
-    } @else if (!carregando()) {
-      <p class="text-sm text-white/50">
-        Complete seu perfil e o teste de descoberta pra gente montar seu plano de evolução.
-      </p>
     }
   </div>
-
-  @if (gamificacao()) {
-    <a
-      routerLink="/conquistas"
-      class="card-hover block rounded-lg border border-norte-800 bg-norte-900 p-6 mt-6 hover:border-norte-accent/40 transition-colors"
-    >
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-white/50">Seu nível</p>
-          <p class="font-semibold text-lg">{{ gamificacao()!.nivel }}</p>
-        </div>
-        <p class="text-sm text-norte-accent-light">
-          {{ gamificacao()!.totalConquistas }} / {{ gamificacao()!.totalPossivel }} conquistas →
-        </p>
-      </div>
-    </a>
-  }
 </main>
-</div>

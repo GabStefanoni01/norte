@@ -1,318 +1,147 @@
 <norte-sidebar />
 
-<div class="pl-16">
+<div class="min-h-screen lg:pl-64 pb-24 lg:pb-0">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <header class="mb-8">
+      <p class="norte-eyebrow">Sua conta</p>
+      <h1 class="font-display text-3xl sm:text-4xl text-white">Seu perfil</h1>
+      <p class="mt-3 text-white/55 max-w-2xl">Mantenha suas informações atualizadas para aproveitar melhor sua jornada no Norte.</p>
+    </header>
 
-<main class="max-w-2xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-6">Seu perfil</h1>
+    <div class="grid lg:grid-cols-[220px_1fr] gap-6 lg:gap-8">
+      <nav class="norte-card p-2 h-fit lg:sticky lg:top-8">
+        <button (click)="mudarAba('profissional')" class="w-full text-left rounded-xl px-4 py-3 text-sm transition-colors" [class]="abaAtiva() === 'profissional' ? 'bg-norte-accent/10 text-norte-accent-light' : 'text-white/50 hover:bg-white/5 hover:text-white'">Perfil profissional</button>
+        <button (click)="mudarAba('pessoal')" class="w-full text-left rounded-xl px-4 py-3 text-sm transition-colors" [class]="abaAtiva() === 'pessoal' ? 'bg-norte-accent/10 text-norte-accent-light' : 'text-white/50 hover:bg-white/5 hover:text-white'">Dados pessoais</button>
+        <button (click)="mudarAba('seguranca')" class="w-full text-left rounded-xl px-4 py-3 text-sm transition-colors" [class]="abaAtiva() === 'seguranca' ? 'bg-norte-accent/10 text-norte-accent-light' : 'text-white/50 hover:bg-white/5 hover:text-white'">Segurança</button>
+        <button (click)="mudarAba('assinatura')" class="w-full text-left rounded-xl px-4 py-3 text-sm transition-colors" [class]="abaAtiva() === 'assinatura' ? 'bg-norte-accent/10 text-norte-accent-light' : 'text-white/50 hover:bg-white/5 hover:text-white'">Assinatura</button>
+      </nav>
 
-  <div class="flex gap-1 border-b border-norte-800 mb-8 text-sm">
-    <button
-      (click)="mudarAba('profissional')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'profissional' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Perfil profissional
-    </button>
-    <button
-      (click)="mudarAba('pessoal')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'pessoal' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Dados pessoais
-    </button>
-    <button
-      (click)="mudarAba('seguranca')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'seguranca' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Segurança
-    </button>
-    <button
-      (click)="mudarAba('assinatura')"
-      class="px-4 py-2.5 border-b-2 transition-colors"
-      [class]="abaAtiva() === 'assinatura' ? 'border-norte-accent text-white' : 'border-transparent text-white/50 hover:text-white'"
-    >
-      Assinatura
-    </button>
-  </div>
+      <section class="min-w-0">
+        @if (abaAtiva() === 'profissional') {
+          <div class="norte-card p-6 sm:p-8">
+            <div class="mb-7">
+              <p class="norte-eyebrow">Direção profissional</p>
+              <h2 class="mt-1 text-xl font-semibold text-white">Conte um pouco sobre você</h2>
+              <p class="mt-2 text-sm text-white/45">Essas informações ajudam a personalizar seu plano de evolução.</p>
+            </div>
 
-  @if (abaAtiva() === 'profissional') {
-    <p class="text-white/60 mb-8">Essas informações ajudam a IA a personalizar seu plano de evolução.</p>
+            @if (carregando()) {
+              <div class="animate-pulse space-y-5">
+                <div class="h-11 rounded-xl bg-white/10"></div><div class="h-24 rounded-xl bg-white/10"></div><div class="h-11 rounded-xl bg-white/10"></div>
+              </div>
+            } @else {
+              <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-6">
+                <div>
+                  <label class="block text-sm text-white/65 mb-2" for="escolaridade">Escolaridade</label>
+                  <select id="escolaridade" formControlName="escolaridade" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/10">
+                    <option value="" disabled>Selecione</option>
+                    @for (opcao of escolaridades; track opcao) { <option [value]="opcao">{{ opcao }}</option> }
+                  </select>
+                </div>
 
-    @if (carregando()) {
-      <p class="text-white/50">Carregando...</p>
-    } @else {
-      <form [formGroup]="form" (ngSubmit)="salvar()" class="stagger space-y-6">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="escolaridade">Escolaridade</label>
-          <select
-            id="escolaridade"
-            formControlName="escolaridade"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          >
-            <option value="" disabled>Selecione</option>
-            @for (opcao of escolaridades; track opcao) {
-              <option [value]="opcao">{{ opcao }}</option>
+                <div>
+                  <label class="block text-sm text-white/65 mb-2">Áreas de interesse</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" formArrayName="interesses">
+                    @for (interesse of interessesDisponiveis; track interesse; let i = $index) {
+                      <label class="flex items-center gap-3 rounded-xl border border-norte-800 bg-norte-950/40 px-4 py-3 text-sm text-white/60 cursor-pointer hover:border-norte-700 transition-colors">
+                        <input type="checkbox" [formControlName]="i" class="accent-norte-accent h-4 w-4" /> {{ interesse }}
+                      </label>
+                    }
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm text-white/65 mb-2" for="objetivos">Seus objetivos</label>
+                  <textarea id="objetivos" formControlName="objetivos" rows="4" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/10" placeholder="Ex: entrar na área de tecnologia, conseguir meu primeiro estágio..."></textarea>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm text-white/65 mb-2" for="habilidades">Habilidades ou cursos <span class="text-white/30">(opcional)</span></label>
+                    <input id="habilidades" type="text" formControlName="habilidadesTexto" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-norte-accent/60" placeholder="Excel, lógica, inglês..." />
+                  </div>
+                  <div>
+                    <label class="block text-sm text-white/65 mb-2" for="carreiraInteresse">Carreira de interesse</label>
+                    <input id="carreiraInteresse" type="text" formControlName="carreiraInteresse" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-norte-accent/60" placeholder="Desenvolvedor, Analista de Dados..." />
+                  </div>
+                </div>
+
+                @if (erro()) { <p class="text-sm text-red-400">{{ erro() }}</p> }
+                @if (sucesso()) { <p class="text-sm text-emerald-400">{{ sucesso() }}</p> }
+                <button type="submit" [disabled]="salvando()" class="norte-button-primary disabled:opacity-50">{{ salvando() ? 'Salvando...' : jaTemPerfil() ? 'Atualizar perfil' : 'Salvar e continuar' }}</button>
+              </form>
             }
-          </select>
-        </div>
+          </div>
+        }
 
-        <div>
-          <label class="block text-sm text-white/70 mb-2">Áreas de interesse</label>
-          <div class="grid grid-cols-2 gap-2" formArrayName="interesses">
-            @for (interesse of interessesDisponiveis; track interesse; let i = $index) {
-              <label class="flex items-center gap-2 rounded-md border border-norte-800 bg-norte-900/40 px-3 py-2 text-sm cursor-pointer hover:border-norte-700">
-                <input type="checkbox" [formControlName]="i" class="accent-norte-accent" />
-                {{ interesse }}
-              </label>
+        @if (abaAtiva() === 'pessoal') {
+          <div class="norte-card p-6 sm:p-8">
+            <div class="mb-7"><p class="norte-eyebrow">Identidade</p><h2 class="mt-1 text-xl font-semibold text-white">Dados pessoais</h2><p class="mt-2 text-sm text-white/45">Essas informações são usadas para identificar sua conta.</p></div>
+            @if (carregandoDados()) {
+              <div class="animate-pulse space-y-5"><div class="h-11 rounded-xl bg-white/10"></div><div class="h-11 rounded-xl bg-white/10"></div><div class="h-11 rounded-xl bg-white/10"></div></div>
+            } @else {
+              <form [formGroup]="formDados" (ngSubmit)="salvarDadosPessoais()" class="space-y-5">
+                <div><label class="block text-sm text-white/65 mb-2" for="nome">Nome</label><input id="nome" type="text" formControlName="nome" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60" /></div>
+                <div><label class="block text-sm text-white/65 mb-2" for="dataNascimento">Data de nascimento</label><input id="dataNascimento" type="date" formControlName="dataNascimento" [max]="hoje" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60 [color-scheme:dark]" /></div>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div><label class="block text-sm text-white/65 mb-2" for="estado">Estado</label><select id="estado" formControlName="estado" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60 disabled:opacity-50"><option value="" disabled>UF</option>@for (estado of estados(); track estado.id) {<option [value]="estado.sigla">{{ estado.sigla }}</option>}</select></div>
+                  <div><label class="block text-sm text-white/65 mb-2" for="cidade">Cidade</label><select id="cidade" formControlName="cidade" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60 disabled:opacity-50"><option value="" disabled>{{ carregandoCidades() ? 'Carregando...' : 'Cidade' }}</option>@for (cidade of cidades(); track cidade.id) {<option [value]="cidade.nome">{{ cidade.nome }}</option>}</select></div>
+                </div>
+                @if (erroDados()) {<p class="text-sm text-red-400">{{ erroDados() }}</p>}
+                @if (sucessoDados()) {<p class="text-sm text-emerald-400">{{ sucessoDados() }}</p>}
+                <button type="submit" [disabled]="salvandoDados()" class="norte-button-primary disabled:opacity-50">{{ salvandoDados() ? 'Salvando...' : 'Salvar dados' }}</button>
+              </form>
             }
           </div>
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="objetivos">Seus objetivos</label>
-          <textarea
-            id="objetivos"
-            formControlName="objetivos"
-            rows="3"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Ex: entrar na área de tecnologia, conseguir meu primeiro estágio..."
-          ></textarea>
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="habilidades">
-            Habilidades ou cursos que você já tem <span class="text-white/40">(opcional, separe por vírgula)</span>
-          </label>
-          <input
-            id="habilidades"
-            type="text"
-            formControlName="habilidadesTexto"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Ex: Excel, inglês básico, curso de lógica"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="carreiraInteresse">Carreira de interesse</label>
-          <input
-            id="carreiraInteresse"
-            type="text"
-            formControlName="carreiraInteresse"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Ex: Desenvolvedor Front-end, Analista de Dados"
-          />
-        </div>
-
-        @if (erro()) {
-          <p class="text-sm text-red-400">{{ erro() }}</p>
         }
 
-        @if (sucesso()) {
-          <p class="text-sm text-emerald-400">{{ sucesso() }}</p>
-        }
-
-        <button
-          type="submit"
-          [disabled]="salvando()"
-          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-        >
-          {{ salvando() ? 'Salvando...' : jaTemPerfil() ? 'Atualizar perfil' : 'Salvar e continuar' }}
-        </button>
-      </form>
-    }
-  }
-
-  @if (abaAtiva() === 'pessoal') {
-    <p class="text-white/60 mb-8">Seus dados de identificação. O e-mail de login não pode ser alterado por aqui.</p>
-
-    @if (carregandoDados()) {
-      <p class="text-white/50">Carregando...</p>
-    } @else {
-      <form [formGroup]="formDados" (ngSubmit)="salvarDadosPessoais()" class="stagger space-y-4">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
-          <input
-            id="nome"
-            type="text"
-            formControlName="nome"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="dataNascimento">Data de nascimento</label>
-          <input
-            id="dataNascimento"
-            type="date"
-            formControlName="dataNascimento"
-            [max]="hoje"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent [color-scheme:dark]"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm text-white/70 mb-1" for="estado">Estado</label>
-            <select
-              id="estado"
-              formControlName="estado"
-              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
-            >
-              <option value="" disabled>UF</option>
-              @for (estado of estados(); track estado.id) {
-                <option [value]="estado.sigla">{{ estado.sigla }}</option>
-              }
-            </select>
+        @if (abaAtiva() === 'seguranca') {
+          <div class="norte-card p-6 sm:p-8">
+            <div class="mb-7"><p class="norte-eyebrow">Proteção da conta</p><h2 class="mt-1 text-xl font-semibold text-white">Segurança</h2><p class="mt-2 text-sm text-white/45">A troca de senha exige um código enviado ao seu e-mail.</p></div>
+            @if (etapaSenha() === 'inicial') {
+              <button (click)="solicitarCodigoSenha()" [disabled]="enviandoCodigoSenha()" class="norte-button-primary disabled:opacity-50">{{ enviandoCodigoSenha() ? 'Enviando código...' : 'Alterar minha senha' }}</button>
+              @if (erroSenha()) {<p class="text-sm text-red-400 mt-4">{{ erroSenha() }}</p>}
+            } @else {
+              <div class="max-w-md">
+                <div class="rounded-2xl border border-norte-800 bg-norte-950/40 p-4 mb-6"><p class="text-sm text-white/55">Código enviado para</p><p class="mt-1 text-sm text-white">{{ auth.usuarioAtual()?.email }}</p></div>
+                <form [formGroup]="formSenha" (ngSubmit)="confirmarNovaSenha()" class="space-y-5">
+                  <div><label class="block text-sm text-white/65 mb-2" for="codigoSenha">Código de 6 dígitos</label><input id="codigoSenha" type="text" inputmode="numeric" maxlength="6" formControlName="codigo" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white text-center text-2xl tracking-[0.4em] focus:outline-none focus:border-norte-accent/60" placeholder="000000" /></div>
+                  <div><label class="block text-sm text-white/65 mb-2" for="novaSenha">Nova senha</label><input id="novaSenha" type="password" formControlName="novaSenha" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60" placeholder="Mínimo 6 caracteres" /></div>
+                  <div><label class="block text-sm text-white/65 mb-2" for="confirmarSenhaSeg">Confirmar nova senha</label><input id="confirmarSenhaSeg" type="password" formControlName="confirmarSenha" class="w-full rounded-xl bg-norte-950/60 border border-norte-800 px-4 py-3 text-white focus:outline-none focus:border-norte-accent/60" />@if (formSenha.errors?.['senhasDiferentes'] && formSenha.get('confirmarSenha')?.touched) {<p class="text-xs text-red-400 mt-1">As senhas não coincidem.</p>}</div>
+                  @if (erroSenha()) {<p class="text-sm text-red-400">{{ erroSenha() }}</p>}
+                  <div class="flex flex-wrap gap-3"><button type="submit" [disabled]="confirmandoSenha()" class="norte-button-primary disabled:opacity-50">{{ confirmandoSenha() ? 'Confirmando...' : 'Confirmar nova senha' }}</button><button type="button" (click)="cancelarTrocaSenha()" class="norte-button-secondary">Cancelar</button></div>
+                </form>
+              </div>
+            }
           </div>
+        }
 
-          <div>
-            <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
-            <select
-              id="cidade"
-              formControlName="cidade"
-              class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
-            >
-              <option value="" disabled>
-                {{ carregandoCidades() ? 'Carregando...' : 'Cidade' }}
-              </option>
-              @for (cidade of cidades(); track cidade.id) {
-                <option [value]="cidade.nome">{{ cidade.nome }}</option>
-              }
-            </select>
+        @if (abaAtiva() === 'assinatura') {
+          <div class="norte-card p-6 sm:p-8">
+            <div class="mb-7"><p class="norte-eyebrow">Plano</p><h2 class="mt-1 text-xl font-semibold text-white">Sua assinatura</h2><p class="mt-2 text-sm text-white/45">Gerencie seu acesso aos recursos Premium.</p></div>
+            @if (carregandoAssinatura()) {
+              <div class="animate-pulse h-44 rounded-2xl bg-white/10"></div>
+            } @else if (statusAssinatura()) {
+              <div class="rounded-2xl border border-norte-accent/20 bg-norte-accent/[0.04] p-6 max-w-xl">
+                @if (statusAssinatura()!.plano === 'premium') {
+                  <span class="inline-flex rounded-full border border-norte-accent/25 bg-norte-accent/10 px-3 py-1 text-xs text-norte-accent-light">Premium</span>
+                  <h3 class="mt-4 text-xl font-semibold text-white">Você é Premium</h3><p class="mt-2 text-sm text-white/50">Aproveite o mentor ilimitado e todos os recursos sem restrição.</p>
+                  <button (click)="cancelarPremium()" [disabled]="processandoAssinatura()" class="mt-6 text-sm text-white/45 hover:text-white underline-offset-4 hover:underline disabled:opacity-50">{{ processandoAssinatura() ? 'Cancelando...' : 'Cancelar assinatura' }}</button>
+                } @else if (statusAssinatura()!.trialAtivo) {
+                  <span class="inline-flex rounded-full border border-norte-accent/25 bg-norte-accent/10 px-3 py-1 text-xs text-norte-accent-light">Trial Premium</span>
+                  <h3 class="mt-4 text-xl font-semibold text-white">Seu período gratuito está ativo</h3><p class="mt-2 text-sm text-white/50">Acesso Premium até {{ statusAssinatura()!.premiumAte | date: 'dd/MM/yyyy' }}.</p>
+                  <button (click)="assinarPremium()" [disabled]="processandoAssinatura()" class="norte-button-primary mt-6 disabled:opacity-50">{{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium — R$ 9,99/mês' }}</button>
+                } @else {
+                  <span class="inline-flex rounded-full border border-norte-800 px-3 py-1 text-xs text-white/50">Free</span>
+                  <h3 class="mt-4 text-xl font-semibold text-white">Plano Free</h3><p class="mt-2 text-sm text-white/50">Assine o Premium por R$ 9,99/mês para ter acesso ilimitado aos principais recursos.</p>
+                  <button (click)="assinarPremium()" [disabled]="processandoAssinatura()" class="norte-button-primary mt-6 disabled:opacity-50">{{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium' }}</button>
+                }
+                @if (erroAssinatura()) {<p class="text-sm text-red-400 mt-4">{{ erroAssinatura() }}</p>}
+              </div>
+            }
           </div>
-        </div>
-
-        @if (erroDados()) {
-          <p class="text-sm text-red-400">{{ erroDados() }}</p>
         }
-
-        @if (sucessoDados()) {
-          <p class="text-sm text-emerald-400">{{ sucessoDados() }}</p>
-        }
-
-        <button
-          type="submit"
-          [disabled]="salvandoDados()"
-          class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-        >
-          {{ salvandoDados() ? 'Salvando...' : 'Salvar dados' }}
-        </button>
-      </form>
-    }
-  }
-
-  @if (abaAtiva() === 'seguranca') {
-    <p class="text-white/60 mb-8">Por segurança, alterar sua senha exige confirmar um código enviado ao seu e-mail.</p>
-
-    @if (etapaSenha() === 'inicial') {
-      <button
-        (click)="solicitarCodigoSenha()"
-        [disabled]="enviandoCodigoSenha()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-      >
-        {{ enviandoCodigoSenha() ? 'Enviando...' : 'Alterar minha senha' }}
-      </button>
-
-      @if (erroSenha()) {
-        <p class="text-sm text-red-400 mt-4">{{ erroSenha() }}</p>
-      }
-    } @else {
-      <p class="text-sm text-white/60 mb-6">
-        Enviamos um código de 6 dígitos para <span class="text-white">{{ auth.usuarioAtual()?.email }}</span>.
-      </p>
-
-      <form [formGroup]="formSenha" (ngSubmit)="confirmarNovaSenha()" class="stagger space-y-4 max-w-sm">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="codigoSenha">Código</label>
-          <input
-            id="codigoSenha"
-            type="text"
-            inputmode="numeric"
-            maxlength="6"
-            formControlName="codigo"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-3 text-white text-center text-2xl tracking-[0.4em] placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="000000"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="novaSenha">Nova senha</label>
-          <input
-            id="novaSenha"
-            type="password"
-            formControlName="novaSenha"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Mínimo 6 caracteres"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="confirmarSenhaSeg">Confirmar nova senha</label>
-          <input
-            id="confirmarSenhaSeg"
-            type="password"
-            formControlName="confirmarSenha"
-            class="w-full rounded-md bg-norte-900/60 border border-norte-700 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          />
-          @if (formSenha.errors?.['senhasDiferentes'] && formSenha.get('confirmarSenha')?.touched) {
-            <p class="text-xs text-red-400 mt-1">As senhas não coincidem.</p>
-          }
-        </div>
-
-        @if (erroSenha()) {
-          <p class="text-sm text-red-400">{{ erroSenha() }}</p>
-        }
-
-        <div class="flex gap-3">
-          <button
-            type="submit"
-            [disabled]="confirmandoSenha()"
-            class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-          >
-            {{ confirmandoSenha() ? 'Confirmando...' : 'Confirmar nova senha' }}
-          </button>
-          <button
-            type="button"
-            (click)="cancelarTrocaSenha()"
-            class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-6 py-2.5"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
-    }
-  }
-  @if (abaAtiva() === 'assinatura') {
-    @if (carregandoAssinatura()) {
-      <p class="text-white/50">Carregando...</p>
-    } @else if (statusAssinatura()) {
-      <div class="card-glow rounded-xl border border-norte-accent/40 bg-norte-accent/5 p-6 max-w-md">
-        @if (statusAssinatura()!.plano === 'premium') {
-          <p class="font-semibold text-lg mb-1">✦ Você é Premium</p>
-          <p class="text-sm text-white/60 mb-4">Aproveite o mentor ilimitado e todos os recursos sem restrição.</p>
-          <button (click)="cancelarPremium()" [disabled]="processandoAssinatura()" class="text-sm text-white/50 hover:text-white hover:underline disabled:opacity-50">
-            {{ processandoAssinatura() ? 'Cancelando...' : 'Cancelar assinatura' }}
-          </button>
-        } @else if (statusAssinatura()!.trialAtivo) {
-          <p class="font-semibold text-lg mb-1">🎁 Trial Premium ativo</p>
-          <p class="text-sm text-white/60 mb-4">
-            Você está no período gratuito de lançamento até {{ statusAssinatura()!.premiumAte | date: 'dd/MM/yyyy' }}. Assine pra continuar com acesso ilimitado depois disso.
-          </p>
-          <button (click)="assinarPremium()" [disabled]="processandoAssinatura()" class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60">
-            {{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium — R$ 9,99/mês' }}
-          </button>
-        } @else {
-          <p class="font-semibold text-lg mb-1">Plano Free</p>
-          <p class="text-sm text-white/60 mb-4">Assine o Premium por R$ 9,99/mês e tenha mentor ilimitado, mais entrevistas, mais currículos e match de oportunidades sem limite.</p>
-          <button (click)="assinarPremium()" [disabled]="processandoAssinatura()" class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60">
-            {{ processandoAssinatura() ? 'Redirecionando...' : 'Assinar Premium' }}
-          </button>
-        }
-        @if (erroAssinatura()) { <p class="text-sm text-red-400 mt-3">{{ erroAssinatura() }}</p> }
-      </div>
-    }
-  }
-
-</main>
+      </section>
+    </div>
+  </main>
 </div>

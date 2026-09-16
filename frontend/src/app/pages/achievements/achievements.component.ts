@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AchievementsService } from '../../services/achievements.service';
 import { StatusGamificacao } from '../../models/achievement.model';
@@ -6,7 +7,7 @@ import { StatusGamificacao } from '../../models/achievement.model';
 @Component({
   selector: 'norte-achievements',
   standalone: true,
-  imports: [SidebarComponent],
+  imports: [CommonModule, SidebarComponent],
   templateUrl: './achievements.component.html',
 })
 export class AchievementsComponent implements OnInit {
@@ -18,7 +19,7 @@ export class AchievementsComponent implements OnInit {
   progressoNivel = computed(() => {
     const s = this.status();
     if (!s || !s.proximoNivel) return 100;
-    return Math.round((s.totalConquistas / s.proximoNivel.minimo) * 100);
+    return Math.min(100, Math.round((s.totalConquistas / s.proximoNivel.minimo) * 100));
   });
 
   ngOnInit() {

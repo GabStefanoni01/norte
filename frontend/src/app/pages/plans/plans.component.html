@@ -1,221 +1,180 @@
 <norte-sidebar />
 
-<div class="pl-16">
+<div class="lg:pl-64 min-h-screen">
+  <main class="norte-page max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <header class="max-w-4xl mb-8">
+      <p class="norte-eyebrow">Desenvolvimento</p>
+      <h1 class="font-display text-3xl sm:text-4xl tracking-tight">Seu plano de evolução</h1>
+      <p class="norte-muted mt-2">Um passo de cada vez, com objetivos claros para transformar intenção em prática.</p>
+    </header>
 
-<main class="max-w-3xl mx-auto px-6 py-10">
-  <h1 class="font-display text-3xl mb-2">Seu plano de evolução</h1>
-  <p class="text-white/60 mb-8">Um passo de cada vez, do jeito que faz sentido pra você.</p>
-
-  @if (carregando()) {
-    <p class="text-white/50">Carregando...</p>
-  } @else if (!plano()) {
-    <!-- Sem plano ainda -->
-    <div class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-8 text-center">
-      <p class="text-lg font-semibold mb-2">Você ainda não tem um plano</p>
-      <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">
-        Vamos gerar um plano de evolução de 3 meses com base no seu perfil e no resultado do teste de descoberta.
-      </p>
-
-      @if (erro()) {
-        <p class="text-sm text-red-400 mb-4">{{ erro() }}</p>
-      }
-
-      <button
-        (click)="gerarPlano()"
-        [disabled]="gerando()"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5 disabled:opacity-60"
-      >
-        {{ gerando() ? 'Gerando seu plano...' : 'Gerar meu plano' }}
-      </button>
-    </div>
-  } @else {
-    <!-- Plano existente -->
-    <div class="stagger">
-      <!-- Barra de progresso geral -->
-      <div class="mb-8">
-        <div class="flex justify-between text-sm text-white/60 mb-2">
-          <span>Progresso geral</span>
-          <span>{{ plano()!.progresso }}%</span>
-        </div>
-        <div class="h-2.5 rounded-full bg-norte-800 overflow-hidden">
-          <div
-            class="h-full bg-norte-accent transition-all duration-700 ease-out"
-            [style.width.%]="plano()!.progresso"
-          ></div>
-        </div>
-        @if (plano()!.gerado_por_ia) {
-          <p class="text-xs text-white/30 mt-2">✦ Plano personalizado pelo mentor IA.</p>
-        }
+    @if (carregando()) {
+      <div class="max-w-4xl space-y-4">
+        <div class="h-4 w-28 rounded bg-white/5 animate-pulse"></div>
+        <div class="norte-card h-32 animate-pulse"></div>
+        <div class="norte-card h-64 animate-pulse"></div>
       </div>
+    } @else if (!plano()) {
+      <section class="max-w-4xl norte-card p-7 sm:p-10">
+        <div class="max-w-2xl">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-norte-accent/20 bg-norte-accent/10 text-norte-accent-light text-sm font-semibold mb-5">01</span>
+          <h2 class="font-display text-2xl sm:text-3xl mb-3">Seu próximo ciclo começa aqui.</h2>
+          <p class="text-white/55 leading-relaxed mb-7">Vamos gerar um plano de evolução de 3 meses com base no seu perfil e no resultado do teste de descoberta.</p>
 
-      @if (plano()!.perfilDesatualizado) {
-        <div class="rounded-lg border border-norte-accent/40 bg-norte-accent/10 p-4 mb-4 flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-white/80">
-            🔄 Seu resultado da descoberta mudou desde que esse plano foi gerado. Quer atualizar com base no novo perfil?
-          </p>
-          <button
-            (click)="gerarPlano()"
-            [disabled]="gerando()"
-            class="shrink-0 text-sm text-norte-accent-light hover:underline disabled:opacity-50"
-          >
-            {{ gerando() ? 'Gerando...' : 'Atualizar plano' }}
+          @if (erro()) {
+            <p class="text-sm text-red-300 mb-5">{{ erro() }}</p>
+          }
+
+          <button (click)="gerarPlano()" [disabled]="gerando()" class="norte-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ gerando() ? 'Gerando seu plano...' : 'Gerar meu plano' }}
           </button>
         </div>
-      }
-
-      @if (plano()!.precisaRenovar && !plano()!.perfilDesatualizado) {
-        <div class="rounded-lg border border-norte-700 bg-norte-900/60 p-4 mb-4 flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-white/70">
-            📅 Esse plano já tem {{ plano()!.diasDesdeCriacao }} dias. Que tal renovar pra continuar evoluindo?
-          </p>
-          <button
-            (click)="gerarPlano()"
-            [disabled]="gerando()"
-            class="shrink-0 text-sm text-norte-accent-light hover:underline disabled:opacity-50"
-          >
-            {{ gerando() ? 'Gerando...' : 'Renovar plano' }}
-          </button>
-        </div>
-      }
-
-      <!-- Próximo passo em destaque -->
-      @if (plano()!.proximoPasso) {
-        <div class="card-hover rounded-xl border border-norte-accent/40 bg-norte-accent/10 p-5 mb-8">
-          <p class="text-xs uppercase tracking-wide text-norte-accent-light/80 mb-1">Próximo passo</p>
-          <p class="font-semibold">{{ plano()!.proximoPasso!.item.descricao }}</p>
-          <p class="text-sm text-white/50 mt-1">{{ plano()!.proximoPasso!.tituloMes }}</p>
-        </div>
-      } @else {
-        <div class="card-hover rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-5 mb-8">
-          <p class="font-semibold">🎉 Você concluiu todo o seu plano!</p>
-          <p class="text-sm text-white/60 mt-1">Bora gerar um novo plano pra continuar evoluindo?</p>
-          <button
-            (click)="gerarPlano()"
-            [disabled]="gerando()"
-            class="mt-3 text-sm text-norte-accent-light hover:underline disabled:opacity-50"
-          >
-            {{ gerando() ? 'Gerando...' : 'Gerar novo plano' }}
-          </button>
-        </div>
-      }
-
-      @if (erro()) {
-        <p class="text-sm text-red-400 mb-6">{{ erro() }}</p>
-      }
-
-      <!-- Etapas mês a mês -->
-      <div class="space-y-6">
-        @for (mes of plano()!.etapas; track mes.mes) {
-          <div class="rounded-xl border border-norte-800 bg-norte-900/40 overflow-hidden">
-            <div class="px-5 py-3 border-b border-norte-800 bg-norte-900/60">
-              <p class="text-xs text-white/40">Mês {{ mes.mes }}</p>
-              <p class="font-semibold">{{ mes.titulo }}</p>
+      </section>
+    } @else {
+      <div class="max-w-5xl stagger">
+        <!-- Visão geral -->
+        <section class="norte-card p-6 sm:p-7 mb-5">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/40 mb-2">Progresso do ciclo</p>
+              <div class="flex items-baseline gap-2">
+                <span class="font-display text-4xl">{{ plano()!.progresso }}%</span>
+                <span class="text-sm text-white/40">concluído</span>
+              </div>
             </div>
+            @if (plano()!.gerado_por_ia) {
+              <span class="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-white/45">Plano personalizado</span>
+            }
+          </div>
+          <div class="mt-6 h-2 rounded-full bg-white/5 overflow-hidden">
+            <div class="h-full rounded-full bg-norte-accent transition-all duration-700 ease-out" [style.width.%]="plano()!.progresso"></div>
+          </div>
+        </section>
 
-            <div class="divide-y divide-norte-800">
-              @for (item of mes.itens; track item.id) {
-                <button
-                  (click)="clicarItem(item)"
-                  [disabled]="atualizandoItemId() === item.id"
-                  class="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-norte-900/60 transition-colors disabled:opacity-50"
-                >
-                  <span
-                    class="shrink-0 h-5 w-5 rounded-full border flex items-center justify-center text-xs"
-                    [class]="
-                      item.status === 'concluido'
-                        ? 'bg-emerald-500 border-emerald-500 text-norte-950'
-                        : item.status === 'em_andamento'
-                          ? 'border-norte-accent text-norte-accent-light'
-                          : 'border-white/30 text-transparent'
-                    "
-                  >
-                    @if (item.status === 'concluido') {
-                      ✓
-                    } @else if (item.status === 'em_andamento') {
-                      ●
-                    }
-                  </span>
+        @if (plano()!.perfilDesatualizado) {
+          <section class="rounded-xl border border-norte-accent/25 bg-norte-accent/[0.06] p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium text-white/80">Seu perfil mudou desde a criação deste plano.</p>
+              <p class="text-sm text-white/45 mt-1">Atualize o ciclo para considerar seu resultado mais recente.</p>
+            </div>
+            <button (click)="gerarPlano()" [disabled]="gerando()" class="norte-button-secondary shrink-0 disabled:opacity-50">
+              {{ gerando() ? 'Gerando...' : 'Atualizar plano' }}
+            </button>
+          </section>
+        }
 
-                  <span
-                    class="flex-1 text-sm"
-                    [class]="item.status === 'concluido' ? 'text-white/40 line-through' : 'text-white/85'"
-                  >
-                    {{ item.descricao }}
-                  </span>
+        @if (plano()!.precisaRenovar && !plano()!.perfilDesatualizado) {
+          <section class="norte-card p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium text-white/80">Este plano já tem {{ plano()!.diasDesdeCriacao }} dias.</p>
+              <p class="text-sm text-white/45 mt-1">Renove seu ciclo para continuar registrando evolução.</p>
+            </div>
+            <button (click)="gerarPlano()" [disabled]="gerando()" class="norte-button-secondary shrink-0 disabled:opacity-50">
+              {{ gerando() ? 'Gerando...' : 'Renovar plano' }}
+            </button>
+          </section>
+        }
 
-                  <span class="text-xs text-white/30 shrink-0">
-                    {{ item.tipo === 'projeto' ? '🛠 projeto' : '📘 aprender' }}
-                  </span>
-                </button>
-              }
+        @if (plano()!.proximoPasso) {
+          <section class="rounded-2xl border border-norte-accent/25 bg-norte-accent/[0.06] p-6 sm:p-7 mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+              <div class="h-11 w-11 shrink-0 rounded-xl border border-norte-accent/25 bg-norte-accent/10 flex items-center justify-center text-norte-accent-light font-semibold">→</div>
+              <div class="flex-1">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-norte-accent-light/80 mb-2">Próximo passo</p>
+                <p class="font-semibold text-lg text-white/90">{{ plano()!.proximoPasso!.item.descricao }}</p>
+                <p class="text-sm text-white/45 mt-1">{{ plano()!.proximoPasso!.tituloMes }}</p>
+              </div>
+            </div>
+          </section>
+        } @else {
+          <section class="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-6 sm:p-7 mb-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300/80 mb-2">Ciclo concluído</p>
+            <h2 class="font-display text-2xl">Você chegou ao fim deste plano.</h2>
+            <p class="text-sm text-white/50 mt-1 mb-5">Gere um novo ciclo para continuar avançando.</p>
+            <button (click)="gerarPlano()" [disabled]="gerando()" class="norte-button-secondary disabled:opacity-50">
+              {{ gerando() ? 'Gerando...' : 'Gerar novo plano' }}
+            </button>
+          </section>
+        }
+
+        @if (erro()) {
+          <p class="text-sm text-red-300 mb-6">{{ erro() }}</p>
+        }
+
+        <!-- Linha do tempo -->
+        <section>
+          <div class="flex items-end justify-between mb-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/40">Seu ciclo</p>
+              <h2 class="font-display text-2xl mt-1">Etapas do plano</h2>
             </div>
           </div>
-        }
+
+          <div class="space-y-5">
+            @for (mes of plano()!.etapas; track mes.mes) {
+              <article class="norte-card overflow-hidden">
+                <header class="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center gap-4">
+                  <span class="h-9 w-9 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center text-xs font-semibold text-white/55">{{ mes.mes }}</span>
+                  <div>
+                    <p class="text-[11px] uppercase tracking-[0.16em] text-white/35">Mês {{ mes.mes }}</p>
+                    <h3 class="font-semibold mt-0.5">{{ mes.titulo }}</h3>
+                  </div>
+                </header>
+
+                <div class="divide-y divide-white/10">
+                  @for (item of mes.itens; track item.id) {
+                    <button (click)="clicarItem(item)" [disabled]="atualizandoItemId() === item.id" class="w-full flex items-center gap-4 px-5 sm:px-6 py-4 text-left hover:bg-white/[0.025] transition-colors disabled:opacity-50 disabled:cursor-wait">
+                      <span class="shrink-0 h-6 w-6 rounded-full border flex items-center justify-center text-xs" [class]="item.status === 'concluido' ? 'bg-emerald-400 border-emerald-400 text-norte-950' : item.status === 'em_andamento' ? 'border-norte-accent text-norte-accent-light' : 'border-white/20 text-transparent'">
+                        @if (item.status === 'concluido') { ✓ } @else if (item.status === 'em_andamento') { • }
+                      </span>
+
+                      <span class="flex-1 min-w-0 text-sm leading-relaxed" [class]="item.status === 'concluido' ? 'text-white/35 line-through' : 'text-white/80'">{{ item.descricao }}</span>
+
+                      <span class="shrink-0 rounded-md border px-2 py-1 text-[11px]" [class]="item.tipo === 'projeto' ? 'border-norte-accent/20 bg-norte-accent/[0.06] text-norte-accent-light' : 'border-white/10 bg-white/[0.02] text-white/45'">
+                        {{ item.tipo === 'projeto' ? 'Projeto' : 'Aprender' }}
+                      </span>
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
       </div>
-    </div>
-  }
-</main>
+    }
+  </main>
 </div>
 
 @if (itemEmCheckin()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" (click)="cancelarCheckin()">
-    <div
-      class="stagger card-glow w-full max-w-sm rounded-2xl border border-norte-700/60 bg-norte-900 p-6"
-      (click)="$event.stopPropagation()"
-    >
-      <p class="text-xs uppercase tracking-wide text-norte-accent-light/80 mb-1">Antes de concluir</p>
-      <h2 class="font-display text-xl mb-4">{{ itemEmCheckin()!.descricao }}</h2>
-
-      <div class="mb-5">
-        <label class="block text-sm text-white/70 mb-2">Quão difícil foi essa etapa?</label>
-        <div class="flex gap-2">
-          @for (nivel of [1, 2, 3, 4, 5]; track nivel) {
-            <button
-              (click)="dificuldadeCheckin = nivel"
-              class="h-9 w-9 rounded-full border text-sm transition-colors"
-              [class]="
-                dificuldadeCheckin === nivel
-                  ? 'bg-norte-accent border-norte-accent text-norte-950 font-semibold'
-                  : 'border-norte-700 text-white/50 hover:border-white/40'
-              "
-            >
-              {{ nivel }}
-            </button>
-          }
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-6" (click)="cancelarCheckin()">
+    <div class="w-full max-w-lg norte-card p-6 sm:p-7" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between gap-5 mb-6">
+        <div>
+          <p class="norte-eyebrow mb-2">Check-in da etapa</p>
+          <h2 class="font-display text-2xl leading-tight">{{ itemEmCheckin()!.descricao }}</h2>
         </div>
-        <div class="flex justify-between text-xs text-white/30 mt-1">
-          <span>Fácil</span>
-          <span>Difícil</span>
-        </div>
+        <button (click)="cancelarCheckin()" class="h-8 w-8 shrink-0 rounded-lg border border-white/10 text-white/40 hover:text-white hover:bg-white/5 transition-colors" aria-label="Fechar">×</button>
       </div>
 
       <div class="mb-6">
-        <label class="block text-sm text-white/70 mb-2">
-          O que você aprendeu ou achou? <span class="text-white/40">(opcional)</span>
-        </label>
-        <textarea
-          [(ngModel)]="aprendizadoCheckin"
-          rows="2"
-          class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-          placeholder="Fique à vontade — ou deixe em branco"
-        ></textarea>
+        <label class="block text-sm font-medium text-white/70 mb-3">Quão difícil foi essa etapa?</label>
+        <div class="flex gap-2">
+          @for (nivel of [1, 2, 3, 4, 5]; track nivel) {
+            <button (click)="dificuldadeCheckin = nivel" class="h-10 w-10 rounded-lg border text-sm transition-colors" [class]="dificuldadeCheckin === nivel ? 'bg-norte-accent border-norte-accent text-norte-950 font-semibold' : 'border-white/10 bg-white/[0.02] text-white/45 hover:border-white/25 hover:text-white'">{{ nivel }}</button>
+          }
+        </div>
+        <div class="flex justify-between text-xs text-white/25 mt-2"><span>Fácil</span><span>Difícil</span></div>
       </div>
 
-      <div class="flex gap-3">
-        <button
-          (click)="confirmarCheckin()"
-          class="btn-shine flex-1 rounded-md bg-norte-accent hover:bg-norte-accent-light transition-all duration-200 text-norte-950 font-semibold py-2.5"
-        >
-          Concluir etapa
-        </button>
-        <button
-          (click)="cancelarCheckin()"
-          class="rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white/70 hover:text-white px-4 py-2.5"
-        >
-          Cancelar
-        </button>
+      <div class="mb-7">
+        <label class="block text-sm font-medium text-white/70 mb-2">O que você aprendeu ou achou? <span class="text-white/35 font-normal">(opcional)</span></label>
+        <textarea [(ngModel)]="aprendizadoCheckin" rows="4" class="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/25 focus:border-norte-accent/50" placeholder="Registre uma percepção, dificuldade ou aprendizado"></textarea>
+      </div>
+
+      <div class="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-5 border-t border-white/10">
+        <button (click)="cancelarCheckin()" class="norte-button-secondary">Cancelar</button>
+        <button (click)="confirmarCheckin()" class="norte-button-primary">Concluir etapa</button>
       </div>
     </div>
   </div>
 }
-

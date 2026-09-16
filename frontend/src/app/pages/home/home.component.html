@@ -1,259 +1,279 @@
-<!-- Cabeçalho -->
-<header class="relative z-50 flex items-center justify-between px-6 py-6 md:px-12">
-  <span class="flex items-center gap-2">
-    <norte-logo-mark [tamanho]="28" />
-    <span class="font-display text-2xl text-norte-accent-light">Norte</span>
-  </span>
-
-  <div class="flex items-center gap-3">
-    <nav class="hidden sm:flex items-center gap-3 text-sm">
-      <a routerLink="/entrar" class="text-white/70 hover:text-white transition-colors px-3 py-2">Entrar</a>
-      <a
-        routerLink="/cadastro"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_18px_rgba(224,169,68,0.4)] transition-all duration-200 text-norte-950 font-semibold px-4 py-2 active:scale-95"
-      >
-        Criar conta
+<div class="min-h-screen bg-norte-950 text-white overflow-hidden">
+  <header class="relative z-50 border-b border-white/[0.06] bg-norte-950/95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 h-20 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2.5" aria-label="Norte - início">
+        <norte-logo-mark [tamanho]="30" />
+        <span class="font-display text-2xl">Norte</span>
       </a>
-    </nav>
 
-    <div class="relative">
-      <button
-        (click)="menuAberto.set(!menuAberto())"
-        class="flex h-10 w-10 items-center justify-center rounded-md border border-norte-700 hover:border-norte-accent/60 transition-colors"
-        aria-label="Abrir menu"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          @if (!menuAberto()) {
-            <path d="M4 7h16M4 12h16M4 17h16" />
-          } @else {
-            <path d="M6 6l12 12M18 6L6 18" />
+      <nav class="hidden lg:flex items-center gap-1 text-sm">
+        <a href="#como-funciona" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Como funciona</a>
+        <a href="#jornada" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Jornada</a>
+        <a href="#beneficios" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Recursos</a>
+        <a href="#planos" class="px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors">Planos</a>
+      </nav>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a routerLink="/entrar" class="hidden sm:inline-flex px-4 py-2.5 text-sm text-white/60 hover:text-white transition-colors">Entrar</a>
+        <a routerLink="/cadastro" class="norte-button-primary text-sm">Criar conta</a>
+        <div class="relative lg:hidden">
+          <button (click)="menuAberto.set(!menuAberto())" class="h-10 w-10 rounded-xl border border-norte-800 bg-norte-900 flex items-center justify-center text-white/70" aria-label="Abrir menu">
+            @if (!menuAberto()) {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            }
+          </button>
+          @if (menuAberto()) {
+            <div class="absolute right-0 top-12 w-56 rounded-2xl border border-norte-800 bg-norte-900 p-2 shadow-2xl">
+              <a (click)="menuAberto.set(false)" href="#como-funciona" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Como funciona</a>
+              <a (click)="menuAberto.set(false)" href="#jornada" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Jornada</a>
+              <a (click)="menuAberto.set(false)" href="#beneficios" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Recursos</a>
+              <a (click)="menuAberto.set(false)" href="#planos" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Planos</a>
+              <div class="my-2 border-t border-norte-800"></div>
+              <a routerLink="/entrar" class="block rounded-xl px-3 py-2.5 text-sm text-white/65 hover:bg-white/5 hover:text-white">Entrar</a>
+            </div>
           }
-        </svg>
-      </button>
-
-      @if (menuAberto()) {
-        <div
-          class="stagger absolute right-0 top-14 w-56 rounded-xl border border-norte-700/60 bg-norte-900/95 backdrop-blur-sm shadow-xl overflow-hidden"
-        >
-          <a (click)="menuAberto.set(false)" href="#como-funciona" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
-            Como funciona
-          </a>
-          <a (click)="menuAberto.set(false)" href="#beneficios" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
-            Benefícios
-          </a>
-          <a (click)="menuAberto.set(false)" href="#planos" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
-            Planos
-          </a>
-          <a (click)="menuAberto.set(false)" href="#sobre" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
-            Sobre o projeto
-          </a>
-          <div class="border-t border-norte-800 sm:hidden">
-            <a routerLink="/entrar" class="block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-norte-900 transition-colors">
-              Entrar
-            </a>
-            <a routerLink="/cadastro" class="block px-4 py-3 text-sm text-norte-accent-light hover:bg-norte-900 transition-colors">
-              Criar conta
-            </a>
-          </div>
         </div>
-      }
-    </div>
-  </div>
-</header>
-
-<!-- Hero -->
-<section class="relative overflow-hidden px-6 pb-24 pt-10 md:px-12 md:pb-32">
-  <norte-starfield />
-
-  <div class="stagger relative z-10 mx-auto max-w-2xl text-center">
-    <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light/80">Mentoria de carreira para jovens</p>
-    <h1 class="font-display text-4xl md:text-6xl mt-4 leading-tight">
-      Encontre seu <span class="text-gradient-gold">norte</span>.
-    </h1>
-    <p class="text-white/60 text-lg mt-6 max-w-xl mx-auto">
-      Um plano de evolução feito pra você, com um mentor de IA que conhece sua história — pra quem está começando
-      a carreira e não sabe bem por onde ir.
-    </p>
-    <div class="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-      <a
-        routerLink="/cadastro"
-        class="btn-shine rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_24px_rgba(224,169,68,0.45)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold px-6 py-3 active:scale-95"
-      >
-        Começar agora, é grátis
-      </a>
-      <a
-        routerLink="/entrar"
-        class="rounded-md border border-norte-700 hover:border-norte-accent-light/70 hover:-translate-y-0.5 transition-all duration-200 text-white px-6 py-3 active:scale-95"
-      >
-        Já tenho conta
-      </a>
-    </div>
-  </div>
-</section>
-
-<section class="px-6 py-20 md:px-12 bg-norte-900/40 border-y border-norte-800">
-  <div class="mx-auto max-w-5xl">
-    <div class="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light">Comunidade Norte</p>
-        <h2 class="font-display text-3xl text-white mt-3">Publicações públicas da comunidade</h2>
-        <p class="text-white/60 mt-3 max-w-2xl">Qualquer visitante pode ler as publicações. Para criar conteúdo, faça login e acesse a página de criação.</p>
       </div>
-      <a routerLink="/comunidade" class="text-sm text-norte-accent-light hover:underline">Ver todas as publicações →</a>
     </div>
+  </header>
 
-    <div *ngIf="carregandoPosts()">
-      <norte-skeleton-loader />
-    </div>
-    <div *ngIf="!carregandoPosts() && posts().length === 0" class="text-white/60">Ainda não há publicações disponíveis.</div>
-
-    <div *ngIf="!carregandoPosts() && posts().length > 0" class="grid gap-4 lg:grid-cols-2 transition-opacity duration-300" [class.opacity-0]="carregandoPosts()" [class.opacity-100]="!carregandoPosts()">
-      <article *ngFor="let post of posts()" norteReveal class="rounded-3xl border border-norte-800 bg-norte-950/70 p-6 card-hover">
-        <div class="flex items-start gap-4">
-          <div class="shrink-0">
-            <div class="h-10 w-10 flex items-center justify-center rounded-full text-white font-semibold" [style.background]="avatarColor(post.autor_nome)">
-              {{ avatarInitials(post.autor_nome) }}
-            </div>
+  <main>
+    <section class="relative px-5 sm:px-8 lg:px-10 pt-20 sm:pt-28 pb-20 lg:pb-28">
+      <div class="absolute top-0 right-0 w-[520px] h-[520px] rounded-full bg-norte-accent/[0.045] blur-3xl pointer-events-none"></div>
+      <div class="relative max-w-7xl mx-auto grid lg:grid-cols-[1.02fr_.98fr] gap-14 lg:gap-20 items-center">
+        <div norteReveal class="max-w-3xl">
+          <p class="norte-eyebrow">Mentoria de carreira para jovens</p>
+          <h1 class="font-display text-5xl sm:text-6xl lg:text-[5.25rem] leading-[0.98] tracking-tight mt-5">
+            Você não precisa ter tudo decidido. <span class="text-norte-accent-light">Só precisa começar.</span>
+          </h1>
+          <p class="mt-7 text-lg sm:text-xl text-white/55 leading-relaxed max-w-2xl">
+            O Norte transforma dúvidas sobre carreira em descoberta, planejamento e próximos passos que fazem sentido para você.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 mt-9">
+            <a routerLink="/cadastro" class="norte-button-primary justify-center">Começar agora — é grátis</a>
+            <a href="#jornada" class="norte-button-secondary justify-center">Ver como funciona</a>
           </div>
-          <div class="flex-1">
-            <p class="text-sm uppercase tracking-[0.2em] text-norte-accent-light">{{ post.categoria }}</p>
-            <h3 class="mt-1 text-xl font-semibold text-white">{{ post.titulo }}</h3>
-            <p class="mt-3 text-white/60 line-clamp-3">{{ post.conteudo }}</p>
-            <div class="mt-3 flex items-center justify-between text-sm text-white/50">
-              <span>{{ post.autor_nome }}</span>
-              <span>{{ timeAgo(post.created_at) }}</span>
-            </div>
-            <a [routerLink]="['/comunidade', post.id]" class="mt-3 inline-block text-sm text-norte-accent-light hover:underline">Ler publicação</a>
+          <div class="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/40">
+            <span>✓ Descoberta de perfil</span>
+            <span>✓ Plano de evolução</span>
+            <span>✓ Mentor de carreira</span>
           </div>
         </div>
-      </article>
-    </div>
-  </div>
-</section>
 
-<!-- O que é -->
-<section class="relative px-6 py-20 md:px-12 bg-norte-900/40 border-y border-norte-800">
-  <div norteReveal class="mx-auto max-w-3xl text-center">
-    <h2 class="font-display text-3xl mb-4">O que é o Norte</h2>
-    <p class="text-white/60 leading-relaxed">
-      A maioria dos jovens não sabe por onde começar — e os conselhos genéricos ("faça um curso", "monte um
-      currículo") não dizem o que fazer amanhã de manhã. O Norte junta um teste de descoberta pessoal, um plano
-      de evolução mês a mês e um mentor de IA que acompanha seu progresso, pra transformar "eu não sei o que
-      fazer da vida" em um próximo passo concreto.
-    </p>
-  </div>
-</section>
+        <div norteReveal [revealDelay]="0.12" class="relative">
+          <div class="absolute -inset-5 rounded-[2.5rem] bg-norte-accent/[0.035] blur-2xl pointer-events-none"></div>
+          <div class="relative rounded-[2rem] border border-white/10 bg-norte-900/90 p-4 sm:p-5 shadow-2xl">
+            <div class="rounded-[1.5rem] border border-white/[0.08] bg-norte-950 overflow-hidden">
+              <div class="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
+                <div class="flex items-center gap-3"><norte-logo-mark [tamanho]="22" /><span class="text-sm font-semibold">Meu Norte</span></div>
+                <span class="text-[10px] uppercase tracking-wider text-white/30">Dashboard</span>
+              </div>
+              <div class="p-5 sm:p-6">
+                <p class="text-xs text-white/35">Sua jornada profissional</p>
+                <h2 class="text-xl font-semibold mt-1">Olá, Gabriel 👋</h2>
 
-<!-- Como funciona -->
-<section id="como-funciona" class="px-6 py-20 md:px-12">
-  <div class="mx-auto max-w-5xl">
-    <h2 norteReveal class="font-display text-3xl text-center mb-12">Como funciona</h2>
-    <div class="grid gap-6 md:grid-cols-4">
-      @for (etapa of etapas; track etapa.titulo; let i = $index) {
-        <div
-          norteReveal
-          [revealDelay]="i * 0.1"
-          class="card-hover rounded-xl border border-norte-800 bg-norte-900/60 p-6"
-        >
-          <span class="font-display text-2xl text-norte-accent-light">{{ i + 1 }}</span>
-          <h3 class="font-semibold mt-3 mb-2">{{ etapa.titulo }}</h3>
-          <p class="text-sm text-white/55 leading-relaxed">{{ etapa.texto }}</p>
+                <div class="mt-5 rounded-2xl border border-norte-accent/20 bg-norte-accent/[0.07] p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div><p class="text-[10px] uppercase tracking-wider text-norte-accent-light/70">Seu próximo passo</p><p class="text-sm font-medium mt-1">Construir um projeto para praticar suas habilidades</p></div>
+                    <span class="h-8 w-8 shrink-0 rounded-xl bg-norte-accent text-norte-950 flex items-center justify-center font-semibold">→</span>
+                  </div>
+                  <div class="mt-4 h-1.5 rounded-full bg-white/[0.06] overflow-hidden"><div class="h-full w-[64%] rounded-full bg-norte-accent"></div></div>
+                  <p class="text-[10px] text-white/35 mt-2">64% do ciclo concluído</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                  <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Oportunidades</p><p class="text-lg font-semibold mt-2">92%</p><p class="text-[10px] text-emerald-300/70 mt-1">compatibilidade</p></div>
+                  <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Perfil</p><p class="text-lg font-semibold mt-2">78%</p><p class="text-[10px] text-white/35 mt-1">completo</p></div>
+                </div>
+
+                <div class="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+                  <p class="text-[10px] uppercase tracking-wider text-white/30">Continue sua jornada</p>
+                  <div class="mt-3 space-y-2.5">
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-[10px]">✓</span><span class="text-xs text-white/55">Mapear habilidades atuais</span></div>
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-emerald-400/50 text-emerald-300 flex items-center justify-center text-[10px]">✓</span><span class="text-xs text-white/55">Explorar carreiras compatíveis</span></div>
+                    <div class="flex items-center gap-3"><span class="h-6 w-6 rounded-full border border-norte-accent/50 text-norte-accent-light flex items-center justify-center text-[10px]">3</span><span class="text-xs text-white/75">Construir um projeto prático</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      }
-    </div>
-  </div>
-</section>
+      </div>
+    </section>
 
-<!-- Benefícios -->
-<section id="beneficios" class="px-6 py-20 md:px-12 bg-norte-900/40 border-y border-norte-800">
-  <div class="mx-auto max-w-5xl">
-    <h2 norteReveal class="font-display text-3xl text-center mb-12">Por que o Norte</h2>
-    <div class="grid gap-6 md:grid-cols-2">
-      @for (beneficio of beneficios; track beneficio.titulo; let i = $index) {
-        <div
-          norteReveal
-          [revealDelay]="i * 0.08"
-          class="card-hover flex gap-4 rounded-xl border border-transparent hover:border-norte-800 p-4 -m-4"
-        >
-          <span class="float mt-1 h-2 w-2 shrink-0 rounded-full bg-norte-accent-light"></span>
+    <section id="jornada" class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24 border-y border-norte-800 bg-norte-900/25">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl mb-12">
+          <p class="norte-eyebrow">O produto na prática</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Não é só descobrir uma profissão. É descobrir um caminho.</h2>
+          <p class="norte-muted mt-4">O Norte conecta o que você já sabe, o que quer explorar e o que precisa desenvolver para transformar intenção em ação.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-5 items-stretch">
+          <article class="norte-card p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 border-b border-norte-800">
+              <div><p class="text-[10px] uppercase tracking-[0.18em] text-white/30">Seu ponto de partida</p><h3 class="text-xl font-semibold mt-1">Perfil profissional</h3></div>
+              <span class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/45">Personalizado</span>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-3 mt-6">
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Interesses</p><p class="text-sm font-medium mt-2">Tecnologia</p><p class="text-xs text-white/35 mt-1">Desenvolvimento</p></div>
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Escolaridade</p><p class="text-sm font-medium mt-2">Em andamento</p><p class="text-xs text-white/35 mt-1">Ensino superior</p></div>
+              <div class="rounded-2xl bg-white/[0.025] border border-white/[0.06] p-4"><p class="text-[10px] uppercase tracking-wider text-white/30">Habilidades</p><p class="text-sm font-medium mt-2">Java · SQL</p><p class="text-xs text-white/35 mt-1">+ outras</p></div>
+            </div>
+            <div class="mt-5 rounded-2xl border border-norte-accent/15 bg-norte-accent/[0.05] p-5 flex gap-4 items-start">
+              <span class="h-9 w-9 shrink-0 rounded-xl bg-norte-accent text-norte-950 flex items-center justify-center font-semibold">→</span>
+              <div><p class="text-[10px] uppercase tracking-wider text-norte-accent-light/70">A partir daqui</p><p class="text-sm text-white/80 mt-1">O Norte cruza seu perfil com caminhos possíveis e mostra o que pode fazer sentido explorar.</p></div>
+            </div>
+          </article>
+
+          <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-5">
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">01</span>
+              <h3 class="font-semibold mt-4">Descobrir possibilidades</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Explore áreas e carreiras sem precisar ter uma resposta definitiva.</p>
+            </article>
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">02</span>
+              <h3 class="font-semibold mt-4">Encontrar oportunidades</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Veja oportunidades relacionadas ao seu perfil e identifique lacunas.</p>
+            </article>
+            <article class="norte-card-interactive p-6">
+              <span class="text-xs font-semibold text-norte-accent-light">03</span>
+              <h3 class="font-semibold mt-4">Executar o próximo passo</h3>
+              <p class="text-sm text-white/45 leading-relaxed mt-2">Transforme a direção encontrada em um plano que você consegue acompanhar.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-2xl mb-12">
+          <p class="norte-eyebrow">Como funciona</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Uma jornada que começa onde você está.</h2>
+          <p class="norte-muted mt-4">Você não precisa escolher a profissão perfeita de uma vez. Avance por etapas e construa clareza no caminho.</p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          @for (etapa of etapas; track etapa.titulo; let i = $index) {
+            <article norteReveal [revealDelay]="i * 0.06" class="norte-card-interactive p-6 min-h-52">
+              <div class="flex items-center justify-between"><span class="text-xs font-semibold text-norte-accent-light">0{{ i + 1 }}</span><span class="text-white/15 text-2xl">→</span></div>
+              <h3 class="text-lg font-semibold text-white mt-8 mb-2">{{ etapa.titulo }}</h3>
+              <p class="text-sm text-white/50 leading-relaxed">{{ etapa.texto }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section id="beneficios" class="px-5 sm:px-8 lg:px-10 py-24 bg-norte-900/25 border-y border-norte-800">
+      <div class="max-w-7xl mx-auto grid lg:grid-cols-[.72fr_1.28fr] gap-14 items-start">
+        <div norteReveal class="lg:sticky lg:top-8">
+          <p class="norte-eyebrow">Recursos</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Tudo em um só lugar para sair da dúvida e começar a agir.</h2>
+          <p class="norte-muted mt-5">Cada recurso resolve uma parte diferente da jornada. Juntos, eles ajudam você a construir direção com mais contexto.</p>
+        </div>
+        <div class="grid gap-0">
+          @for (beneficio of beneficios; track beneficio.titulo; let i = $index) {
+            <article norteReveal [revealDelay]="i * 0.05" class="border-b border-norte-800 py-7 first:pt-0 flex gap-5">
+              <span class="text-sm text-norte-accent-light font-semibold shrink-0">0{{ i + 1 }}</span>
+              <div><h3 class="font-semibold text-white">{{ beneficio.titulo }}</h3><p class="text-sm text-white/50 leading-relaxed mt-2 max-w-2xl">{{ beneficio.texto }}</p></div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 sm:px-8 lg:px-10 py-20 sm:py-24">
+      <div class="max-w-5xl mx-auto rounded-[2rem] border border-white/[0.08] bg-norte-900/70 p-7 sm:p-10 lg:p-12">
+        <div class="grid lg:grid-cols-[.8fr_1.2fr] gap-10 items-center">
           <div>
-            <h3 class="font-semibold mb-1">{{ beneficio.titulo }}</h3>
-            <p class="text-sm text-white/55 leading-relaxed">{{ beneficio.texto }}</p>
+            <p class="norte-eyebrow">Para quem é</p>
+            <h2 class="font-display text-3xl sm:text-4xl mt-3">Você não precisa ter o próximo passo pronto.</h2>
+          </div>
+          <div class="space-y-5 text-sm text-white/55 leading-relaxed">
+            <p><span class="text-white font-medium">Está perdido?</span> Explore possibilidades e entenda melhor seus interesses, habilidades e caminhos.</p>
+            <p><span class="text-white font-medium">Está estudando?</span> Conecte o que aprende com carreiras e oportunidades que você pode começar a explorar.</p>
+            <p><span class="text-white font-medium">Quer mudar de área?</span> Organize sua experiência, descubra lacunas e transforme a mudança em um plano possível.</p>
           </div>
         </div>
-      }
-    </div>
-  </div>
-</section>
-
-<!-- Sobre -->
-<section id="planos" class="px-6 py-20 md:px-12">
-  <div class="mx-auto max-w-4xl">
-    <h2 norteReveal class="font-display text-3xl text-center mb-3">Comece grátis, evolua no seu ritmo</h2>
-    <p norteReveal class="text-white/60 text-center mb-12 max-w-xl mx-auto">
-      Todo cadastro novo já ganha 30 dias de Premium de graça pra você experimentar tudo sem limite.
-    </p>
-
-    <div class="grid md:grid-cols-2 gap-6">
-      <div norteReveal class="card-hover rounded-2xl border border-norte-800 bg-norte-900/60 p-8">
-        <p class="text-sm text-white/50 mb-1">Free</p>
-        <p class="font-display text-3xl mb-4">R$ 0</p>
-        <ul class="space-y-2 text-sm text-white/70 mb-6">
-          <li>🧭 Teste de descoberta pessoal</li>
-          <li>🗺️ Plano de evolução</li>
-          <li>🤖 Mentor IA — 15 mensagens/dia</li>
-          <li>📄 Currículo inteligente — 2/mês</li>
-          <li>🎤 Simulação de entrevista — 3/mês</li>
-          <li>🎯 Match de oportunidades — 10 detalhados/dia</li>
-          <li>🏆 Conquistas e níveis</li>
-        </ul>
-        <a routerLink="/cadastro" class="block text-center rounded-md border border-norte-700 hover:border-white/40 transition-colors text-white px-6 py-2.5">
-          Começar grátis
-        </a>
       </div>
+    </section>
 
-      <div norteReveal [revealDelay]="0.1" class="card-glow rounded-2xl border border-norte-accent/40 bg-norte-accent/5 p-8 relative">
-        <span class="absolute -top-3 left-8 rounded-full bg-norte-accent text-norte-950 text-xs font-semibold px-3 py-1">
-          Mais popular
-        </span>
-        <p class="text-sm text-norte-accent-light mb-1">Premium</p>
-        <p class="font-display text-3xl mb-4">R$ 9,99<span class="text-base text-white/50">/mês</span></p>
-        <ul class="space-y-2 text-sm text-white/70 mb-6">
-          <li>✨ Tudo do plano Free</li>
-          <li>🤖 Mentor IA ilimitado</li>
-          <li>📄 Currículo inteligente ilimitado</li>
-          <li>🎤 Simulações de entrevista ilimitadas</li>
-          <li>🎯 Match de oportunidades ilimitado</li>
-          <li>⭐ Acesso antecipado a novidades</li>
-        </ul>
-        <a
-          routerLink="/cadastro"
-          class="btn-shine block text-center rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] transition-all duration-200 text-norte-950 font-semibold px-6 py-2.5"
-        >
-          Assinar Premium
-        </a>
+    <section id="planos" class="px-5 sm:px-8 lg:px-10 py-24 bg-norte-900/25 border-y border-norte-800">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-11">
+          <p class="norte-eyebrow">Planos</p>
+          <h2 class="font-display text-3xl sm:text-4xl mt-3">Comece grátis. Evolua no seu ritmo.</h2>
+          <p class="norte-muted mt-4">Todo cadastro novo ganha 30 dias de Premium para experimentar a plataforma.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-5 items-stretch">
+          <article norteReveal class="norte-card p-7 sm:p-8 flex flex-col">
+            <div><p class="text-sm text-white/45">Free</p><p class="font-display text-4xl mt-2">R$ 0</p><p class="text-sm text-white/35 mt-2">Para começar sua jornada.</p></div>
+            <ul class="mt-7 space-y-3 text-sm text-white/60 flex-1"><li>✓ Teste de descoberta pessoal</li><li>✓ Plano de evolução</li><li>✓ Mentor de carreira — 15 mensagens/dia</li><li>✓ Currículo inteligente — 2/mês</li><li>✓ Simulação de entrevista — 3/mês</li><li>✓ Match de oportunidades — 10/dia</li><li>✓ Conquistas e níveis</li></ul>
+            <a routerLink="/cadastro" class="norte-button-secondary w-full justify-center mt-8">Começar grátis</a>
+          </article>
+          <article norteReveal [revealDelay]="0.1" class="rounded-3xl border border-norte-accent/30 bg-norte-accent/[0.045] p-7 sm:p-8 relative flex flex-col">
+            <span class="absolute -top-3 left-7 rounded-full bg-norte-accent text-norte-950 text-[11px] font-semibold px-3 py-1">Premium</span>
+            <div><p class="text-sm text-norte-accent-light">Premium</p><p class="font-display text-4xl mt-2">R$ 9,99<span class="text-base text-white/40">/mês</span></p><p class="text-sm text-white/40 mt-2">Para quem quer ir além dos primeiros passos.</p></div>
+            <ul class="mt-7 space-y-3 text-sm text-white/65 flex-1"><li>✓ Tudo do plano Free</li><li>✓ Mentor de carreira ilimitado</li><li>✓ Currículo inteligente ilimitado</li><li>✓ Simulações de entrevista ilimitadas</li><li>✓ Match de oportunidades ilimitado</li><li>✓ Acesso antecipado a novidades</li></ul>
+            <a routerLink="/cadastro" class="norte-button-primary w-full justify-center mt-8">Experimentar Premium</a>
+          </article>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<section id="sobre" class="px-6 py-20 md:px-12">
-  <div norteReveal class="mx-auto max-w-2xl text-center">
-    <h2 class="font-display text-3xl mb-4">Sobre o projeto</h2>
-    <p class="text-white/60 leading-relaxed">
-      O Norte é desenvolvido por <span class="text-white">Gabriel Stefanoni</span>, desenvolvedor fullstack,
-      como um projeto pessoal com o objetivo de ajudar jovens a encontrarem direção profissional de um jeito
-      mais prático e acessível.
-    </p>
-    <a
-      href="https://github.com/GabStefanoni01"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-block mt-4 text-sm text-norte-accent-light hover:underline transition-transform hover:translate-x-0.5"
-    >
-      Veja o projeto no GitHub ↗
-    </a>
-  </div>
-</section>
+    <section class="px-5 sm:px-8 lg:px-10 py-20 border-b border-norte-800">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-9">
+          <div><p class="norte-eyebrow">Comunidade</p><h2 class="font-display text-3xl mt-3">Aprenda também com outras jornadas.</h2><p class="norte-muted mt-2 max-w-2xl">Experiências, dúvidas e aprendizados compartilhados por quem também está construindo seu caminho.</p></div>
+          <a routerLink="/comunidade" class="text-sm text-norte-accent-light hover:underline shrink-0">Ver comunidade →</a>
+        </div>
 
-<norte-footer />
+        @if (carregandoPosts()) {
+          <div class="grid gap-4 lg:grid-cols-2">
+            @for (item of [1, 2, 3, 4]; track item) {
+              <div class="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 animate-pulse">
+                <div class="flex gap-4"><div class="h-10 w-10 rounded-xl bg-white/[0.06]"></div><div class="flex-1 space-y-2"><div class="h-3 w-24 rounded bg-white/[0.06]"></div><div class="h-4 w-2/3 rounded bg-white/[0.06]"></div><div class="h-3 w-full rounded bg-white/[0.06]"></div><div class="h-3 w-4/5 rounded bg-white/[0.06]"></div></div></div>
+              </div>
+            }
+          </div>
+        } @else if (posts().length === 0) {
+          <div class="norte-card p-8 text-center"><p class="text-sm text-white/45">Ainda não há publicações disponíveis.</p><a routerLink="/cadastro" class="inline-flex mt-4 text-sm text-norte-accent-light hover:underline">Faça parte da comunidade →</a></div>
+        } @else {
+          <div class="grid gap-4 lg:grid-cols-2">
+            @for (post of posts(); track post.id) {
+              <article norteReveal class="norte-card-interactive p-5 sm:p-6">
+                <div class="flex gap-4">
+                  <div class="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-semibold text-white" [style.background]="avatarColor(post.autor_nome)">{{ avatarInitials(post.autor_nome) }}</div>
+                  <div class="min-w-0 flex-1"><span class="text-[10px] uppercase tracking-wider text-norte-accent-light">{{ post.categoria }}</span><h3 class="mt-1 font-semibold text-white">{{ post.titulo }}</h3><p class="mt-2 text-sm text-white/50 line-clamp-3">{{ post.conteudo }}</p><div class="mt-4 flex justify-between text-xs text-white/35"><span>{{ post.autor_nome }}</span><span>{{ timeAgo(post.created_at) }}</span></div></div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <section id="sobre" class="px-5 sm:px-8 lg:px-10 py-24">
+      <div norteReveal class="max-w-3xl mx-auto text-center">
+        <p class="norte-eyebrow">Sobre o projeto</p>
+        <h2 class="font-display text-3xl sm:text-4xl mt-3">Encontre seu norte.</h2>
+        <p class="text-white/55 leading-relaxed mt-5">O Norte é desenvolvido por <span class="text-white">Gabriel Stefanoni</span>, desenvolvedor fullstack, como um projeto pessoal para ajudar jovens a encontrarem direção profissional de um jeito mais prático e acessível.</p>
+        <a href="https://github.com/GabStefanoni01" target="_blank" rel="noopener noreferrer" class="inline-flex mt-6 text-sm text-norte-accent-light hover:underline">Conheça o projeto no GitHub ↗</a>
+      </div>
+    </section>
+
+    <section class="px-5 sm:px-8 lg:px-10 pb-24">
+      <div class="max-w-5xl mx-auto rounded-[2rem] border border-norte-accent/20 bg-norte-accent/[0.05] p-8 sm:p-12 text-center">
+        <p class="norte-eyebrow">Seu próximo passo começa agora</p>
+        <h2 class="font-display text-4xl sm:text-5xl mt-3">Encontre seu norte.</h2>
+        <p class="norte-muted mt-4 max-w-xl mx-auto">Você não precisa saber exatamente onde quer chegar. Comece descobrindo qual pode ser o seu próximo passo.</p>
+        <a routerLink="/cadastro" class="norte-button-primary inline-flex mt-8">Começar minha jornada</a>
+      </div>
+    </section>
+  </main>
+  <norte-footer />
+</div>

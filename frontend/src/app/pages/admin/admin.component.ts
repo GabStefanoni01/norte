@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminService } from '../../services/admin.service';
 import { UsuarioAdmin } from '../../models/admin-user.model';
@@ -18,6 +18,14 @@ export class AdminComponent implements OnInit {
   atualizandoId = signal<number | null>(null);
   reenviandoId = signal<number | null>(null);
   mensagemReenvio = signal<string | null>(null);
+
+  totalUsuarios = computed(() => this.usuarios().length);
+  usuariosVerificados = computed(
+    () => this.usuarios().filter((usuario) => usuario.email_verificado).length
+  );
+  administradores = computed(
+    () => this.usuarios().filter((usuario) => usuario.role === 'admin').length
+  );
 
   ngOnInit() {
     this.carregarUsuarios();

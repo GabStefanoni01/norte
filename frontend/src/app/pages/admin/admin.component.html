@@ -21,7 +21,7 @@
     }
 
     @if (carregando()) {
-      <section class="grid gap-4 md:grid-cols-3 mb-8">
+      <section class="mb-8 grid gap-4 md:grid-cols-3">
         @for (item of [1, 2, 3]; track item) {
           <div class="norte-card animate-pulse">
             <div class="h-3 w-24 rounded bg-white/10"></div>
@@ -35,20 +35,20 @@
         }
       </div>
     } @else {
-      <section class="grid gap-4 md:grid-cols-3 mb-8">
+      <section class="mb-8 grid gap-4 md:grid-cols-3">
         <div class="norte-card">
           <p class="text-xs font-medium uppercase tracking-wider text-white/45">Usuários</p>
-          <p class="mt-2 text-3xl font-semibold text-white">{{ usuarios().length }}</p>
+          <p class="mt-2 text-3xl font-semibold text-white">{{ totalUsuarios() }}</p>
           <p class="mt-1 text-sm text-white/45">cadastros na plataforma</p>
         </div>
         <div class="norte-card">
           <p class="text-xs font-medium uppercase tracking-wider text-white/45">Verificados</p>
-          <p class="mt-2 text-3xl font-semibold text-white">{{ usuarios().filter(u => u.email_verificado).length }}</p>
+          <p class="mt-2 text-3xl font-semibold text-white">{{ usuariosVerificados() }}</p>
           <p class="mt-1 text-sm text-white/45">e-mails confirmados</p>
         </div>
         <div class="norte-card">
           <p class="text-xs font-medium uppercase tracking-wider text-white/45">Administradores</p>
-          <p class="mt-2 text-3xl font-semibold text-white">{{ usuarios().filter(u => u.role === 'admin').length }}</p>
+          <p class="mt-2 text-3xl font-semibold text-white">{{ administradores() }}</p>
           <p class="mt-1 text-sm text-white/45">contas com acesso administrativo</p>
         </div>
       </section>
@@ -78,7 +78,7 @@
               </thead>
               <tbody>
                 @for (usuario of usuarios(); track usuario.id) {
-                  <tr class="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                  <tr class="border-b border-white/5 last:border-0 transition-colors hover:bg-white/[0.02]">
                     <td class="px-5 py-4">
                       <div class="font-medium text-white">{{ usuario.nome }}</div>
                       <div class="mt-1 text-xs text-white/35">ID {{ usuario.id }}</div>

@@ -1,101 +1,79 @@
-<main class="relative min-h-screen overflow-hidden flex items-center justify-center px-4 py-12">
-  <norte-starfield />
+<main class="min-h-screen bg-norte-950 px-4 py-10 sm:py-14">
+  <div class="mx-auto w-full max-w-2xl">
+    <header class="mb-8 text-center sm:mb-10">
+      <a routerLink="/" class="inline-flex items-center gap-3" aria-label="Voltar para o início">
+        <norte-logo-mark [tamanho]="42" />
+        <span class="font-display text-3xl text-norte-accent-light">Norte</span>
+      </a>
+      <p class="mt-3 text-sm text-white/50">Encontre seu norte.</p>
+    </header>
 
-  <div class="stagger relative z-10 w-full max-w-sm">
-    <div class="text-center mb-8">
-      <div class="flex justify-center mb-1 float">
-        <norte-logo-mark [tamanho]="40" />
+    <section class="norte-card border-white/10 bg-norte-900/80 p-6 sm:p-8">
+      <div class="mb-7">
+        <p class="norte-eyebrow">Comece sua jornada</p>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Crie sua conta</h1>
+        <p class="mt-2 text-sm leading-6 text-white/55">
+          Conte um pouco sobre você para personalizar sua jornada profissional.
+        </p>
       </div>
-      <p class="font-display text-4xl text-norte-accent-light">Norte</p>
-      <p class="text-white/60 mt-2">Crie sua conta e trace seu caminho.</p>
-    </div>
 
-    <div class="card-glow rounded-2xl border border-norte-700/60 bg-norte-900/60 backdrop-blur-sm p-8">
-      <form [formGroup]="form" (ngSubmit)="criarConta()" class="stagger space-y-4">
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="nome">Nome</label>
-          <input
-            id="nome"
-            type="text"
-            formControlName="nome"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Seu nome"
-          />
-        </div>
+      <form [formGroup]="form" (ngSubmit)="criarConta()" class="space-y-6">
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium text-white/80" for="nome">Nome</label>
+            <input id="nome" type="text" formControlName="nome" autocomplete="name"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20"
+              placeholder="Seu nome" />
+          </div>
 
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="email">E-mail</label>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="voce@exemplo.com"
-          />
-        </div>
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium text-white/80" for="email">E-mail</label>
+            <input id="email" type="email" formControlName="email" autocomplete="email"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20"
+              placeholder="voce@exemplo.com" />
+          </div>
 
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="senha">Senha</label>
-          <input
-            id="senha"
-            type="password"
-            formControlName="senha"
-            (input)="calcularForca($any($event.target).value)"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Mínimo 6 caracteres"
-          />
-          @if (forca() > 0) {
-            <div class="flex gap-1 mt-2">
-              @for (nivel of [0, 1, 2, 3]; track nivel) {
-                <div
-                  class="h-1 flex-1 rounded-full bg-norte-800 overflow-hidden"
-                >
-                  <div
-                    class="h-full transition-all duration-300"
-                    [class]="nivel < forca() ? nivelForca[forca() - 1].cor : ''"
-                    [style.width.%]="nivel < forca() ? 100 : 0"
-                  ></div>
-                </div>
-              }
-            </div>
-            <p class="text-xs text-white/40 mt-1">{{ nivelForca[forca() - 1].rotulo }}</p>
-          }
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="confirmarSenha">Confirmar senha</label>
-          <input
-            id="confirmarSenha"
-            type="password"
-            formControlName="confirmarSenha"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent"
-            placeholder="Repita a senha"
-          />
-          @if (form.errors?.['senhasDiferentes'] && form.get('confirmarSenha')?.touched) {
-            <p class="text-xs text-red-400 mt-1">As senhas não coincidem.</p>
-          }
-        </div>
-
-        <div>
-          <label class="block text-sm text-white/70 mb-1" for="dataNascimento">Data de nascimento</label>
-          <input
-            id="dataNascimento"
-            type="date"
-            formControlName="dataNascimento"
-            [max]="hoje"
-            class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-norte-accent [color-scheme:dark]"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-white/70 mb-1" for="estado">Estado</label>
-            <select
-              id="estado"
-              formControlName="estado"
-              class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
-            >
-              <option value="" disabled>UF</option>
+            <label class="mb-2 block text-sm font-medium text-white/80" for="senha">Senha</label>
+            <input id="senha" type="password" formControlName="senha" autocomplete="new-password"
+              (input)="calcularForca($any($event.target).value)"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20"
+              placeholder="Crie uma senha" />
+            @if (forca() > 0) {
+              <div class="mt-3 flex gap-1.5" aria-label="Força da senha">
+                @for (nivel of [0, 1, 2, 3]; track nivel) {
+                  <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                    <div class="h-full rounded-full transition-all duration-300"
+                      [class]="nivel < forca() ? nivelForca[forca() - 1].cor : ''"
+                      [style.width.%]="nivel < forca() ? 100 : 0"></div>
+                  </div>
+                }
+              </div>
+              <p class="mt-1.5 text-xs text-white/40">{{ nivelForca[forca() - 1].rotulo }}</p>
+            }
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-white/80" for="confirmarSenha">Confirmar senha</label>
+            <input id="confirmarSenha" type="password" formControlName="confirmarSenha" autocomplete="new-password"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20"
+              placeholder="Repita a senha" />
+            @if (form.errors?.['senhasDiferentes'] && form.get('confirmarSenha')?.touched) {
+              <p class="mt-1.5 text-xs text-red-400">As senhas não coincidem.</p>
+            }
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="mb-2 block text-sm font-medium text-white/80" for="dataNascimento">Data de nascimento</label>
+            <input id="dataNascimento" type="date" formControlName="dataNascimento" [max]="hoje"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20 [color-scheme:dark]" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-white/80" for="estado">Estado</label>
+            <select id="estado" formControlName="estado"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20 disabled:opacity-50">
+              <option value="" disabled>Selecione o estado</option>
               @for (estado of estados(); track estado.id) {
                 <option [value]="estado.sigla">{{ estado.sigla }}</option>
               }
@@ -103,15 +81,10 @@
           </div>
 
           <div>
-            <label class="block text-sm text-white/70 mb-1" for="cidade">Cidade</label>
-            <select
-              id="cidade"
-              formControlName="cidade"
-              class="w-full rounded-md bg-norte-950/60 border border-norte-700 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-norte-accent disabled:opacity-50"
-            >
-              <option value="" disabled>
-                {{ carregandoCidades() ? 'Carregando...' : 'Cidade' }}
-              </option>
+            <label class="mb-2 block text-sm font-medium text-white/80" for="cidade">Cidade</label>
+            <select id="cidade" formControlName="cidade"
+              class="w-full rounded-xl border border-white/10 bg-norte-950/70 px-4 py-3 text-white outline-none transition focus:border-norte-accent/60 focus:ring-2 focus:ring-norte-accent/20 disabled:opacity-50">
+              <option value="" disabled>{{ carregandoCidades() ? 'Carregando cidades...' : 'Selecione a cidade' }}</option>
               @for (cidade of cidades(); track cidade.id) {
                 <option [value]="cidade.nome">{{ cidade.nome }}</option>
               }
@@ -119,38 +92,35 @@
           </div>
         </div>
 
-        <label class="flex items-start gap-2.5 text-xs text-white/60">
-          <input
-            type="checkbox"
-            formControlName="aceiteTermos"
-            class="mt-0.5 accent-norte-accent"
-          />
-          <span>
-            Li e aceito a
-            <a routerLink="/politica-de-privacidade" target="_blank" class="text-norte-accent-light hover:underline">Política de Privacidade</a>
-            e os
-            <a routerLink="/termos-de-uso" target="_blank" class="text-norte-accent-light hover:underline">Termos de Uso</a>
-            do Norte.
-          </span>
-        </label>
+        <div class="rounded-xl border border-white/8 bg-white/[0.02] p-4">
+          <label class="flex items-start gap-3 text-sm leading-5 text-white/55">
+            <input type="checkbox" formControlName="aceiteTermos" class="mt-0.5 h-4 w-4 shrink-0 accent-norte-accent" />
+            <span>
+              Li e aceito a
+              <a routerLink="/politica-de-privacidade" target="_blank" class="text-norte-accent-light hover:underline">Política de Privacidade</a>
+              e os
+              <a routerLink="/termos-de-uso" target="_blank" class="text-norte-accent-light hover:underline">Termos de Uso</a>
+              do Norte.
+            </span>
+          </label>
+        </div>
 
         @if (erro()) {
-          <p class="text-sm text-red-400">{{ erro() }}</p>
+          <div class="rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-3 text-sm text-red-300" role="alert">
+            {{ erro() }}
+          </div>
         }
 
-        <button
-          type="submit"
-          [disabled]="carregando()"
-          class="btn-shine w-full rounded-md bg-norte-accent hover:bg-norte-accent-light hover:shadow-[0_0_20px_rgba(224,169,68,0.35)] hover:-translate-y-0.5 transition-all duration-200 text-norte-950 font-semibold py-2.5 disabled:opacity-60 disabled:hover:shadow-none disabled:hover:translate-y-0 active:scale-[0.98]"
-        >
-          {{ carregando() ? 'Criando conta...' : 'Criar conta' }}
+        <button type="submit" [disabled]="carregando()"
+          class="norte-button-primary w-full justify-center rounded-xl py-3.5 text-sm disabled:cursor-not-allowed disabled:opacity-60">
+          {{ carregando() ? 'Criando conta...' : 'Criar minha conta' }}
         </button>
       </form>
-    </div>
+    </section>
 
-    <p class="text-center text-sm text-white/50 mt-6">
-      Já tem conta?
-      <a routerLink="/entrar" class="text-norte-accent-light hover:underline">Entrar</a>
+    <p class="mt-6 text-center text-sm text-white/45">
+      Já tem uma conta?
+      <a routerLink="/entrar" class="font-medium text-norte-accent-light hover:underline">Entrar</a>
     </p>
   </div>
 </main>

@@ -9,7 +9,13 @@
     </header>
 
     @if (carregando()) {
-      <section class="norte-card p-6 mb-6"><norte-skeleton-loader /></section>
+      <section class="norte-card p-6 mb-6">
+        <div class="animate-pulse space-y-4">
+          <div class="h-4 w-32 rounded bg-white/10"></div>
+          <div class="h-8 w-48 rounded bg-white/10"></div>
+          <div class="h-3 w-full rounded bg-white/10"></div>
+        </div>
+      </section>
     } @else if (status()) {
       <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
         <section class="norte-card p-6 sm:p-8">

@@ -1,63 +1,68 @@
-<header class="flex items-center justify-between px-6 py-6 md:px-12">
-  <a routerLink="/" class="flex items-center gap-2">
-    <norte-logo-mark [tamanho]="28" />
-    <span class="font-display text-2xl text-norte-accent-light">Norte</span>
-  </a>
-  <a routerLink="/" class="text-sm text-white/60 hover:text-white transition-colors">← Voltar ao início</a>
-</header>
-
-<main class="px-6 py-10 md:px-12">
-  <div class="mx-auto max-w-2xl">
-    <h1 class="font-display text-3xl mb-2">Termos de Uso</h1>
-    <p class="text-sm text-white/40 mb-10">Última atualização: julho de 2026 (versão 1)</p>
-
-    <div class="space-y-6 text-white/70 leading-relaxed text-sm">
-      <section>
-        <h2 class="text-white font-semibold mb-2">1. Aceitação</h2>
-        <p>Ao criar uma conta no Norte, você concorda com estes Termos de Uso e com nossa Política de Privacidade. Se você não concordar, não deve usar a plataforma.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">2. Quem pode usar</h2>
-        <p>O Norte é destinado a jovens em início de carreira. Ao se cadastrar, você declara que as informações fornecidas são verdadeiras.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">3. Sua conta</h2>
-        <p>Você é responsável por manter sua senha em sigilo e por todas as atividades realizadas na sua conta. Avise imediatamente se suspeitar de uso não autorizado.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">4. Mentor IA e conteúdo gerado</h2>
-        <p>As respostas do mentor IA, sugestões de plano, currículos e feedbacks de entrevista são gerados automaticamente e podem conter imprecisões. Eles são um ponto de partida, não substituem orientação profissional especializada (como aconselhamento jurídico, financeiro ou psicológico).</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">5. Uso aceitável</h2>
-        <p>Não é permitido: usar a plataforma pra fins ilegais, tentar acessar contas de outras pessoas, sobrecarregar os sistemas de forma proposital, ou reproduzir/redistribuir o conteúdo da plataforma sem autorização.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">6. Disponibilidade</h2>
-        <p>Fazemos o possível pra manter a plataforma disponível, mas não garantimos operação ininterrupta. Funcionalidades que dependem de provedores externos (como o mentor IA) podem ficar temporariamente indisponíveis.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">7. Cancelamento</h2>
-        <p>Você pode encerrar sua conta a qualquer momento entrando em contato conosco. Reservamo-nos o direito de suspender contas que violem estes termos.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">8. Mudanças nos termos</h2>
-        <p>Podemos atualizar estes termos. Mudanças relevantes serão comunicadas por e-mail, podendo exigir reaceite pra continuar usando certas funcionalidades.</p>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold mb-2">9. Contato</h2>
-        <p>Dúvidas? Fale com a gente pela <a routerLink="/contato" class="text-norte-accent-light hover:underline">página de Contato</a>.</p>
-      </section>
+<main class="min-h-screen bg-norte-950 text-white">
+  <header class="border-b border-white/[0.06]">
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
+      <a routerLink="/" class="flex items-center gap-2.5" aria-label="Norte - início">
+        <norte-logo-mark [tamanho]="30" />
+        <span class="font-display text-2xl">Norte</span>
+      </a>
+      <a routerLink="/" class="rounded-lg px-3 py-2 text-sm text-white/55 transition hover:bg-white/[0.04] hover:text-white">← Voltar ao início</a>
     </div>
-  </div>
-</main>
+  </header>
 
-<norte-footer />
+  <section class="px-5 py-14 sm:px-8 sm:py-20 lg:px-10 lg:py-24">
+    <div class="mx-auto max-w-4xl">
+      <div class="mb-10 border-b border-white/[0.08] pb-8">
+        <p class="norte-eyebrow">Legal</p>
+        <h1 class="mt-4 font-display text-4xl tracking-tight sm:text-5xl">Termos de Uso</h1>
+        <p class="mt-4 text-sm text-white/40">Última atualização: julho de 2026 (versão 1)</p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[180px_1fr] lg:gap-14">
+        <aside class="hidden lg:block">
+          <p class="sticky top-8 text-xs uppercase tracking-[0.16em] leading-6 text-white/30">Termos<br />da plataforma</p>
+        </aside>
+
+        <div class="space-y-8 text-[15px] leading-7 text-white/60">
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">1. Aceitação</h2>
+            <p>Ao criar uma conta no Norte, você concorda com estes Termos de Uso e com nossa Política de Privacidade. Se você não concordar, não deve usar a plataforma.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">2. Quem pode usar</h2>
+            <p>O Norte é destinado a jovens em início de carreira. Ao se cadastrar, você declara que as informações fornecidas são verdadeiras.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">3. Sua conta</h2>
+            <p>Você é responsável por manter sua senha em sigilo e por todas as atividades realizadas na sua conta. Avise imediatamente se suspeitar de uso não autorizado.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">4. Mentor IA e conteúdo gerado</h2>
+            <p>As respostas do mentor IA, sugestões de plano, currículos e feedbacks de entrevista são gerados automaticamente e podem conter imprecisões. Eles são um ponto de partida, não substituem orientação profissional especializada (como aconselhamento jurídico, financeiro ou psicológico).</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">5. Uso aceitável</h2>
+            <p>Não é permitido: usar a plataforma pra fins ilegais, tentar acessar contas de outras pessoas, sobrecarregar os sistemas de forma proposital, ou reproduzir/redistribuir o conteúdo da plataforma sem autorização.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">6. Disponibilidade</h2>
+            <p>Fazemos o possível pra manter a plataforma disponível, mas não garantimos operação ininterrupta. Funcionalidades que dependem de provedores externos (como o mentor IA) podem ficar temporariamente indisponíveis.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">7. Cancelamento</h2>
+            <p>Você pode encerrar sua conta a qualquer momento entrando em contato conosco. Reservamo-nos o direito de suspender contas que violem estes termos.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">8. Mudanças nos termos</h2>
+            <p>Podemos atualizar estes termos. Mudanças relevantes serão comunicadas por e-mail, podendo exigir reaceite pra continuar usando certas funcionalidades.</p>
+          </section>
+          <section>
+            <h2 class="mb-2 text-base font-semibold text-white">9. Contato</h2>
+            <p>Dúvidas? Fale com a gente pela <a routerLink="/contato" class="text-norte-accent-light hover:underline">página de Contato</a>.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <norte-footer />
+</main>

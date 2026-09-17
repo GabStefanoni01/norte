@@ -31,10 +31,10 @@ function validarJwtSecret() {
 
   console.error(
     '\nERRO FATAL: JWT_SECRET não está definido ou está usando um valor padrão inseguro ' +
-      '(ex: "change-me"). Qualquer pessoa poderia forjar tokens de login, inclusive de admin.\n' +
-      'Gere um valor aleatório forte, por exemplo rodando:\n' +
-      '  node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"\n' +
-      'e coloque o resultado em JWT_SECRET no seu .env.\n'
+    '(ex: "change-me"). Qualquer pessoa poderia forjar tokens de login, inclusive de admin.\n' +
+    'Gere um valor aleatório forte, por exemplo rodando:\n' +
+    '  node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"\n' +
+    'e coloque o resultado em JWT_SECRET no seu .env.\n'
   );
   process.exit(1);
 }
@@ -47,6 +47,7 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   geminiApiKey: process.env.GEMINI_API_KEY,
+  jobsPipeApiKey: process.env.JOBSPIPE_API_KEY,
   frontendUrl: process.env.FRONTEND_URL,
   smtp: {
     host: process.env.SMTP_HOST,

@@ -148,7 +148,7 @@ function estadoNormalizado(valor) {
 function ehLocalizacaoNacional(localizacao) {
   const valor = normalizar(localizacao);
   if (!valor) return false;
-  return Array.from(LOCALIZACOES_NACIONAIS).some((termo) => valor === termo || valor.includes(termo));
+  return LOCALIZACOES_NACIONAIS.has(valor);
 }
 
 function ehRemota(oportunidade) {

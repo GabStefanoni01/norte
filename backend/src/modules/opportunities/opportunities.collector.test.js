@@ -1,6 +1,48 @@
-const { mapearJob } = require('./opportunities.collector');
+const { gerarConsultasDoPerfil, mapearJob } = require('./opportunities.collector');
 
 describe('opportunities collector', () => {
+  test('gera consultas a partir de diferentes áreas profissionais', () => {
+    const consultas = gerarConsultasDoPerfil([
+      {
+        interesses: ['Enfermagem'],
+        areas_sugeridas: ['Saúde'],
+        areas_secundarias: ['Gestão hospitalar'],
+        perfil_dominante: 'Cuidados',
+      },
+      {
+        interesses: ['Administração'],
+        areas_sugeridas: ['Recursos Humanos'],
+        areas_secundarias: ['Finanças'],
+        perfil_dominante: 'Gestão',
+      },
+    ]);
+
+    expect(consultas).toEqual(expect.arrayContaining([
+      'estágio',
+      'aprendiz',
+      'assistente',
+      'trainee',
+      'Enfermagem',
+      'Saúde',
+      'Gestão hospitalar',
+      'Administração',
+      'Recursos Humanos',
+      'Finanças',
+    ]));
+    expect(consultas.some((consulta) => consulta.toLowerCase().includes('software engineer'))).toBe(false);
+  });
+
+  test('remove consultas duplicadas ignorando acentos e caixa', () => {
+    const consultas = gerarConsultasDoPerfil([
+      {
+        interesses: ['Administração', 'administracao'],
+        areas_sugeridas: ['ADMINISTRAÇÃO'],
+      },
+    ]);
+
+    expect(consultas.filter((consulta) => consulta.toLowerCase() === 'administração')).toHaveLength(1);
+  });
+
   test('normaliza uma vaga externa para o modelo do Norte', () => {
     const oportunidade = mapearJob({
       id: '8164933',

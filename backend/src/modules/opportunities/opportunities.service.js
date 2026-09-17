@@ -166,6 +166,26 @@ async function listar(userId, filtros = {}) {
   return ops.rows.map((op) => ({ ...op, ...calcularMatch(op, perfil) })).sort((a, b) => b.matchPercent - a.matchPercent);
 }
 
+async function buscarPorId(userId, opportunityId) {
+  const result = await pool.query(`
+    SELECT *
+      FROM opportunities
+     WHERE id = $1
+       AND status = 'publicada'
+       AND (expires_at IS NULL OR expires_at > NOW())
+  `, [opportunityId]);
+
+  const oportunidade = result.rows[0];
+  if (!oportunidade) {
+    const err = new Error('Oportunidade não encontrada');
+    err.status = 404;
+    throw err;
+  }
+
+  const perfil = await buscarPerfil(userId);
+  return { ...oportunidade, ...calcularMatch(oportunidade, perfil) };
+}
+
 async function criar(dados) {
   const { titulo, empresa, categoria, tipo, descricao, interesse, estado, gratuito,
     idade_minima, idade_maxima, link, requisitos, expires_at } = dados;
@@ -223,4 +243,4 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };
+module.exports = { listar, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };

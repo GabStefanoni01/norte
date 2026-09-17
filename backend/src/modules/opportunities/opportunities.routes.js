@@ -12,6 +12,7 @@ router.get('/salvas', savedController.listar);
 router.get('/:id/salva', savedController.verificar);
 router.post('/:id/salva', savedController.salvar);
 router.delete('/:id/salva', savedController.remover);
+router.get('/:id', controller.buscarPorId);
 
 router.post('/', adminGuard, controller.criar);
 router.delete('/:id', adminGuard, controller.remover);

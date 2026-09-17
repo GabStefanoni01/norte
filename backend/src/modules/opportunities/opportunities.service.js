@@ -166,6 +166,33 @@ async function listar(userId, filtros = {}) {
   return ops.rows.map((op) => ({ ...op, ...calcularMatch(op, perfil) })).sort((a, b) => b.matchPercent - a.matchPercent);
 }
 
+async function listarFiltros() {
+  const result = await pool.query(`
+    SELECT
+      ARRAY(
+        SELECT DISTINCT interesse
+          FROM opportunities
+         WHERE status = 'publicada'
+           AND interesse IS NOT NULL
+           AND BTRIM(interesse) <> ''
+         ORDER BY interesse
+      ) AS interesses,
+      ARRAY(
+        SELECT DISTINCT estado
+          FROM opportunities
+         WHERE status = 'publicada'
+           AND estado IS NOT NULL
+           AND BTRIM(estado) <> ''
+         ORDER BY estado
+      ) AS estados
+  `);
+
+  return {
+    interesses: result.rows[0]?.interesses || [],
+    estados: result.rows[0]?.estados || [],
+  };
+}
+
 async function buscarPorId(userId, opportunityId) {
   const result = await pool.query(`
     SELECT *
@@ -243,4 +270,4 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };
+module.exports = { listar, listarFiltros, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };

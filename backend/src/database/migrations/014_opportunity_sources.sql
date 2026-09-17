@@ -2,6 +2,16 @@
 -- Mantemos suporte às oportunidades manuais já existentes.
 
 ALTER TABLE opportunities
+  DROP CONSTRAINT IF EXISTS chk_opportunities_fonte,
+  DROP CONSTRAINT IF EXISTS chk_opportunities_status;
+
+ALTER TABLE opportunities
+  ADD CONSTRAINT chk_opportunities_fonte
+    CHECK (fonte IN ('manual', 'busca_automatica', 'jobspipe', 'aprendamais')),
+  ADD CONSTRAINT chk_opportunities_status
+    CHECK (status IN ('publicada', 'pendente', 'expirada'));
+
+ALTER TABLE opportunities
   ADD COLUMN IF NOT EXISTS external_id TEXT,
   ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS source_url TEXT,

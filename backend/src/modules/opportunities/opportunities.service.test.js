@@ -79,6 +79,34 @@ describe('opportunities.service', () => {
       expect(resultado[0].matchDetalhes.areaCompativel).toBe(true);
     });
 
+    it('não considera uma única palavra genérica como correspondência suficiente', async () => {
+      const oportunidade = {
+        interesse: null,
+        categoria: 'Desenvolvimento de Software',
+      };
+      const perfil = {
+        interesses: [],
+        areas_sugeridas: ['Desenvolvimento Front-end'],
+        areas_secundarias: [],
+        perfil_dominante: null,
+      };
+      expect(opportunitiesService.areaAtendida(oportunidade, perfil)).toBe(false);
+    });
+
+    it('aceita correspondência parcial quando metade dos termos da área coincide', async () => {
+      const oportunidade = {
+        interesse: null,
+        categoria: 'Gestão Hospitalar',
+      };
+      const perfil = {
+        interesses: [],
+        areas_sugeridas: ['Gestão de Hospitais'],
+        areas_secundarias: [],
+        perfil_dominante: null,
+      };
+      expect(opportunitiesService.areaAtendida(oportunidade, perfil)).toBe(true);
+    });
+
     it('identifica incompatibilidade de localização e idade nos detalhes', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{

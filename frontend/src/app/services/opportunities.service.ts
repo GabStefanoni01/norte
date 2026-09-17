@@ -11,6 +11,10 @@ export class OpportunitiesService {
     return this.api.get<Oportunidade[]>('/opportunities', params);
   }
 
+  buscarPorId(id: number) {
+    return this.api.get<Oportunidade>(`/opportunities/${id}`);
+  }
+
   listarSalvas() {
     return this.api.get<Oportunidade[]>('/opportunities/salvas');
   }

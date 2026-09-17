@@ -1,6 +1,9 @@
 const pool = require('../../database/pool');
 
 const TIPOS_VALIDOS = ['curso', 'vaga', 'bolsa', 'evento', 'programa'];
+const ORDENACOES_VALIDAS = ['match', 'recentes'];
+const LIMITE_PADRAO = 12;
+const LIMITE_MAXIMO = 50;
 
 function normalizar(valor) {
   return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -146,6 +149,15 @@ function montarFiltros({ tipo, interesse, estado, busca } = {}) {
   return { where: condicoes.join(' AND '), valores };
 }
 
+function normalizarPaginacao(valor, padrao) {
+  const numero = Number.parseInt(valor, 10);
+  return Number.isFinite(numero) && numero > 0 ? numero : padrao;
+}
+
+function normalizarOrdenacao(valor) {
+  return ORDENACOES_VALIDAS.includes(valor) ? valor : 'match';
+}
+
 async function buscarPerfil(userId) {
   const result = await pool.query(`
     SELECT p.habilidades, p.interesses, p.escolaridade, p.perfil_dominante,
@@ -158,12 +170,48 @@ async function buscarPerfil(userId) {
 }
 
 async function listar(userId, filtros = {}) {
+  const paginaSolicitada = normalizarPaginacao(filtros.pagina, 1);
+  const limite = Math.min(normalizarPaginacao(filtros.limite, LIMITE_PADRAO), LIMITE_MAXIMO);
+  const ordenacao = normalizarOrdenacao(filtros.ordenar);
   const { where, valores } = montarFiltros(filtros);
+
   const [ops, perfil] = await Promise.all([
-    pool.query(`SELECT * FROM opportunities WHERE ${where} ORDER BY created_at DESC`, valores),
+    pool.query(`SELECT * FROM opportunities WHERE ${where}`, valores),
     buscarPerfil(userId),
   ]);
-  return ops.rows.map((op) => ({ ...op, ...calcularMatch(op, perfil) })).sort((a, b) => b.matchPercent - a.matchPercent);
+
+  const oportunidades = ops.rows.map((op) => ({
+    ...op,
+    ...calcularMatch(op, perfil),
+  }));
+
+  oportunidades.sort((a, b) => {
+    if (ordenacao === 'recentes') {
+      const dataA = new Date(a.created_at).getTime();
+      const dataB = new Date(b.created_at).getTime();
+      return dataB - dataA || b.matchPercent - a.matchPercent;
+    }
+
+    return b.matchPercent - a.matchPercent
+      || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  const total = oportunidades.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / limite));
+  const pagina = Math.min(paginaSolicitada, totalPaginas);
+  const inicio = (pagina - 1) * limite;
+  const data = oportunidades.slice(inicio, inicio + limite);
+
+  return {
+    data,
+    pagination: {
+      pagina,
+      limite,
+      total,
+      totalPaginas,
+      ordenar: ordenacao,
+    },
+  };
 }
 
 async function listarFiltros() {

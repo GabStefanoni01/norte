@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { OpportunitiesService } from '../../services/opportunities.service';
 import { Oportunidade, TIPOS_OPORTUNIDADE } from '../../models/opportunity.model';
@@ -7,7 +8,7 @@ import { Oportunidade, TIPOS_OPORTUNIDADE } from '../../models/opportunity.model
 @Component({
   selector: 'norte-opportunities',
   standalone: true,
-  imports: [SidebarComponent, FormsModule],
+  imports: [SidebarComponent, FormsModule, RouterLink],
   templateUrl: './opportunities.component.html',
 })
 export class OpportunitiesComponent implements OnInit {

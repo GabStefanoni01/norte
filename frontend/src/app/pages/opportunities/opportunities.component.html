@@ -42,7 +42,7 @@
           <button type="button" (click)="pesquisar()" class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light">Buscar</button>
         </div>
 
-        <div class="norte-card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+        <div class="norte-card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
           <div>
             <label for="filtro-tipo" class="mb-1.5 block text-xs font-medium text-white/45">Tipo</label>
             <select id="filtro-tipo" [(ngModel)]="filtroTipo" (ngModelChange)="pesquisar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
@@ -73,18 +73,15 @@
             </select>
           </div>
 
-          <button type="button" (click)="limparFiltros()" class="self-end rounded-xl border border-norte-700 px-4 py-2.5 text-sm font-medium text-white/55 transition hover:border-norte-accent/50 hover:text-white">Limpar filtros</button>
-        </div>
-
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-xs text-white/35">{{ total() }} oportunidade{{ total() === 1 ? '' : 's' }} encontrada{{ total() === 1 ? '' : 's' }}</p>
-          <label class="flex items-center gap-2 text-xs text-white/45">
-            <span>Ordenar por</span>
-            <select [(ngModel)]="ordenacao" (ngModelChange)="mudarOrdenacao()" aria-label="Ordenar oportunidades" class="rounded-xl border border-norte-700 bg-norte-900/70 px-3 py-2 text-sm text-white outline-none transition focus:border-norte-accent">
+          <div>
+            <label for="ordenacao" class="mb-1.5 block text-xs font-medium text-white/45">Ordenar por</label>
+            <select id="ordenacao" [(ngModel)]="ordenacao" (ngModelChange)="mudarOrdenacao()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
               <option value="match">Maior compatibilidade</option>
               <option value="recentes">Mais recentes</option>
             </select>
-          </label>
+          </div>
+
+          <button type="button" (click)="limparFiltros()" class="self-end rounded-xl border border-norte-700 px-4 py-2.5 text-sm font-medium text-white/55 transition hover:border-norte-accent/50 hover:text-white">Limpar filtros</button>
         </div>
       </section>
     }
@@ -113,6 +110,13 @@
         <p class="mx-auto mt-2 max-w-md text-sm text-white/45">{{ mostrandoSalvas() ? 'Use o botão de salvar nas oportunidades que quiser acompanhar depois.' : 'Tente outra busca ou filtro, ou volte mais tarde para conferir novas oportunidades.' }}</p>
       </div>
     } @else {
+      <div class="mb-4 flex items-center justify-between text-xs text-white/35">
+        <span>{{ total() }} oportunidade{{ total() === 1 ? '' : 's' }} encontrada{{ total() === 1 ? '' : 's' }}</span>
+        @if (totalPaginas() > 1) {
+          <span>Página {{ paginaAtual() }} de {{ totalPaginas() }}</span>
+        }
+      </div>
+
       <div class="grid gap-4 lg:grid-cols-2">
         @for (op of oportunidades(); track op.id) {
           <article class="norte-card-interactive group flex flex-col p-5 sm:p-6">
@@ -173,14 +177,13 @@
           <button type="button" (click)="paginaAnterior()" [disabled]="paginaAtual() === 1" class="rounded-xl border border-norte-700 px-3 py-2 text-sm text-white/60 transition hover:border-norte-accent/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-30">← Anterior</button>
           <div class="flex items-center gap-1">
             @for (pagina of paginasVisiveis(); track pagina) {
-              <button type="button" (click)="irParaPagina(pagina)" [attr.aria-current]="pagina === paginaAtual() ? 'page' : null" class="flex h-9 min-w-9 items-center justify-center rounded-xl border px-3 text-sm transition" [class.border-norte-accent]="pagina === paginaAtual()" [class.bg-norte-accent]="pagina === paginaAtual()" [class.text-norte-950]="pagina === paginaAtual()" [class.border-norte-700]="pagina !== paginaAtual()" [class.text-white]="pagina !== paginaAtual()" [class.text-white\/70]="pagina !== paginaAtual()" [class.hover:border-norte-accent\/50]="pagina !== paginaAtual()">
+              <button type="button" (click)="irParaPagina(pagina)" [attr.aria-current]="pagina === paginaAtual() ? 'page' : null" class="flex h-9 min-w-9 items-center justify-center rounded-xl border px-3 text-sm transition" [class.border-norte-accent]="pagina === paginaAtual()" [class.bg-norte-accent]="pagina === paginaAtual()" [class.text-norte-950]="pagina === paginaAtual()" [class.border-norte-700]="pagina !== paginaAtual()" [class.text-white]="pagina !== paginaAtual()" [class.hover:border-norte-accent]="pagina !== paginaAtual()">
                 {{ pagina }}
               </button>
             }
           </div>
           <button type="button" (click)="proximaPagina()" [disabled]="paginaAtual() === totalPaginas()" class="rounded-xl border border-norte-700 px-3 py-2 text-sm text-white/60 transition hover:border-norte-accent/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-30">Próxima →</button>
         </nav>
-        <p class="mt-3 text-center text-xs text-white/30">Página {{ paginaAtual() }} de {{ totalPaginas() }}</p>
       }
     }
   </main>

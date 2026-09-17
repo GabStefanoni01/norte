@@ -2,7 +2,6 @@ const cron = require('node-cron');
 const env = require('../config/env');
 const { acquireLock, releaseLock } = require('../database/redis');
 const { sincronizarJobs } = require('../modules/opportunities/opportunities.collector');
-const { enviarLembretes } = require('./reminders');
 
 const LOCK_TTL_SECONDS = 10 * 60;
 
@@ -37,17 +36,14 @@ function iniciarScheduler() {
     return;
   }
 
+  // Sincroniza oportunidades diariamente às 08h.
   cron.schedule('0 8 * * *', sincronizarOportunidades);
-
-  cron.schedule('0 9 * * *', () => executarComLock('lock:lembretes', async () => {
-    await enviarLembretes();
-  }));
 
   // Faz a primeira sincronização sem esperar o próximo horário do cron.
   // O lock impede que ela concorra com outra execução.
   sincronizarOportunidades();
 
-  console.log('[scheduler] cron habilitado: oportunidades às 8h e lembretes às 9h');
+  console.log('[scheduler] cron habilitado: oportunidades às 8h');
 }
 
 module.exports = { iniciarScheduler, sincronizarOportunidades };

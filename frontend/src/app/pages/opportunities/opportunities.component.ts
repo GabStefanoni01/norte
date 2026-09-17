@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { OpportunitiesService } from '../../services/opportunities.service';
 import { Oportunidade, TIPOS_OPORTUNIDADE } from '../../models/opportunity.model';
@@ -92,7 +93,7 @@ export class OpportunitiesComponent implements OnInit {
     const estavaSalva = this.estaSalva(op.id);
     this.salvandoId.set(op.id);
 
-    const request = estavaSalva
+    const request: Observable<unknown> = estavaSalva
       ? this.opportunitiesService.removerSalva(op.id)
       : this.opportunitiesService.salvar(op.id);
 

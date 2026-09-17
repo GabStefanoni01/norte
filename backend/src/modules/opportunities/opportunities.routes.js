@@ -8,6 +8,7 @@ const router = Router();
 router.use(authGuard);
 
 router.get('/', controller.listar);
+router.get('/filtros', controller.listarFiltros);
 router.get('/salvas', savedController.listar);
 router.get('/:id/salva', savedController.verificar);
 router.post('/:id/salva', savedController.salvar);

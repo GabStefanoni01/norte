@@ -60,23 +60,28 @@ function calcularMatch(oportunidade, perfil) {
   const requisitos = oportunidade.requisitos || [];
   const atributos = atributosDoPerfil(perfil);
   const faltantes = requisitos.filter((r) => !requisitoAtendido(r, atributos));
-  const requisitosPercentual = requisitos.length === 0
-    ? 1
-    : (requisitos.length - faltantes.length) / requisitos.length;
+  const requisitosAtendidos = requisitos.length - faltantes.length;
+  const requisitosPercentual = requisitos.length === 0 ? 1 : requisitosAtendidos / requisitos.length;
 
   let contexto = 0;
   let sinais = 0;
+  let areaCompativel = null;
+  let localCompativel = null;
+  let idadeCompativel = null;
 
   if (oportunidade.interesse || oportunidade.categoria) {
     sinais += 1;
-    if (areaAtendida(oportunidade, perfil)) contexto += 1;
+    areaCompativel = areaAtendida(oportunidade, perfil);
+    if (areaCompativel) contexto += 1;
   }
 
   if (oportunidade.estado) {
     sinais += 1;
-    if (normalizar(oportunidade.estado) === normalizar(perfil.estado)) contexto += 1;
+    localCompativel = normalizar(oportunidade.estado) === normalizar(perfil.estado);
+    if (localCompativel) contexto += 1;
   } else {
     sinais += 1;
+    localCompativel = true;
     contexto += 1;
   }
 
@@ -85,15 +90,27 @@ function calcularMatch(oportunidade, perfil) {
     const idade = Number(perfil.idade);
     const dentroMin = oportunidade.idade_minima == null || idade >= oportunidade.idade_minima;
     const dentroMax = oportunidade.idade_maxima == null || idade <= oportunidade.idade_maxima;
-    if (Number.isFinite(idade) && dentroMin && dentroMax) contexto += 1;
+    idadeCompativel = Number.isFinite(idade) && dentroMin && dentroMax;
+    if (idadeCompativel) contexto += 1;
   } else {
     sinais += 1;
+    idadeCompativel = true;
     contexto += 1;
   }
 
   const contextoPercentual = sinais > 0 ? contexto / sinais : 1;
   const matchPercent = Math.round((requisitosPercentual * 70) + (contextoPercentual * 30));
-  return { matchPercent, faltantes };
+  return {
+    matchPercent,
+    faltantes,
+    matchDetalhes: {
+      areaCompativel,
+      localCompativel,
+      idadeCompativel,
+      requisitosAtendidos,
+      requisitosTotal: requisitos.length,
+    },
+  };
 }
 
 function montarFiltros({ tipo, interesse, estado, busca } = {}) {

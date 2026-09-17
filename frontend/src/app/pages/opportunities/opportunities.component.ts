@@ -1,6 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { OpportunitiesService } from '../../services/opportunities.service';
 import { Oportunidade, TIPOS_OPORTUNIDADE } from '../../models/opportunity.model';
@@ -90,31 +89,36 @@ export class OpportunitiesComponent implements OnInit {
   alternarSalva(op: Oportunidade) {
     if (this.salvandoId() === op.id) return;
 
-    const estavaSalva = this.estaSalva(op.id);
     this.salvandoId.set(op.id);
 
-    const request: Observable<unknown> = estavaSalva
-      ? this.opportunitiesService.removerSalva(op.id)
-      : this.opportunitiesService.salvar(op.id);
+    if (this.estaSalva(op.id)) {
+      this.opportunitiesService.removerSalva(op.id).subscribe({
+        next: () => this.finalizarSalva(op.id, true),
+        error: () => this.salvandoId.set(null),
+      });
+      return;
+    }
 
-    request.subscribe({
-      next: () => {
-        const novasSalvas = new Set(this.salvas());
-        if (estavaSalva) {
-          novasSalvas.delete(op.id);
-          if (this.mostrandoSalvas()) {
-            this.oportunidades.set(this.oportunidades().filter((item) => item.id !== op.id));
-          }
-        } else {
-          novasSalvas.add(op.id);
-        }
-        this.salvas.set(novasSalvas);
-        this.salvandoId.set(null);
-      },
-      error: () => {
-        this.salvandoId.set(null);
-      },
+    this.opportunitiesService.salvar(op.id).subscribe({
+      next: () => this.finalizarSalva(op.id, false),
+      error: () => this.salvandoId.set(null),
     });
+  }
+
+  private finalizarSalva(id: number, removida: boolean) {
+    const novasSalvas = new Set(this.salvas());
+
+    if (removida) {
+      novasSalvas.delete(id);
+      if (this.mostrandoSalvas()) {
+        this.oportunidades.set(this.oportunidades().filter((item) => item.id !== id));
+      }
+    } else {
+      novasSalvas.add(id);
+    }
+
+    this.salvas.set(novasSalvas);
+    this.salvandoId.set(null);
   }
 
   fecharLacuna(op: Oportunidade) {

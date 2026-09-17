@@ -82,6 +82,19 @@ describe('opportunities collector', () => {
     expect(oportunidade.dadosOrigem.seniority).toBe('entry_level');
   });
 
+  test('usa ocupação como categoria quando função não estiver disponível', () => {
+    const oportunidade = mapearJob({
+      id: '2',
+      job_title: 'Enfermeiro',
+      company: 'Hospital Exemplo',
+      occupation_label: 'Enfermagem',
+      url: 'https://exemplo.com/vaga/2',
+    });
+
+    expect(oportunidade.categoria).toBe('Enfermagem');
+    expect(oportunidade.interesse).toBe('Enfermagem');
+  });
+
   test('ignora vaga sem identificador ou link', () => {
     expect(mapearJob({ id: '1', job_title: 'Backend Developer' })).toBeNull();
     expect(mapearJob({ id: '1', job_title: 'Backend Developer', url: '' })).toBeNull();

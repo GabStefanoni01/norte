@@ -119,6 +119,27 @@
               </div>
             </div>
 
+            @if (op.matchDetalhes) {
+              <div class="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-norte-800 bg-norte-950/30 p-3 sm:grid-cols-4">
+                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.areaCompativel" [class.text-white/40]="!op.matchDetalhes.areaCompativel">
+                  <span>{{ op.matchDetalhes.areaCompativel ? '✓' : '×' }}</span>
+                  <span>Área</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.localCompativel" [class.text-white/40]="!op.matchDetalhes.localCompativel">
+                  <span>{{ op.matchDetalhes.localCompativel ? '✓' : '×' }}</span>
+                  <span>Localização</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.idadeCompativel" [class.text-white/40]="!op.matchDetalhes.idadeCompativel">
+                  <span>{{ op.matchDetalhes.idadeCompativel ? '✓' : '×' }}</span>
+                  <span>Idade</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-white/55">
+                  <span class="text-norte-accent-light">✓</span>
+                  <span>{{ op.matchDetalhes.requisitosAtendidos }}/{{ op.matchDetalhes.requisitosTotal }} requisitos</span>
+                </div>
+              </div>
+            }
+
             @if (op.descricao) {
               <p class="mb-5 line-clamp-3 text-sm leading-6 text-white/55">{{ op.descricao }}</p>
             }

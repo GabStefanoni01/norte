@@ -98,7 +98,7 @@ async function listar(userId, filtros = {}) {
 
 async function criar(dados) {
   const { titulo, empresa, categoria, tipo, descricao, interesse, estado, gratuito,
-    idade_minima, idade_maxima, link, requisitos, fonte, status, expires_at } = dados;
+    idade_minima, idade_maxima, link, requisitos, expires_at } = dados;
   if (!titulo || !link) { const err = new Error('titulo e link são obrigatórios'); err.status = 400; throw err; }
   if (tipo && !TIPOS_VALIDOS.includes(tipo)) {
     const err = new Error(`tipo inválido. Use um de: ${TIPOS_VALIDOS.join(', ')}`); err.status = 400; throw err;
@@ -111,10 +111,10 @@ async function criar(dados) {
       (titulo, empresa, categoria, tipo, descricao, interesse, estado, gratuito,
        idade_minima, idade_maxima, link, requisitos, fonte, status, expires_at)
     VALUES ($1,$2,$3,COALESCE($4,'vaga'),$5,$6,$7,COALESCE($8,true),$9,$10,$11,
-            COALESCE($12,'{}'),COALESCE($13,'manual'),COALESCE($14,'publicada'),$15)
+            COALESCE($12,'{}'),'manual','publicada',$13)
     RETURNING *
   `, [titulo, empresa, categoria, tipo, descricao, interesse, estado, gratuito,
-    idade_minima, idade_maxima, link, requisitos, fonte, status, expires_at]);
+    idade_minima, idade_maxima, link, requisitos, expires_at]);
   return result.rows[0];
 }
 

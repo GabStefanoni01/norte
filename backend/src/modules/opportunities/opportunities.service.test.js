@@ -100,7 +100,7 @@ describe('opportunities.service', () => {
     });
   });
 
-  describe('criar', () =>
+  describe('criar', () => {
     it('rejeita faixa etária inválida', async () => {
       await expect(opportunitiesService.criar({ titulo: 'Programa', link: 'https://example.com', idade_minima: 25, idade_maxima: 18 })).rejects.toMatchObject({ status: 400 });
       expect(mockQuery).not.toHaveBeenCalled();

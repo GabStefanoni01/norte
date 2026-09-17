@@ -41,6 +41,13 @@ describe('opportunities.service', () => {
         }] });
       const resultado = await opportunitiesService.listar(7);
       expect(resultado[0].matchPercent).toBe(100);
+      expect(resultado[0].matchDetalhes).toEqual({
+        areaCompativel: true,
+        localCompativel: true,
+        idadeCompativel: true,
+        requisitosAtendidos: 0,
+        requisitosTotal: 0,
+      });
     });
 
     it('retorna lacunas de requisitos que não aparecem no perfil', async () => {
@@ -53,6 +60,8 @@ describe('opportunities.service', () => {
       const resultado = await opportunitiesService.listar(7);
       expect(resultado[0].faltantes).toEqual(['Docker']);
       expect(resultado[0].matchPercent).toBe(77);
+      expect(resultado[0].matchDetalhes.requisitosAtendidos).toBe(2);
+      expect(resultado[0].matchDetalhes.requisitosTotal).toBe(3);
     });
 
     it('considera áreas sugeridas e secundárias no match mesmo sem habilidade específica', async () => {
@@ -67,10 +76,31 @@ describe('opportunities.service', () => {
         }] });
       const resultado = await opportunitiesService.listar(7);
       expect(resultado[0].matchPercent).toBe(100);
+      expect(resultado[0].matchDetalhes.areaCompativel).toBe(true);
+    });
+
+    it('identifica incompatibilidade de localização e idade nos detalhes', async () => {
+      mockQuery
+        .mockResolvedValueOnce({ rows: [{
+          id: 13, titulo: 'Programa RJ', interesse: 'Tecnologia', estado: 'RJ', requisitos: ['Java'], idade_minima: 18, idade_maxima: 21,
+        }] })
+        .mockResolvedValueOnce({ rows: [{
+          habilidades: [], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [],
+          escolaridade: null, perfil_dominante: null, idade: 25, estado: 'SP',
+        }] });
+      const resultado = await opportunitiesService.listar(7);
+      expect(resultado[0].matchDetalhes).toEqual({
+        areaCompativel: true,
+        localCompativel: false,
+        idadeCompativel: false,
+        requisitosAtendidos: 0,
+        requisitosTotal: 1,
+      });
+      expect(resultado[0].faltantes).toEqual(['Java']);
     });
   });
 
-  describe('criar', () => {
+  describe('criar', () =>
     it('rejeita faixa etária inválida', async () => {
       await expect(opportunitiesService.criar({ titulo: 'Programa', link: 'https://example.com', idade_minima: 25, idade_maxima: 18 })).rejects.toMatchObject({ status: 400 });
       expect(mockQuery).not.toHaveBeenCalled();

@@ -31,7 +31,7 @@ describe('opportunities.service', () => {
         .mockResolvedValueOnce({
           rows: [{
             habilidades: ['Java', 'SQL'], interesses: ['Tecnologia'], areas_sugeridas: ['Backend'],
-            escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Tecnologia', idade: 20, estado: 'SP',
+            areas_secundarias: [], escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Tecnologia', idade: 20, estado: 'SP',
           }],
         });
 
@@ -52,7 +52,7 @@ describe('opportunities.service', () => {
           idade_minima: 18, idade_maxima: 24,
         }] })
         .mockResolvedValueOnce({ rows: [{
-          habilidades: [], interesses: ['Tecnologia'], areas_sugeridas: [], escolaridade: null,
+          habilidades: [], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null,
           perfil_dominante: null, idade: 20, estado: 'SP',
         }] });
 
@@ -67,13 +67,28 @@ describe('opportunities.service', () => {
           requisitos: ['Java', 'Docker', 'SQL'], idade_minima: null, idade_maxima: null,
         }] })
         .mockResolvedValueOnce({ rows: [{
-          habilidades: ['Java', 'SQL'], interesses: ['Tecnologia'], areas_sugeridas: [],
+          habilidades: ['Java', 'SQL'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [],
           escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP',
         }] });
 
       const resultado = await opportunitiesService.listar(7);
       expect(resultado[0].faltantes).toEqual(['Docker']);
       expect(resultado[0].matchPercent).toBe(77);
+    });
+
+    it('considera áreas sugeridas e secundárias no match mesmo sem habilidade específica', async () => {
+      mockQuery
+        .mockResolvedValueOnce({ rows: [{
+          id: 12, titulo: 'Estágio em Gestão Hospitalar', categoria: 'Gestão Hospitalar',
+          interesse: 'Administração', estado: null, requisitos: [], idade_minima: null, idade_maxima: null,
+        }] })
+        .mockResolvedValueOnce({ rows: [{
+          habilidades: [], interesses: [], areas_sugeridas: ['Saúde'], areas_secundarias: ['Gestão hospitalar'],
+          escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Cuidados', idade: 20, estado: 'SP',
+        }] });
+
+      const resultado = await opportunitiesService.listar(7);
+      expect(resultado[0].matchPercent).toBe(100);
     });
   });
 
@@ -100,7 +115,7 @@ describe('opportunities.service', () => {
     });
   });
 
-  describe('fecharLacuna', () => {
+  describe('fecharLacuna', () =>
     it('adiciona os requisitos faltantes ao plano existente', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{
@@ -108,7 +123,7 @@ describe('opportunities.service', () => {
           requisitos: ['Java', 'Docker'], idade_minima: null, idade_maxima: null, status: 'publicada',
         }] })
         .mockResolvedValueOnce({ rows: [{
-          habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], escolaridade: null,
+          habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null,
           perfil_dominante: null, idade: 20, estado: 'SP',
         }] })
         .mockResolvedValueOnce({ rows: [{
@@ -134,7 +149,7 @@ describe('opportunities.service', () => {
           requisitos: ['Java'], idade_minima: null, idade_maxima: null, status: 'publicada',
         }] })
         .mockResolvedValueOnce({ rows: [{
-          habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], escolaridade: null,
+          habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null,
           perfil_dominante: null, idade: 20, estado: 'SP',
         }] });
 

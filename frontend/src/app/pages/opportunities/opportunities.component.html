@@ -26,7 +26,7 @@
     </header>
 
     @if (!mostrandoSalvas()) {
-      <section class="mb-7 space-y-3">
+      <section class="mb-7 space-y-4">
         <div>
           <p class="text-sm font-medium text-white/80">Encontre uma oportunidade</p>
           <p class="text-xs text-white/40">Busque por cargo, empresa, categoria ou palavra-chave.</p>
@@ -42,14 +42,38 @@
           <button type="button" (click)="pesquisar()" class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light">Buscar</button>
         </div>
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
-          <select [(ngModel)]="filtroTipo" (ngModelChange)="carregar()" aria-label="Filtrar oportunidades por tipo" class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56">
-            <option value="">Todos os tipos</option>
-            @for (tipo of tipos; track tipo.valor) {
-              <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-            }
-          </select>
+        <div class="norte-card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+          <div>
+            <label for="filtro-tipo" class="mb-1.5 block text-xs font-medium text-white/45">Tipo</label>
+            <select id="filtro-tipo" [(ngModel)]="filtroTipo" (ngModelChange)="carregar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todos os tipos</option>
+              @for (tipo of tipos; track tipo.valor) {
+                <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="filtro-interesse" class="mb-1.5 block text-xs font-medium text-white/45">Área de interesse</label>
+            <select id="filtro-interesse" [(ngModel)]="filtroInteresse" (ngModelChange)="carregar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todas as áreas</option>
+              @for (interesse of interesses(); track interesse) {
+                <option [value]="interesse">{{ interesse }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="filtro-estado" class="mb-1.5 block text-xs font-medium text-white/45">Localização</label>
+            <select id="filtro-estado" [(ngModel)]="filtroEstado" (ngModelChange)="carregar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todos os estados</option>
+              @for (estado of estados(); track estado) {
+                <option [value]="estado">{{ estado }}</option>
+              }
+            </select>
+          </div>
+
+          <button type="button" (click)="limparFiltros()" class="self-end rounded-xl border border-norte-700 px-4 py-2.5 text-sm font-medium text-white/55 transition hover:border-norte-accent/50 hover:text-white">Limpar filtros</button>
         </div>
       </section>
     }

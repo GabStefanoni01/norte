@@ -6,11 +6,16 @@ function normalizar(valor) {
   return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
+function tokens(valor) {
+  return normalizar(valor).split(/[^a-z0-9]+/).filter((token) => token.length >= 3);
+}
+
 function atributosDoPerfil(perfil) {
   return [
     ...(perfil.habilidades || []),
     ...(perfil.interesses || []),
     ...(perfil.areas_sugeridas || []),
+    ...(perfil.areas_secundarias || []),
     perfil.escolaridade,
     perfil.perfil_dominante,
   ].filter(Boolean).map(normalizar);
@@ -26,6 +31,31 @@ function requisitoAtendido(requisito, atributos) {
   });
 }
 
+function areaAtendida(oportunidade, perfil) {
+  const interesse = normalizar(oportunidade.interesse);
+  const categoria = normalizar(oportunidade.categoria);
+  const perfilAreas = [
+    ...(perfil.interesses || []),
+    ...(perfil.areas_sugeridas || []),
+    ...(perfil.areas_secundarias || []),
+    perfil.perfil_dominante,
+  ].filter(Boolean).map(normalizar);
+
+  if (!interesse && !categoria || perfilAreas.length === 0) return false;
+
+  return perfilAreas.some((area) => {
+    if (interesse && (area === interesse || area.includes(interesse) || interesse.includes(area))) return true;
+    if (categoria && (area === categoria || area.includes(categoria) || categoria.includes(area))) return true;
+
+    const alvoTokens = new Set([...tokens(interesse), ...tokens(categoria)]);
+    const areaTokens = new Set(tokens(area));
+    if (alvoTokens.size === 0 || areaTokens.size === 0) return false;
+
+    const interseccao = [...alvoTokens].filter((token) => areaTokens.has(token)).length;
+    return interseccao > 0;
+  });
+}
+
 function calcularMatch(oportunidade, perfil) {
   const requisitos = oportunidade.requisitos || [];
   const atributos = atributosDoPerfil(perfil);
@@ -37,10 +67,9 @@ function calcularMatch(oportunidade, perfil) {
   let contexto = 0;
   let sinais = 0;
 
-  if (oportunidade.interesse) {
+  if (oportunidade.interesse || oportunidade.categoria) {
     sinais += 1;
-    const interesse = normalizar(oportunidade.interesse);
-    if ((perfil.interesses || []).some((i) => normalizar(i) === interesse) || normalizar(perfil.perfil_dominante) === interesse) contexto += 1;
+    if (areaAtendida(oportunidade, perfil)) contexto += 1;
   }
 
   if (oportunidade.estado) {
@@ -103,7 +132,7 @@ function montarFiltros({ tipo, interesse, estado, busca } = {}) {
 async function buscarPerfil(userId) {
   const result = await pool.query(`
     SELECT p.habilidades, p.interesses, p.escolaridade, p.perfil_dominante,
-           p.areas_sugeridas, u.idade, u.estado
+           p.areas_sugeridas, p.areas_secundarias, u.idade, u.estado
     FROM profiles p
     JOIN users u ON u.id = p.user_id
     WHERE p.user_id = $1
@@ -177,4 +206,4 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, criar, remover, fecharLacuna, calcularMatch, montarFiltros };
+module.exports = { listar, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };

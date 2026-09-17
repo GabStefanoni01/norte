@@ -34,6 +34,7 @@ function requisitoAtendido(requisito, atributos) {
 function areaAtendida(oportunidade, perfil) {
   const interesse = normalizar(oportunidade.interesse);
   const categoria = normalizar(oportunidade.categoria);
+  const alvos = [interesse, categoria].filter(Boolean);
   const perfilAreas = [
     ...(perfil.interesses || []),
     ...(perfil.areas_sugeridas || []),
@@ -41,19 +42,18 @@ function areaAtendida(oportunidade, perfil) {
     perfil.perfil_dominante,
   ].filter(Boolean).map(normalizar);
 
-  if (!interesse && !categoria || perfilAreas.length === 0) return false;
+  if (alvos.length === 0 || perfilAreas.length === 0) return false;
 
-  return perfilAreas.some((area) => {
-    if (interesse && (area === interesse || area.includes(interesse) || interesse.includes(area))) return true;
-    if (categoria && (area === categoria || area.includes(categoria) || categoria.includes(area))) return true;
+  return perfilAreas.some((area) => alvos.some((alvo) => {
+    if (area === alvo || area.includes(alvo) || alvo.includes(area)) return true;
 
-    const alvoTokens = new Set([...tokens(interesse), ...tokens(categoria)]);
+    const alvoTokens = new Set(tokens(alvo));
     const areaTokens = new Set(tokens(area));
-    if (alvoTokens.size === 0 || areaTokens.size === 0) return false;
+    if (alvoTokens.size < 2 || areaTokens.size === 0) return false;
 
     const interseccao = [...alvoTokens].filter((token) => areaTokens.has(token)).length;
-    return interseccao > 0;
-  });
+    return interseccao >= Math.ceil(alvoTokens.size / 2);
+  }));
 }
 
 function calcularMatch(oportunidade, perfil) {

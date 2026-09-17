@@ -1,6 +1,6 @@
 const app = require('./app');
 const env = require('./config/env');
-const { iniciarAgendadorSeHabilitado } = require('./jobs/scheduler');
+const { iniciarScheduler } = require('./jobs/scheduler');
 
 app.listen(env.port, () => {
   console.log(`Norte API rodando na porta ${env.port}`);
@@ -15,5 +15,5 @@ app.listen(env.port, () => {
     );
   }
 
-  iniciarAgendadorSeHabilitado();
+  iniciarScheduler();
 });

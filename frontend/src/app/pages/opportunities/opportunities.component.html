@@ -5,41 +5,89 @@
     <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="norte-eyebrow">Oportunidades</p>
-        <h1 class="font-display text-3xl tracking-tight sm:text-4xl">Encontre seu próximo passo</h1>
-        <p class="norte-muted mt-2 max-w-2xl">Vagas, cursos e bolsas organizados pela compatibilidade com o seu perfil.</p>
+        <h1 class="font-display text-3xl tracking-tight sm:text-4xl">{{ mostrandoSalvas() ? 'Oportunidades salvas' : 'Encontre seu próximo passo' }}</h1>
+        <p class="norte-muted mt-2 max-w-2xl">{{ mostrandoSalvas() ? 'Guarde oportunidades para voltar quando estiver pronto para se candidatar.' : 'Vagas, cursos e bolsas organizados pela compatibilidade com o seu perfil.' }}</p>
       </div>
-      <div class="norte-card flex items-center gap-3 px-4 py-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent">%</div>
-        <div>
-          <p class="text-xs text-white/40">Match personalizado</p>
-          <p class="text-sm font-medium text-white/80">Baseado no seu perfil</p>
-        </div>
+      <div class="flex flex-col gap-3 sm:items-end">
+        <button type="button" (click)="alternarSalvas()" class="inline-flex items-center justify-center gap-2 rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm font-medium text-white/80 transition hover:border-norte-accent/50 hover:text-white">
+          <span>{{ mostrandoSalvas() ? '←' : '☆' }}</span>
+          <span>{{ mostrandoSalvas() ? 'Todas as oportunidades' : 'Minhas salvas' }}</span>
+        </button>
+        @if (!mostrandoSalvas()) {
+          <div class="norte-card flex items-center gap-3 px-4 py-3">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent">%</div>
+            <div>
+              <p class="text-xs text-white/40">Match personalizado</p>
+              <p class="text-sm font-medium text-white/80">Baseado no seu perfil</p>
+            </div>
+          </div>
+        }
       </div>
     </header>
 
-    <section class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
-        <p class="text-xs text-white/40">A lista é atualizada automaticamente.</p>
-      </div>
-      <select
-        [(ngModel)]="filtroTipo"
-        (ngModelChange)="carregar()"
-        aria-label="Filtrar oportunidades por tipo"
-        class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
-      >
-        <option value="">Todos os tipos</option>
-        @for (tipo of tipos; track tipo.valor) {
-          <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-        }
-      </select>
-    </section>
+    @if (!mostrandoSalvas()) {
+      <section class="mb-7 space-y-4">
+        <div>
+          <p class="text-sm font-medium text-white/80">Encontre uma oportunidade</p>
+          <p class="text-xs text-white/40">Busque por cargo, empresa, categoria ou palavra-chave.</p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <div class="relative flex-1">
+            <input [(ngModel)]="busca" (keyup.enter)="pesquisar()" type="search" placeholder="Ex.: estágio, enfermagem, marketing, Bradesco..." aria-label="Buscar oportunidades" class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-norte-accent" />
+            @if (busca) {
+              <button type="button" (click)="limparBusca()" aria-label="Limpar busca" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/35 transition hover:text-white">×</button>
+            }
+          </div>
+          <button type="button" (click)="pesquisar()" class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light">Buscar</button>
+        </div>
+
+        <div class="norte-card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+          <div>
+            <label for="filtro-tipo" class="mb-1.5 block text-xs font-medium text-white/45">Tipo</label>
+            <select id="filtro-tipo" [(ngModel)]="filtroTipo" (ngModelChange)="pesquisar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todos os tipos</option>
+              @for (tipo of tipos; track tipo.valor) {
+                <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="filtro-interesse" class="mb-1.5 block text-xs font-medium text-white/45">Área de interesse</label>
+            <select id="filtro-interesse" [(ngModel)]="filtroInteresse" (ngModelChange)="pesquisar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todas as áreas</option>
+              @for (interesse of interesses(); track interesse) {
+                <option [value]="interesse">{{ interesse }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="filtro-estado" class="mb-1.5 block text-xs font-medium text-white/45">Localização</label>
+            <select id="filtro-estado" [(ngModel)]="filtroEstado" (ngModelChange)="pesquisar()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="">Todos os estados</option>
+              @for (estado of estados(); track estado) {
+                <option [value]="estado">{{ estado }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="ordenacao" class="mb-1.5 block text-xs font-medium text-white/45">Ordenar por</label>
+            <select id="ordenacao" [(ngModel)]="ordenacao" (ngModelChange)="mudarOrdenacao()" class="w-full rounded-xl border border-norte-700 bg-norte-950/50 px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent">
+              <option value="match">Maior compatibilidade</option>
+              <option value="recentes">Mais recentes</option>
+            </select>
+          </div>
+
+          <button type="button" (click)="limparFiltros()" class="self-end rounded-xl border border-norte-700 px-4 py-2.5 text-sm font-medium text-white/55 transition hover:border-norte-accent/50 hover:text-white">Limpar filtros</button>
+        </div>
+      </section>
+    }
 
     @if (mensagemLacuna()) {
-      <div class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300">
-        <span class="mt-0.5">✓</span>
-        <span>{{ mensagemLacuna() }}</span>
-      </div>
+      <div class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300"><span class="mt-0.5">✓</span><span>{{ mensagemLacuna() }}</span></div>
     }
 
     @if (carregando()) {
@@ -54,58 +102,89 @@
         }
       </div>
     } @else if (erro()) {
-      <div class="norte-card border-red-500/20 bg-red-500/5 p-8 text-center">
-        <p class="mb-1 font-medium text-white">Não foi possível carregar as oportunidades</p>
-        <p class="text-sm text-red-300">{{ erro() }}</p>
-      </div>
+      <div class="norte-card border-red-500/20 bg-red-500/5 p-8 text-center"><p class="mb-1 font-medium text-white">Não foi possível carregar as oportunidades</p><p class="text-sm text-red-300">{{ erro() }}</p></div>
     } @else if (oportunidades().length === 0) {
       <div class="norte-card p-10 text-center">
-        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">⌕</div>
-        <p class="font-medium text-white">Nenhuma oportunidade encontrada</p>
-        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">Tente outro filtro ou volte mais tarde para conferir novas oportunidades.</p>
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">{{ mostrandoSalvas() ? '☆' : '⌕' }}</div>
+        <p class="font-medium text-white">{{ mostrandoSalvas() ? 'Você ainda não salvou nenhuma oportunidade' : 'Nenhuma oportunidade encontrada' }}</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">{{ mostrandoSalvas() ? 'Use o botão de salvar nas oportunidades que quiser acompanhar depois.' : 'Tente outra busca ou filtro, ou volte mais tarde para conferir novas oportunidades.' }}</p>
       </div>
     } @else {
+      <div class="mb-4 flex items-center justify-between text-xs text-white/35">
+        <span>{{ total() }} oportunidade{{ total() === 1 ? '' : 's' }} encontrada{{ total() === 1 ? '' : 's' }}</span>
+        @if (totalPaginas() > 1) {
+          <span>Página {{ paginaAtual() }} de {{ totalPaginas() }}</span>
+        }
+      </div>
+
       <div class="grid gap-4 lg:grid-cols-2">
         @for (op of oportunidades(); track op.id) {
           <article class="norte-card-interactive group flex flex-col p-5 sm:p-6">
             <div class="mb-5 flex items-start justify-between gap-4">
               <div class="min-w-0">
-                <span class="inline-flex rounded-full border border-norte-700 bg-norte-950/50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-norte-accent-light/80">{{ op.tipo }}</span>
-                <h2 class="mt-3 text-lg font-semibold leading-snug text-white">{{ op.titulo }}</h2>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="inline-flex rounded-full border border-norte-700 bg-norte-950/50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-norte-accent-light/80">{{ op.tipo }}</span>
+                  @if (op.fonte === 'jobspipe') {
+                    <span class="inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-emerald-300/80">Encontrada automaticamente</span>
+                  }
+                </div>
+                <a [routerLink]="['/oportunidades', op.id]" class="mt-3 block text-lg font-semibold leading-snug text-white transition hover:text-norte-accent-light">{{ op.titulo }}</a>
                 @if (op.empresa) { <p class="mt-1 text-sm text-white/45">{{ op.empresa }}</p> }
               </div>
-              <div class="shrink-0 text-right">
-                <p class="text-2xl font-semibold tracking-tight" [class]="corMatch(op.matchPercent)">{{ op.matchPercent }}%</p>
-                <p class="text-[10px] uppercase tracking-wider text-white/30">compatibilidade</p>
+              <div class="flex shrink-0 items-start gap-3">
+                <div class="text-right">
+                  <p class="text-2xl font-semibold tracking-tight" [class]="corMatch(op.matchPercent)">{{ op.matchPercent }}%</p>
+                  <p class="text-[10px] uppercase tracking-wider text-white/30">compatibilidade</p>
+                </div>
+                <button type="button" (click)="alternarSalva(op)" [disabled]="salvandoId() === op.id" [attr.aria-label]="estaSalva(op.id) ? 'Remover oportunidade das salvas' : 'Salvar oportunidade'" [attr.title]="estaSalva(op.id) ? 'Remover das salvas' : 'Salvar oportunidade'" class="flex h-9 w-9 items-center justify-center rounded-xl border border-norte-700 bg-norte-950/50 text-lg text-white/45 transition hover:border-norte-accent/50 hover:text-norte-accent disabled:opacity-50" [class.text-norte-accent]="estaSalva(op.id)" [class.border-norte-accent]="estaSalva(op.id)">{{ estaSalva(op.id) ? '★' : '☆' }}</button>
               </div>
             </div>
 
-            @if (op.descricao) {
-              <p class="mb-5 line-clamp-3 text-sm leading-6 text-white/55">{{ op.descricao }}</p>
+            @if (op.matchDetalhes) {
+              <div class="mb-5 rounded-xl border border-norte-800 bg-norte-950/30 p-3">
+                <div class="mb-2 text-[11px] font-medium uppercase tracking-wide text-white/35">Por que esse match?</div>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.areaCompativel ? 'text-emerald-300' : 'text-white/40'"><span>{{ op.matchDetalhes.areaCompativel ? '✓' : '×' }}</span><span>{{ op.matchDetalhes.areaCompativel ? 'Área compatível' : 'Área diferente' }}</span></div>
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.localCompativel ? 'text-emerald-300' : 'text-white/40'"><span>{{ op.matchDetalhes.localCompativel ? '✓' : '×' }}</span><span>{{ op.matchDetalhes.localCompativel ? 'Localização compatível' : 'Localização diferente' }}</span></div>
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.idadeCompativel ? 'text-emerald-300' : 'text-white/40'"><span>{{ op.matchDetalhes.idadeCompativel ? '✓' : '×' }}</span><span>{{ op.matchDetalhes.idadeCompativel ? 'Faixa etária compatível' : 'Faixa etária diferente' }}</span></div>
+                  <div class="flex items-center gap-2 text-xs text-white/55"><span class="text-norte-accent-light">✓</span>@if (op.matchDetalhes.requisitosTotal > 0) {<span>{{ op.matchDetalhes.requisitosAtendidos }}/{{ op.matchDetalhes.requisitosTotal }} requisitos</span>} @else {<span>Sem requisitos específicos</span>}</div>
+                </div>
+              </div>
             }
+
+            @if (op.descricao) { <p class="mb-5 line-clamp-3 text-sm leading-6 text-white/55">{{ op.descricao }}</p> }
 
             <div class="mt-auto border-t border-norte-800/80 pt-4">
               @if (op.faltantes.length > 0) {
                 <div class="mb-4 rounded-xl border border-norte-800 bg-norte-950/40 p-3.5">
                   <p class="text-[11px] font-medium uppercase tracking-wide text-white/35">Para aumentar seu match</p>
                   <p class="mt-1 text-xs leading-5 text-white/55">{{ op.faltantes.join(', ') }}</p>
-                  <button
-                    (click)="fecharLacuna(op)"
-                    [disabled]="fechandoLacunaId() === op.id"
-                    class="mt-2 text-xs font-medium text-norte-accent-light transition hover:text-white disabled:opacity-50"
-                  >
-                    {{ fechandoLacunaId() === op.id ? 'Gerando plano...' : 'Criar plano para evoluir →' }}
-                  </button>
+                  <button type="button" (click)="fecharLacuna(op)" [disabled]="fechandoLacunaId() === op.id" class="mt-2 text-xs font-medium text-norte-accent-light transition hover:text-white disabled:opacity-50">{{ fechandoLacunaId() === op.id ? 'Gerando plano...' : 'Criar plano para evoluir →' }}</button>
                 </div>
               }
 
-              <a [href]="op.link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-medium text-norte-accent-light transition group-hover:text-norte-accent hover:text-white">
-                Ver oportunidade <span aria-hidden="true">↗</span>
-              </a>
+              <div class="flex items-center justify-between gap-4">
+                <a [routerLink]="['/oportunidades', op.id]" class="inline-flex items-center gap-2 text-sm font-medium text-white/60 transition hover:text-norte-accent-light">Ver detalhes <span aria-hidden="true">→</span></a>
+                <a [href]="op.link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-medium text-norte-accent-light transition group-hover:text-norte-accent hover:text-white">Ver oportunidade <span aria-hidden="true">↗</span></a>
+              </div>
             </div>
           </article>
         }
       </div>
+
+      @if (!mostrandoSalvas() && totalPaginas() > 1) {
+        <nav class="mt-8 flex items-center justify-center gap-2" aria-label="Paginação das oportunidades">
+          <button type="button" (click)="paginaAnterior()" [disabled]="paginaAtual() === 1" class="rounded-xl border border-norte-700 px-3 py-2 text-sm text-white/60 transition hover:border-norte-accent/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-30">← Anterior</button>
+          <div class="flex items-center gap-1">
+            @for (pagina of paginasVisiveis(); track pagina) {
+              <button type="button" (click)="irParaPagina(pagina)" [attr.aria-current]="pagina === paginaAtual() ? 'page' : null" class="flex h-9 min-w-9 items-center justify-center rounded-xl border px-3 text-sm transition" [class.border-norte-accent]="pagina === paginaAtual()" [class.bg-norte-accent]="pagina === paginaAtual()" [class.text-norte-950]="pagina === paginaAtual()" [class.border-norte-700]="pagina !== paginaAtual()" [class.text-white]="pagina !== paginaAtual()" [class.hover:border-norte-accent]="pagina !== paginaAtual()">
+                {{ pagina }}
+              </button>
+            }
+          </div>
+          <button type="button" (click)="proximaPagina()" [disabled]="paginaAtual() === totalPaginas()" class="rounded-xl border border-norte-700 px-3 py-2 text-sm text-white/60 transition hover:border-norte-accent/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-30">Próxima →</button>
+        </nav>
+      }
     }
   </main>
 </div>

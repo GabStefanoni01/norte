@@ -106,6 +106,12 @@ export const routes: Routes = [
       import('./pages/achievements/achievements.component').then((m) => m.AchievementsComponent),
   },
   {
+    path: 'oportunidades/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/opportunities/opportunity-detail.component').then((m) => m.OpportunityDetailComponent),
+  },
+  {
     path: 'oportunidades',
     canActivate: [authGuard],
     loadComponent: () =>

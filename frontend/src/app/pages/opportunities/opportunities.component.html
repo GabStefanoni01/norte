@@ -5,69 +5,83 @@
     <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="norte-eyebrow">Oportunidades</p>
-        <h1 class="font-display text-3xl tracking-tight sm:text-4xl">Encontre seu próximo passo</h1>
-        <p class="norte-muted mt-2 max-w-2xl">Vagas, cursos e bolsas organizados pela compatibilidade com o seu perfil.</p>
+        <h1 class="font-display text-3xl tracking-tight sm:text-4xl">{{ mostrandoSalvas() ? 'Oportunidades salvas' : 'Encontre seu próximo passo' }}</h1>
+        <p class="norte-muted mt-2 max-w-2xl">{{ mostrandoSalvas() ? 'Guarde oportunidades para voltar quando estiver pronto para se candidatar.' : 'Vagas, cursos e bolsas organizados pela compatibilidade com o seu perfil.' }}</p>
       </div>
-      <div class="norte-card flex items-center gap-3 px-4 py-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent">%</div>
-        <div>
-          <p class="text-xs text-white/40">Match personalizado</p>
-          <p class="text-sm font-medium text-white/80">Baseado no seu perfil</p>
-        </div>
+      <div class="flex flex-col gap-3 sm:items-end">
+        <button
+          type="button"
+          (click)="alternarSalvas()"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm font-medium text-white/80 transition hover:border-norte-accent/50 hover:text-white"
+        >
+          <span>{{ mostrandoSalvas() ? '←' : '☆' }}</span>
+          <span>{{ mostrandoSalvas() ? 'Todas as oportunidades' : 'Minhas salvas' }}</span>
+        </button>
+        @if (!mostrandoSalvas()) {
+          <div class="norte-card flex items-center gap-3 px-4 py-3">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-norte-accent/10 text-norte-accent">%</div>
+            <div>
+              <p class="text-xs text-white/40">Match personalizado</p>
+              <p class="text-sm font-medium text-white/80">Baseado no seu perfil</p>
+            </div>
+          </div>
+        }
       </div>
     </header>
 
-    <section class="mb-7 space-y-3">
-      <div>
-        <p class="text-sm font-medium text-white/80">Encontre uma oportunidade</p>
-        <p class="text-xs text-white/40">Busque por cargo, empresa, categoria ou palavra-chave.</p>
-      </div>
-
-      <div class="flex flex-col gap-3 sm:flex-row">
-        <div class="relative flex-1">
-          <input
-            [(ngModel)]="busca"
-            (keyup.enter)="pesquisar()"
-            type="search"
-            placeholder="Ex.: estágio, enfermagem, marketing, Bradesco..."
-            aria-label="Buscar oportunidades"
-            class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-norte-accent"
-          />
-          @if (busca) {
-            <button
-              type="button"
-              (click)="limparBusca()"
-              aria-label="Limpar busca"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/35 transition hover:text-white"
-            >
-              ×
-            </button>
-          }
+    @if (!mostrandoSalvas()) {
+      <section class="mb-7 space-y-3">
+        <div>
+          <p class="text-sm font-medium text-white/80">Encontre uma oportunidade</p>
+          <p class="text-xs text-white/40">Busque por cargo, empresa, categoria ou palavra-chave.</p>
         </div>
-        <button
-          type="button"
-          (click)="pesquisar()"
-          class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light"
-        >
-          Buscar
-        </button>
-      </div>
 
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
-        <select
-          [(ngModel)]="filtroTipo"
-          (ngModelChange)="carregar()"
-          aria-label="Filtrar oportunidades por tipo"
-          class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
-        >
-          <option value="">Todos os tipos</option>
-          @for (tipo of tipos; track tipo.valor) {
-            <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-          }
-        </select>
-      </div>
-    </section>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <div class="relative flex-1">
+            <input
+              [(ngModel)]="busca"
+              (keyup.enter)="pesquisar()"
+              type="search"
+              placeholder="Ex.: estágio, enfermagem, marketing, Bradesco..."
+              aria-label="Buscar oportunidades"
+              class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-norte-accent"
+            />
+            @if (busca) {
+              <button
+                type="button"
+                (click)="limparBusca()"
+                aria-label="Limpar busca"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/35 transition hover:text-white"
+              >
+                ×
+              </button>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="pesquisar()"
+            class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light"
+          >
+            Buscar
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
+          <select
+            [(ngModel)]="filtroTipo"
+            (ngModelChange)="carregar()"
+            aria-label="Filtrar oportunidades por tipo"
+            class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
+          >
+            <option value="">Todos os tipos</option>
+            @for (tipo of tipos; track tipo.valor) {
+              <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
+            }
+          </select>
+        </div>
+      </section>
+    }
 
     @if (mensagemLacuna()) {
       <div class="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300">
@@ -94,9 +108,9 @@
       </div>
     } @else if (oportunidades().length === 0) {
       <div class="norte-card p-10 text-center">
-        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">⌕</div>
-        <p class="font-medium text-white">Nenhuma oportunidade encontrada</p>
-        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">Tente outra busca ou filtro, ou volte mais tarde para conferir novas oportunidades.</p>
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">{{ mostrandoSalvas() ? '☆' : '⌕' }}</div>
+        <p class="font-medium text-white">{{ mostrandoSalvas() ? 'Você ainda não salvou nenhuma oportunidade' : 'Nenhuma oportunidade encontrada' }}</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">{{ mostrandoSalvas() ? 'Use o botão de salvar nas oportunidades que quiser acompanhar depois.' : 'Tente outra busca ou filtro, ou volte mais tarde para conferir novas oportunidades.' }}</p>
       </div>
     } @else {
       <div class="grid gap-4 lg:grid-cols-2">
@@ -113,9 +127,23 @@
                 <h2 class="mt-3 text-lg font-semibold leading-snug text-white">{{ op.titulo }}</h2>
                 @if (op.empresa) { <p class="mt-1 text-sm text-white/45">{{ op.empresa }}</p> }
               </div>
-              <div class="shrink-0 text-right">
-                <p class="text-2xl font-semibold tracking-tight" [class]="corMatch(op.matchPercent)">{{ op.matchPercent }}%</p>
-                <p class="text-[10px] uppercase tracking-wider text-white/30">compatibilidade</p>
+              <div class="flex shrink-0 items-start gap-3">
+                <div class="text-right">
+                  <p class="text-2xl font-semibold tracking-tight" [class]="corMatch(op.matchPercent)">{{ op.matchPercent }}%</p>
+                  <p class="text-[10px] uppercase tracking-wider text-white/30">compatibilidade</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="alternarSalva(op)"
+                  [disabled]="salvandoId() === op.id"
+                  [attr.aria-label]="estaSalva(op.id) ? 'Remover oportunidade das salvas' : 'Salvar oportunidade'"
+                  [attr.title]="estaSalva(op.id) ? 'Remover das salvas' : 'Salvar oportunidade'"
+                  class="flex h-9 w-9 items-center justify-center rounded-xl border border-norte-700 bg-norte-950/50 text-lg text-white/45 transition hover:border-norte-accent/50 hover:text-norte-accent disabled:opacity-50"
+                  [class.text-norte-accent]="estaSalva(op.id)"
+                  [class.border-norte-accent]="estaSalva(op.id)"
+                >
+                  {{ estaSalva(op.id) ? '★' : '☆' }}
+                </button>
               </div>
             </div>
 

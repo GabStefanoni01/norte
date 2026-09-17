@@ -6,7 +6,7 @@ const JOBSPIPE_SOURCE = 'jobspipe';
 const DIAS_MAXIMOS = 7;
 const LIMITE = 25;
 const LIMITE_CONSULTAS = 40;
-const MAX_PAGINAS = 4;
+const MAX_PAGINAS = 8;
 const DIAS_SINCRONIZACAO_COMPLETA = 7;
 const INTERVALO_RETRY_MS = 750;
 
@@ -230,6 +230,7 @@ async function buscarJobsPipe(consultas, estado) {
   }
 
   const jobs = [];
+  const idsVistos = new Set();
   let cursor = null;
   let paginas = 0;
 
@@ -237,7 +238,14 @@ async function buscarJobsPipe(consultas, estado) {
     const filtros = cursor ? { ...filtrosBase, cursor } : filtrosBase;
     const payload = await buscarPaginaJobsPipe(filtros);
     const dados = Array.isArray(payload.data) ? payload.data : [];
-    jobs.push(...dados);
+
+    for (const job of dados) {
+      const id = texto(job.id);
+      if (!id || idsVistos.has(id)) continue;
+      idsVistos.add(id);
+      jobs.push(job);
+    }
+
     paginas += 1;
     cursor = texto(payload.metadata?.next_cursor) || null;
   } while (cursor && paginas < MAX_PAGINAS);

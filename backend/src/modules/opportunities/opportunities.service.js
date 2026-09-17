@@ -67,12 +67,36 @@ function calcularMatch(oportunidade, perfil) {
   return { matchPercent, faltantes };
 }
 
-function montarFiltros({ tipo, interesse, estado } = {}) {
+function montarFiltros({ tipo, interesse, estado, busca } = {}) {
   const condicoes = ["status = 'publicada'", '(expires_at IS NULL OR expires_at > NOW())'];
   const valores = [];
-  if (tipo) { valores.push(tipo); condicoes.push(`tipo = $${valores.length}`); }
-  if (interesse) { valores.push(interesse); condicoes.push(`interesse = $${valores.length}`); }
-  if (estado) { valores.push(estado); condicoes.push(`(estado = $${valores.length} OR estado IS NULL)`); }
+
+  if (tipo) {
+    valores.push(tipo);
+    condicoes.push(`tipo = $${valores.length}`);
+  }
+
+  if (interesse) {
+    valores.push(interesse);
+    condicoes.push(`interesse = $${valores.length}`);
+  }
+
+  if (estado) {
+    valores.push(estado);
+    condicoes.push(`(estado = $${valores.length} OR estado IS NULL)`);
+  }
+
+  if (busca) {
+    valores.push(`%${busca}%`);
+    const parametro = `$${valores.length}`;
+    condicoes.push(`(
+      titulo ILIKE ${parametro}
+      OR COALESCE(empresa, '') ILIKE ${parametro}
+      OR COALESCE(categoria, '') ILIKE ${parametro}
+      OR COALESCE(descricao, '') ILIKE ${parametro}
+    )`);
+  }
+
   return { where: condicoes.join(' AND '), valores };
 }
 
@@ -153,4 +177,4 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, criar, remover, fecharLacuna };
+module.exports = { listar, criar, remover, fecharLacuna, calcularMatch, montarFiltros };

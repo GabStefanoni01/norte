@@ -20,13 +20,13 @@ describe('opportunities.service', () => {
         ] })
         .mockResolvedValueOnce({ rows: [{
           habilidades: ['Java', 'SQL'], interesses: ['Tecnologia'], areas_sugeridas: ['Backend'], areas_secundarias: [],
-          escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Tecnologia', idade: 20, estado: 'SP',
+          escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Tecnologia', idade: 20, estado: 'SP', cidade: 'São Paulo',
         }] });
 
       const resultado = await opportunitiesService.listar(7);
-      expect(resultado[0]).toEqual(expect.objectContaining({ id: 1, matchPercent: 100, faltantes: [] }));
-      expect(resultado[1].id).toBe(2);
-      expect(resultado[1].matchPercent).toBeLessThan(resultado[0].matchPercent);
+      expect(resultado.data[0]).toEqual(expect.objectContaining({ id: 1, matchPercent: 100, faltantes: [] }));
+      expect(resultado.data[1].id).toBe(2);
+      expect(resultado.data[1].matchPercent).toBeLessThan(resultado.data[0].matchPercent);
       expect(mockQuery).toHaveBeenCalledTimes(2);
       expect(mockQuery.mock.calls[0][0]).toContain("status = 'publicada'");
       expect(mockQuery.mock.calls[0][0]).toContain('expires_at IS NULL OR expires_at > NOW()');
@@ -37,16 +37,18 @@ describe('opportunities.service', () => {
         .mockResolvedValueOnce({ rows: [{ id: 10, titulo: 'Programa SP', interesse: 'Tecnologia', estado: 'SP', requisitos: [], idade_minima: 18, idade_maxima: 24 }] })
         .mockResolvedValueOnce({ rows: [{
           habilidades: [], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null,
-          perfil_dominante: null, idade: 20, estado: 'SP',
+          perfil_dominante: null, idade: 20, estado: 'SP', cidade: 'São Paulo',
         }] });
       const resultado = await opportunitiesService.listar(7);
-      expect(resultado[0].matchPercent).toBe(100);
-      expect(resultado[0].matchDetalhes).toEqual({
+      expect(resultado.data[0].matchPercent).toBe(100);
+      expect(resultado.data[0].matchDetalhes).toEqual({
         areaCompativel: true,
         localCompativel: true,
         idadeCompativel: true,
         requisitosAtendidos: 0,
         requisitosTotal: 0,
+        pesoAtendido: 0,
+        pesoTotal: 0,
       });
     });
 
@@ -55,13 +57,15 @@ describe('opportunities.service', () => {
         .mockResolvedValueOnce({ rows: [{ id: 11, titulo: 'Vaga Java', interesse: 'Tecnologia', estado: null, requisitos: ['Java', 'Docker', 'SQL'], idade_minima: null, idade_maxima: null }] })
         .mockResolvedValueOnce({ rows: [{
           habilidades: ['Java', 'SQL'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [],
-          escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP',
+          escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP', cidade: 'São Paulo',
         }] });
       const resultado = await opportunitiesService.listar(7);
-      expect(resultado[0].faltantes).toEqual(['Docker']);
-      expect(resultado[0].matchPercent).toBe(77);
-      expect(resultado[0].matchDetalhes.requisitosAtendidos).toBe(2);
-      expect(resultado[0].matchDetalhes.requisitosTotal).toBe(3);
+      expect(resultado.data[0].faltantes).toEqual(['Docker']);
+      expect(resultado.data[0].matchPercent).toBe(77);
+      expect(resultado.data[0].matchDetalhes.requisitosAtendidos).toBe(2);
+      expect(resultado.data[0].matchDetalhes.requisitosTotal).toBe(3);
+      expect(resultado.data[0].matchDetalhes.pesoAtendido).toBe(2);
+      expect(resultado.data[0].matchDetalhes.pesoTotal).toBe(3);
     });
 
     it('considera áreas sugeridas e secundárias no match mesmo sem habilidade específica', async () => {
@@ -72,11 +76,11 @@ describe('opportunities.service', () => {
         }] })
         .mockResolvedValueOnce({ rows: [{
           habilidades: [], interesses: [], areas_sugeridas: ['Saúde'], areas_secundarias: ['Gestão hospitalar'],
-          escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Cuidados', idade: 20, estado: 'SP',
+          escolaridade: 'Ensino superior em andamento', perfil_dominante: 'Cuidados', idade: 20, estado: 'SP', cidade: 'São Paulo',
         }] });
       const resultado = await opportunitiesService.listar(7);
-      expect(resultado[0].matchPercent).toBe(100);
-      expect(resultado[0].matchDetalhes.areaCompativel).toBe(true);
+      expect(resultado.data[0].matchPercent).toBe(100);
+      expect(resultado.data[0].matchDetalhes.areaCompativel).toBe(true);
     });
 
     it('não considera uma única palavra genérica como correspondência suficiente', async () => {
@@ -114,17 +118,64 @@ describe('opportunities.service', () => {
         }] })
         .mockResolvedValueOnce({ rows: [{
           habilidades: [], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [],
-          escolaridade: null, perfil_dominante: null, idade: 25, estado: 'SP',
+          escolaridade: null, perfil_dominante: null, idade: 25, estado: 'SP', cidade: 'São Paulo',
         }] });
       const resultado = await opportunitiesService.listar(7);
-      expect(resultado[0].matchDetalhes).toEqual({
+      expect(resultado.data[0].matchDetalhes).toEqual({
         areaCompativel: true,
         localCompativel: false,
         idadeCompativel: false,
         requisitosAtendidos: 0,
         requisitosTotal: 1,
+        pesoAtendido: 0,
+        pesoTotal: 1,
       });
-      expect(resultado[0].faltantes).toEqual(['Java']);
+      expect(resultado.data[0].faltantes).toEqual(['Java']);
+    });
+
+    it('considera oportunidade remota compatível mesmo em outro estado', async () => {
+      const oportunidade = {
+        estado: 'RJ',
+        dados_origem: {
+          location: 'Rio de Janeiro, RJ',
+          remote: true,
+        },
+      };
+      const perfil = { estado: 'SP', cidade: 'São Paulo' };
+      expect(opportunitiesService.localCompativel(oportunidade, perfil)).toBe(true);
+    });
+
+    it('considera localização nacional compatível independentemente do estado', async () => {
+      const oportunidade = {
+        estado: null,
+        dados_origem: { location: 'Todo o Brasil', remote: false },
+      };
+      const perfil = { estado: 'RS', cidade: 'Porto Alegre' };
+      expect(opportunitiesService.localCompativel(oportunidade, perfil)).toBe(true);
+    });
+
+    it('considera região compatível quando o estado do perfil pertence à região', async () => {
+      const oportunidade = {
+        estado: null,
+        dados_origem: { location: 'Sudeste' },
+      };
+      const perfil = { estado: 'SP', cidade: 'São Paulo' };
+      expect(opportunitiesService.localCompativel(oportunidade, perfil)).toBe(true);
+    });
+
+    it('usa a cidade para diferenciar oportunidades específicas dentro do mesmo estado', async () => {
+      const oportunidade = {
+        estado: 'SP',
+        dados_origem: { location: 'São Paulo, SP' },
+      };
+      expect(opportunitiesService.localCompativel(oportunidade, {
+        estado: 'SP',
+        cidade: 'São Paulo',
+      })).toBe(true);
+      expect(opportunitiesService.localCompativel(oportunidade, {
+        estado: 'SP',
+        cidade: 'Santo André',
+      })).toBe(false);
     });
   });
 
@@ -151,7 +202,7 @@ describe('opportunities.service', () => {
     it('adiciona os requisitos faltantes ao plano existente', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{ id: 20, titulo: 'Vaga Backend', interesse: 'Tecnologia', estado: null, requisitos: ['Java', 'Docker'], idade_minima: null, idade_maxima: null, status: 'publicada' }] })
-        .mockResolvedValueOnce({ rows: [{ habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP' }] })
+        .mockResolvedValueOnce({ rows: [{ habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP', cidade: 'São Paulo' }] })
         .mockResolvedValueOnce({ rows: [{ id: 8, etapas: [{ mes: 1, titulo: 'Base', itens: [{ id: 'base1', descricao: 'Estudar lógica', tipo: 'aprender', status: 'concluido' }] }] }] })
         .mockResolvedValueOnce({ rows: [] });
       const resultado = await opportunitiesService.fecharLacuna(7, 20);
@@ -163,7 +214,7 @@ describe('opportunities.service', () => {
     it('não altera o plano quando o usuário já tem 100% de match', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{ id: 21, titulo: 'Curso Java', interesse: 'Tecnologia', estado: null, requisitos: ['Java'], idade_minima: null, idade_maxima: null, status: 'publicada' }] })
-        .mockResolvedValueOnce({ rows: [{ habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP' }] });
+        .mockResolvedValueOnce({ rows: [{ habilidades: ['Java'], interesses: ['Tecnologia'], areas_sugeridas: [], areas_secundarias: [], escolaridade: null, perfil_dominante: null, idade: 20, estado: 'SP', cidade: 'São Paulo' }] });
       const resultado = await opportunitiesService.fecharLacuna(7, 21);
       expect(resultado).toEqual({ message: 'Você já tem 100% de match com essa oportunidade!', itensAdicionados: 0 });
       expect(mockQuery).toHaveBeenCalledTimes(2);

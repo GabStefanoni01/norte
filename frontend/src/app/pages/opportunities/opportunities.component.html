@@ -120,22 +120,29 @@
             </div>
 
             @if (op.matchDetalhes) {
-              <div class="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-norte-800 bg-norte-950/30 p-3 sm:grid-cols-4">
-                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.areaCompativel" [class.text-white/40]="!op.matchDetalhes.areaCompativel">
-                  <span>{{ op.matchDetalhes.areaCompativel ? '✓' : '×' }}</span>
-                  <span>Área</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.localCompativel" [class.text-white/40]="!op.matchDetalhes.localCompativel">
-                  <span>{{ op.matchDetalhes.localCompativel ? '✓' : '×' }}</span>
-                  <span>Localização</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs" [class.text-emerald-300]="op.matchDetalhes.idadeCompativel" [class.text-white/40]="!op.matchDetalhes.idadeCompativel">
-                  <span>{{ op.matchDetalhes.idadeCompativel ? '✓' : '×' }}</span>
-                  <span>Idade</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs text-white/55">
-                  <span class="text-norte-accent-light">✓</span>
-                  <span>{{ op.matchDetalhes.requisitosAtendidos }}/{{ op.matchDetalhes.requisitosTotal }} requisitos</span>
+              <div class="mb-5 rounded-xl border border-norte-800 bg-norte-950/30 p-3">
+                <div class="mb-2 text-[11px] font-medium uppercase tracking-wide text-white/35">Por que esse match?</div>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.areaCompativel ? 'text-emerald-300' : 'text-white/40'">
+                    <span>{{ op.matchDetalhes.areaCompativel ? '✓' : '×' }}</span>
+                    <span>{{ op.matchDetalhes.areaCompativel ? 'Área compatível' : 'Área diferente' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.localCompativel ? 'text-emerald-300' : 'text-white/40'">
+                    <span>{{ op.matchDetalhes.localCompativel ? '✓' : '×' }}</span>
+                    <span>{{ op.matchDetalhes.localCompativel ? 'Localização compatível' : 'Localização diferente' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs" [class]="op.matchDetalhes.idadeCompativel ? 'text-emerald-300' : 'text-white/40'">
+                    <span>{{ op.matchDetalhes.idadeCompativel ? '✓' : '×' }}</span>
+                    <span>{{ op.matchDetalhes.idadeCompativel ? 'Faixa etária compatível' : 'Faixa etária diferente' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-white/55">
+                    <span class="text-norte-accent-light">✓</span>
+                    @if (op.matchDetalhes.requisitosTotal > 0) {
+                      <span>{{ op.matchDetalhes.requisitosAtendidos }}/{{ op.matchDetalhes.requisitosTotal }} requisitos</span>
+                    } @else {
+                      <span>Sem requisitos específicos</span>
+                    }
+                  </div>
                 </div>
               </div>
             }

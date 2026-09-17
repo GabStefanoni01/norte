@@ -1,4 +1,5 @@
 export type TipoOportunidade = 'curso' | 'vaga' | 'bolsa' | 'evento' | 'programa';
+export type FonteOportunidade = 'manual' | 'busca_automatica' | 'jobspipe' | 'aprendamais';
 
 export interface Oportunidade {
   id: number;
@@ -14,6 +15,7 @@ export interface Oportunidade {
   requisitos: string[];
   matchPercent: number;
   faltantes: string[];
+  fonte: FonteOportunidade;
 }
 
 export const TIPOS_OPORTUNIDADE: { valor: TipoOportunidade; rotulo: string; icone: string }[] = [

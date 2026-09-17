@@ -4,6 +4,9 @@ const { consumirCota } = require('../limits/limits.service');
 async function listar(req, res, next) {
   try { res.json(await opportunitiesService.listar(req.user.sub, req.query)); } catch (err) { next(err); }
 }
+async function listarFiltros(req, res, next) {
+  try { res.json(await opportunitiesService.listarFiltros()); } catch (err) { next(err); }
+}
 async function buscarPorId(req, res, next) {
   try { res.json(await opportunitiesService.buscarPorId(req.user.sub, req.params.id)); } catch (err) { next(err); }
 }
@@ -24,4 +27,4 @@ async function fecharLacuna(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { listar, buscarPorId, criar, remover, fecharLacuna };
+module.exports = { listar, listarFiltros, buscarPorId, criar, remover, fecharLacuna };

@@ -57,13 +57,13 @@
           </section>
 
           <section class="norte-card p-6 sm:p-8">
-            <div class="mb-5"><p class="norte-eyebrow">Compatibilidade</p><h2 class="mt-1 text-xl font-semibold">Por que essa oportunidade combina com você?</h2></div>
+            <div class="mb-5"><p class="norte-eyebrow">Compatibilidade</p><h2 class="mt-1 text-xl font-semibold">Por que essa oportunidade combina com você?</h2><p class="mt-2 text-sm leading-6 text-white/45">O match combina requisitos do perfil com sinais de área, localização e faixa etária. Tecnologias têm peso maior no cálculo.</p></div>
             @if (op.matchDetalhes) {
               <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-xl border border-norte-800 bg-norte-950/30 p-4"><p class="text-xs text-white/35">Área</p><p class="mt-1 text-sm" [class]="op.matchDetalhes.areaCompativel ? 'text-emerald-300' : 'text-white/55'">{{ op.matchDetalhes.areaCompativel ? 'Compatível com seus interesses e áreas' : 'Não identificamos compatibilidade direta de área' }}</p></div>
                 <div class="rounded-xl border border-norte-800 bg-norte-950/30 p-4"><p class="text-xs text-white/35">Localização</p><p class="mt-1 text-sm" [class]="op.matchDetalhes.localCompativel ? 'text-emerald-300' : 'text-white/55'">{{ op.matchDetalhes.localCompativel ? 'Compatível com sua localização' : 'A localização pode ser diferente' }}</p></div>
                 <div class="rounded-xl border border-norte-800 bg-norte-950/30 p-4"><p class="text-xs text-white/35">Faixa etária</p><p class="mt-1 text-sm" [class]="op.matchDetalhes.idadeCompativel ? 'text-emerald-300' : 'text-white/55'">{{ op.matchDetalhes.idadeCompativel ? 'Compatível' : 'Fora da faixa informada' }}</p></div>
-                <div class="rounded-xl border border-norte-800 bg-norte-950/30 p-4"><p class="text-xs text-white/35">Requisitos</p><p class="mt-1 text-sm text-white/70">{{ op.matchDetalhes.requisitosTotal > 0 ? op.matchDetalhes.requisitosAtendidos + '/' + op.matchDetalhes.requisitosTotal + ' atendidos' : 'Sem requisitos específicos' }}</p></div>
+                <div class="rounded-xl border border-norte-800 bg-norte-950/30 p-4"><p class="text-xs text-white/35">Requisitos</p><p class="mt-1 text-sm text-white/70">{{ op.matchDetalhes.requisitosTotal > 0 ? op.matchDetalhes.requisitosAtendidos + '/' + op.matchDetalhes.requisitosTotal + ' atendidos' : 'Sem requisitos específicos' }}</p>@if (op.matchDetalhes.pesoTotal && op.matchDetalhes.pesoTotal > 0) {<p class="mt-1 text-xs text-white/35">Peso atendido: {{ op.matchDetalhes.pesoAtendido }}/{{ op.matchDetalhes.pesoTotal }}</p>}</div>
               </div>
             }
           </section>

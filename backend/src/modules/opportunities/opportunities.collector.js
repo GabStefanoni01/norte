@@ -17,6 +17,55 @@ const CONSULTAS_GERAIS = [
   'trainee',
 ];
 
+const ALIASES_REQUISITOS = new Map([
+  ['js', 'JavaScript'],
+  ['javascript js', 'JavaScript'],
+  ['javascript.js', 'JavaScript'],
+  ['ts', 'TypeScript'],
+  ['typescript ts', 'TypeScript'],
+  ['typescript.js', 'TypeScript'],
+  ['react.js', 'React'],
+  ['reactjs', 'React'],
+  ['react js', 'React'],
+  ['node.js', 'Node.js'],
+  ['nodejs', 'Node.js'],
+  ['node js', 'Node.js'],
+  ['next.js', 'Next.js'],
+  ['nextjs', 'Next.js'],
+  ['vue.js', 'Vue.js'],
+  ['vuejs', 'Vue.js'],
+  ['angular.js', 'Angular'],
+  ['angularjs', 'Angular'],
+  ['postgresql', 'PostgreSQL'],
+  ['postgres', 'PostgreSQL'],
+  ['mysql database', 'MySQL'],
+  ['sql server', 'SQL Server'],
+  ['mssql', 'SQL Server'],
+  ['c#', 'C#'],
+  ['dotnet', '.NET'],
+  ['dot net', '.NET'],
+  ['asp.net', 'ASP.NET'],
+  ['spring boot', 'Spring Boot'],
+  ['spring-boot', 'Spring Boot'],
+  ['springboot', 'Spring Boot'],
+  ['github', 'Git'],
+  ['gitlab', 'Git'],
+]);
+
+const REQUISITOS_GENERICO = new Set([
+  'job',
+  'jobs',
+  'work',
+  'emprego',
+  'vaga',
+  'vagas',
+  'trabalho',
+  'career',
+  'careers',
+  'full time',
+  'part time',
+]);
+
 function texto(valor) {
   return typeof valor === 'string' ? valor.trim() : '';
 }
@@ -25,7 +74,10 @@ function normalizar(valor) {
   return texto(valor)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function valoresDoCampo(valor) {
@@ -58,11 +110,42 @@ function gerarConsultasDoPerfil(perfis) {
   return consultas;
 }
 
+function canonicalizarRequisito(valor) {
+  const original = texto(valor);
+  const chave = normalizar(original);
+  if (!chave || REQUISITOS_GENERICO.has(chave)) return null;
+
+  const alias = ALIASES_REQUISITOS.get(chave);
+  if (alias) return alias;
+
+  return original
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function requisitosDoJob(job) {
-  return [...new Set([
+  const requisitos = [
     ...(Array.isArray(job.technology_slugs) ? job.technology_slugs : []),
     ...(Array.isArray(job.keyword_slugs) ? job.keyword_slugs : []),
-  ].map(texto).filter(Boolean))].slice(0, 30);
+  ];
+
+  const vistos = new Set();
+  const resultado = [];
+
+  for (const requisito of requisitos) {
+    const canonico = canonicalizarRequisito(requisito);
+    if (!canonico) continue;
+
+    const chave = normalizar(canonico);
+    if (chave.length < 2 || vistos.has(chave)) continue;
+
+    vistos.add(chave);
+    resultado.push(canonico);
+    if (resultado.length >= 30) break;
+  }
+
+  return resultado;
 }
 
 function estadoDoJob(job) {
@@ -383,4 +466,6 @@ module.exports = {
   gerarConsultasDoPerfil,
   mapearJob,
   sincronizarJobs,
+  canonicalizarRequisito,
+  requisitosDoJob,
 };

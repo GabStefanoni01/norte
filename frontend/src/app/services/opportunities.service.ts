@@ -6,7 +6,7 @@ import { Oportunidade } from '../models/opportunity.model';
 export class OpportunitiesService {
   private api = inject(ApiService);
 
-  listar(filtros: { tipo?: string; interesse?: string; estado?: string } = {}) {
+  listar(filtros: { tipo?: string; interesse?: string; estado?: string; busca?: string } = {}) {
     const params = Object.fromEntries(Object.entries(filtros).filter(([, v]) => !!v)) as Record<string, string>;
     return this.api.get<Oportunidade[]>('/opportunities', params);
   }

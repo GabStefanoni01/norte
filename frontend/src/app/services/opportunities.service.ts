@@ -7,13 +7,34 @@ export interface FiltrosOportunidades {
   estados: string[];
 }
 
+export interface PaginacaoOportunidades {
+  pagina: number;
+  limite: number;
+  total: number;
+  totalPaginas: number;
+  ordenar: 'match' | 'recentes';
+}
+
+export interface ListaOportunidades {
+  data: Oportunidade[];
+  pagination: PaginacaoOportunidades;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OpportunitiesService {
   private api = inject(ApiService);
 
-  listar(filtros: { tipo?: string; interesse?: string; estado?: string; busca?: string } = {}) {
-    const params = Object.fromEntries(Object.entries(filtros).filter(([, v]) => !!v)) as Record<string, string>;
-    return this.api.get<Oportunidade[]>('/opportunities', params);
+  listar(filtros: {
+    tipo?: string;
+    interesse?: string;
+    estado?: string;
+    busca?: string;
+    pagina?: number;
+    limite?: number;
+    ordenar?: 'match' | 'recentes';
+  } = {}) {
+    const params = Object.fromEntries(Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== '')) as Record<string, string | number>;
+    return this.api.get<ListaOportunidades>('/opportunities', params);
   }
 
   listarFiltros() {

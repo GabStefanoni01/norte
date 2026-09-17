@@ -38,6 +38,29 @@ const PALAVRAS_IGNORADAS_AREA = new Set([
   'de', 'da', 'do', 'das', 'dos', 'em', 'para', 'com', 'e', 'a', 'o', 'as', 'os',
 ]);
 
+const REGIOES_POR_ESTADO = {
+  AC: 'norte', AL: 'nordeste', AP: 'norte', AM: 'norte', BA: 'nordeste', CE: 'nordeste',
+  DF: 'centro oeste', ES: 'sudeste', GO: 'centro oeste', MA: 'nordeste', MT: 'centro oeste',
+  MS: 'centro oeste', MG: 'sudeste', PA: 'norte', PB: 'nordeste', PR: 'sul', PE: 'nordeste',
+  PI: 'nordeste', RJ: 'sudeste', RN: 'nordeste', RS: 'sul', RO: 'norte', RR: 'norte',
+  SC: 'sul', SP: 'sudeste', SE: 'nordeste', TO: 'norte',
+};
+
+const NOMES_ESTADOS = new Map([
+  ['acre', 'AC'], ['alagoas', 'AL'], ['amapa', 'AP'], ['amazonas', 'AM'], ['bahia', 'BA'],
+  ['ceara', 'CE'], ['distrito federal', 'DF'], ['espirito santo', 'ES'], ['goias', 'GO'],
+  ['maranhao', 'MA'], ['mato grosso', 'MT'], ['mato grosso do sul', 'MS'], ['minas gerais', 'MG'],
+  ['para', 'PA'], ['paraiba', 'PB'], ['parana', 'PR'], ['pernambuco', 'PE'], ['piaui', 'PI'],
+  ['rio de janeiro', 'RJ'], ['rio grande do norte', 'RN'], ['rio grande do sul', 'RS'],
+  ['rondonia', 'RO'], ['roraima', 'RR'], ['santa catarina', 'SC'], ['sao paulo', 'SP'],
+  ['sergipe', 'SE'], ['tocantins', 'TO'],
+]);
+
+const LOCALIZACOES_NACIONAIS = new Set([
+  'brasil', 'brazil', 'todo brasil', 'todo o brasil', 'nacional', 'nacionalmente',
+  'anywhere', 'qualquer lugar', 'todo o pais', 'todo pais',
+]);
+
 function normalizar(valor) {
   return String(valor || '')
     .normalize('NFD')
@@ -115,6 +138,80 @@ function areaAtendida(oportunidade, perfil) {
   return perfilAreas.some((area) => alvos.some((alvo) => similaridadeArea(area, alvo)));
 }
 
+function estadoNormalizado(valor) {
+  const normalizado = normalizar(valor);
+  if (!normalizado) return null;
+  if (/^[a-z]{2}$/.test(normalizado)) return normalizado.toUpperCase();
+  return NOMES_ESTADOS.get(normalizado) || null;
+}
+
+function ehLocalizacaoNacional(localizacao) {
+  const valor = normalizar(localizacao);
+  if (!valor) return false;
+  return Array.from(LOCALIZACOES_NACIONAIS).some((termo) => valor === termo || valor.includes(termo));
+}
+
+function ehRemota(oportunidade) {
+  const dadosOrigem = oportunidade.dados_origem || {};
+  if (dadosOrigem.remote === true) return true;
+  if (dadosOrigem.hybrid === true) return false;
+
+  const arranjo = normalizar(dadosOrigem.work_arrangement);
+  const localizacao = normalizar(dadosOrigem.location);
+  return /\bremote\b|\bremoto\b|\bteletrabalho\b|\bhome office\b/.test(arranjo)
+    || /\bremote\b|\bremoto\b|\bteletrabalho\b|\bhome office\b/.test(localizacao);
+}
+
+function cidadeNaLocalizacao(cidade, localizacao) {
+  const cidadeNormalizada = normalizar(cidade);
+  const localizacaoNormalizada = normalizar(localizacao);
+  if (!cidadeNormalizada || !localizacaoNormalizada) return false;
+  return localizacaoNormalizada === cidadeNormalizada
+    || localizacaoNormalizada.includes(cidadeNormalizada);
+}
+
+function localizacaoEspecificaPorCidade(localizacao) {
+  const valor = normalizar(localizacao);
+  if (!valor || ehLocalizacaoNacional(valor)) return false;
+  if (/\b(remote|remoto|teletrabalho|home office)\b/.test(valor)) return false;
+  if (/\b(norte|nordeste|sul|sudeste|centro oeste|centro-oeste)\b/.test(valor)) return false;
+  return valor.includes(',') || /\s[-/]\s/.test(valor);
+}
+
+function regiaoDaLocalizacao(localizacao) {
+  const valor = normalizar(localizacao).replace(/-/g, ' ');
+  if (!valor) return null;
+  const regioes = ['norte', 'nordeste', 'sul', 'sudeste', 'centro oeste'];
+  return regioes.find((regiao) => valor.includes(regiao)) || null;
+}
+
+function localCompativel(oportunidade, perfil) {
+  const estadoOportunidade = estadoNormalizado(oportunidade.estado);
+  const estadoPerfil = estadoNormalizado(perfil.estado);
+  const cidadePerfil = normalizar(perfil.cidade);
+  const localizacao = normalizar(oportunidade.dados_origem?.location);
+
+  if (ehRemota(oportunidade) || ehLocalizacaoNacional(localizacao)) return true;
+
+  const regiao = regiaoDaLocalizacao(localizacao);
+  if (regiao && estadoPerfil && REGIOES_POR_ESTADO[estadoPerfil] === regiao) return true;
+
+  if (cidadePerfil && cidadeNaLocalizacao(cidadePerfil, localizacao)) return true;
+
+  if (estadoOportunidade && estadoPerfil) {
+    if (estadoOportunidade !== estadoPerfil) return false;
+    if (localizacaoEspecificaPorCidade(localizacao) && cidadePerfil && !cidadeNaLocalizacao(cidadePerfil, localizacao)) {
+      return false;
+    }
+    return true;
+  }
+
+  if (estadoOportunidade && !estadoPerfil) return false;
+  if (!estadoOportunidade && localizacao) return cidadePerfil ? cidadeNaLocalizacao(cidadePerfil, localizacao) : true;
+
+  return !oportunidade.estado && !localizacao;
+}
+
 function requisitosComPeso(oportunidade) {
   const requisitos = Array.isArray(oportunidade.requisitos) ? oportunidade.requisitos : [];
   const dadosOrigem = oportunidade.dados_origem || {};
@@ -150,7 +247,7 @@ function calcularMatch(oportunidade, perfil) {
   let contexto = 0;
   let sinais = 0;
   let areaCompativel = null;
-  let localCompativel = null;
+  let localCompativelResultado = null;
   let idadeCompativel = null;
 
   if (oportunidade.interesse || oportunidade.categoria) {
@@ -159,13 +256,13 @@ function calcularMatch(oportunidade, perfil) {
     if (areaCompativel) contexto += 1;
   }
 
-  if (oportunidade.estado) {
+  if (oportunidade.estado || oportunidade.dados_origem?.location || oportunidade.dados_origem?.remote || oportunidade.dados_origem?.work_arrangement) {
     sinais += 1;
-    localCompativel = normalizar(oportunidade.estado) === normalizar(perfil.estado);
-    if (localCompativel) contexto += 1;
+    localCompativelResultado = localCompativel(oportunidade, perfil);
+    if (localCompativelResultado) contexto += 1;
   } else {
     sinais += 1;
-    localCompativel = true;
+    localCompativelResultado = true;
     contexto += 1;
   }
 
@@ -190,7 +287,7 @@ function calcularMatch(oportunidade, perfil) {
     faltantes,
     matchDetalhes: {
       areaCompativel,
-      localCompativel,
+      localCompativel: localCompativelResultado,
       idadeCompativel,
       requisitosAtendidos,
       requisitosTotal: requisitosPesados.length,
@@ -245,7 +342,7 @@ function normalizarOrdenacao(valor) {
 async function buscarPerfil(userId) {
   const result = await pool.query(`
     SELECT p.habilidades, p.interesses, p.escolaridade, p.perfil_dominante,
-           p.areas_sugeridas, p.areas_secundarias, u.idade, u.estado
+           p.areas_sugeridas, p.areas_secundarias, u.idade, u.estado, u.cidade
     FROM profiles p
     JOIN users u ON u.id = p.user_id
     WHERE p.user_id = $1
@@ -399,6 +496,7 @@ async function fecharLacuna(userId, opportunityId) {
   } else {
     await pool.query('INSERT INTO plans (user_id, etapas, progresso, gerado_por_ia) VALUES ($1, $2, 0, false)', [userId, JSON.stringify([novoMes])]);
   }
+
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
@@ -416,4 +514,5 @@ module.exports = {
   similaridadeHabilidade,
   similaridadeArea,
   requisitosComPeso,
+  localCompativel,
 };

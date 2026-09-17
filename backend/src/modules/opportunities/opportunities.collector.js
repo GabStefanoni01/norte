@@ -4,21 +4,55 @@ const pool = require('../../database/pool');
 const JOBSPIPE_URL = 'https://api.jobspipe.dev/v1/jobs/search';
 const JOBSPIPE_SOURCE = 'jobspipe';
 const DIAS_MAXIMOS = 7;
-const LIMITE = 25;
+const LIMITE = 100;
+const LIMITE_CONSULTAS = 40;
 
-const TITULOS = [
-  'software engineer',
-  'backend engineer',
-  'frontend developer',
-  'full stack developer',
-  'software developer',
-  'web developer',
-  'data analyst',
-  'qa engineer',
+const CONSULTAS_GERAIS = [
+  'estágio',
+  'aprendiz',
+  'assistente',
+  'trainee',
 ];
 
 function texto(valor) {
   return typeof valor === 'string' ? valor.trim() : '';
+}
+
+function normalizar(valor) {
+  return texto(valor)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function valoresDoCampo(valor) {
+  if (Array.isArray(valor)) return valor;
+  return texto(valor) ? [valor] : [];
+}
+
+function gerarConsultasDoPerfil(perfis) {
+  const consultas = [...CONSULTAS_GERAIS];
+  const vistos = new Set(consultas.map(normalizar));
+
+  for (const perfil of perfis || []) {
+    const valores = [
+      ...valoresDoCampo(perfil.interesses),
+      ...valoresDoCampo(perfil.areas_sugeridas),
+      ...valoresDoCampo(perfil.areas_secundarias),
+      perfil.perfil_dominante,
+    ];
+
+    for (const valor of valores) {
+      const consulta = texto(valor);
+      const chave = normalizar(consulta);
+      if (!chave || chave.length < 2 || vistos.has(chave)) continue;
+      vistos.add(chave);
+      consultas.push(consulta);
+      if (consultas.length >= LIMITE_CONSULTAS) return consultas;
+    }
+  }
+
+  return consultas;
 }
 
 function requisitosDoJob(job) {
@@ -47,7 +81,7 @@ function mapearJob(job) {
     externalId: String(job.id),
     titulo: texto(job.job_title),
     empresa: texto(job.company) || null,
-    categoria: texto(job.job_function) || 'Tecnologia',
+    categoria: texto(job.job_function) || null,
     tipo: 'vaga',
     descricao: texto(job.description) || null,
     interesse: texto(job.job_function) || null,
@@ -77,7 +111,19 @@ function mapearJob(job) {
   };
 }
 
-async function buscarJobsPipe() {
+async function buscarPerfis() {
+  const result = await pool.query(`
+    SELECT p.interesses, p.areas_sugeridas, p.areas_secundarias, p.perfil_dominante
+    FROM profiles p
+    WHERE p.interesses IS NOT NULL
+       OR p.areas_sugeridas IS NOT NULL
+       OR p.areas_secundarias IS NOT NULL
+       OR p.perfil_dominante IS NOT NULL
+  `);
+  return result.rows;
+}
+
+async function buscarJobsPipe(consultas) {
   if (!env.jobsPipeApiKey) {
     console.warn('Sincronização de oportunidades ignorada: JOBSPIPE_API_KEY não configurada.');
     return [];
@@ -94,7 +140,7 @@ async function buscarJobsPipe() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        job_title_or: TITULOS,
+        job_title_or: consultas,
         job_country_code_or: ['BR'],
         posted_at_max_age_days: DIAS_MAXIMOS,
         limit: LIMITE,
@@ -179,7 +225,9 @@ async function expirarStaleJobs() {
 }
 
 async function sincronizarJobs() {
-  const jobs = await buscarJobsPipe();
+  const perfis = await buscarPerfis();
+  const consultas = gerarConsultasDoPerfil(perfis);
+  const jobs = await buscarJobsPipe(consultas);
   let inseridas = 0;
   let atualizadas = 0;
   let ignoradas = 0;
@@ -199,6 +247,7 @@ async function sincronizarJobs() {
 
   return {
     fonte: JOBSPIPE_SOURCE,
+    consultas,
     encontrados: jobs.length,
     inseridas,
     atualizadas,
@@ -208,6 +257,7 @@ async function sincronizarJobs() {
 }
 
 module.exports = {
+  gerarConsultasDoPerfil,
   mapearJob,
   sincronizarJobs,
 };

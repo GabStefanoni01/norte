@@ -1,5 +1,6 @@
 const env = require('../config/env');
 const { executarRotinaDeLembretes } = require('../modules/plans/plans.reminders');
+const { sincronizarJobs } = require('../modules/opportunities/opportunities.collector');
 const { obterCliente } = require('../config/redis');
 
 async function comLockDistribuido(chave, ttlSegundos, tarefa) {
@@ -18,6 +19,17 @@ function iniciarAgendadorSeHabilitado() {
   if (!env.enableCron) return;
   const cron = require('node-cron');
 
+  cron.schedule('0 8 * * *', async () => {
+    try {
+      await comLockDistribuido('lock:oportunidades', 10 * 60, async () => {
+        const resultado = await sincronizarJobs();
+        console.log('Sincronização automática de oportunidades executada:', resultado);
+      });
+    } catch (err) {
+      console.error('Falha ao sincronizar oportunidades:', err.message);
+    }
+  });
+
   cron.schedule('0 9 * * *', async () => {
     try {
       await comLockDistribuido('lock:lembretes', 5 * 60, async () => {
@@ -29,7 +41,7 @@ function iniciarAgendadorSeHabilitado() {
     }
   });
 
-  console.log('Agendador interno de lembretes ativado (todo dia às 9h).');
+  console.log('Agendador interno ativado: oportunidades às 8h e lembretes às 9h.');
 }
 
 module.exports = { iniciarAgendadorSeHabilitado };

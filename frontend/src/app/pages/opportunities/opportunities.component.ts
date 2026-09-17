@@ -21,6 +21,7 @@ export class OpportunitiesComponent implements OnInit {
   mensagemLacuna = signal<string | null>(null);
 
   filtroTipo = '';
+  busca = '';
 
   ngOnInit() {
     this.carregar();
@@ -28,10 +29,20 @@ export class OpportunitiesComponent implements OnInit {
 
   carregar() {
     this.carregando.set(true);
-    this.opportunitiesService.listar({ tipo: this.filtroTipo }).subscribe({
+    this.erro.set(null);
+    this.opportunitiesService.listar({ tipo: this.filtroTipo, busca: this.busca.trim() }).subscribe({
       next: (ops) => { this.oportunidades.set(ops); this.carregando.set(false); },
       error: () => { this.erro.set('Não foi possível carregar as oportunidades.'); this.carregando.set(false); },
     });
+  }
+
+  pesquisar() {
+    this.carregar();
+  }
+
+  limparBusca() {
+    this.busca = '';
+    this.carregar();
   }
 
   fecharLacuna(op: Oportunidade) {

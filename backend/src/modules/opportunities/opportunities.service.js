@@ -4,6 +4,8 @@ const TIPOS_VALIDOS = ['curso', 'vaga', 'bolsa', 'evento', 'programa'];
 const ORDENACOES_VALIDAS = ['match', 'recentes'];
 const LIMITE_PADRAO = 12;
 const LIMITE_MAXIMO = 50;
+const PESO_TECNOLOGIA = 2;
+const PESO_KEYWORD = 1;
 
 const ALIASES_HABILIDADES = new Map([
   ['js', 'javascript'],
@@ -113,12 +115,37 @@ function areaAtendida(oportunidade, perfil) {
   return perfilAreas.some((area) => alvos.some((alvo) => similaridadeArea(area, alvo)));
 }
 
-function calcularMatch(oportunidade, perfil) {
+function requisitosComPeso(oportunidade) {
   const requisitos = Array.isArray(oportunidade.requisitos) ? oportunidade.requisitos : [];
+  const dadosOrigem = oportunidade.dados_origem || {};
+  const tecnologias = Array.isArray(dadosOrigem.technology_slugs) ? dadosOrigem.technology_slugs : [];
+  const keywords = Array.isArray(dadosOrigem.keyword_slugs) ? dadosOrigem.keyword_slugs : [];
+
+  return requisitos.map((requisito) => {
+    const ehTecnologia = tecnologias.some((tecnologia) => similaridadeHabilidade(requisito, tecnologia));
+    const ehKeyword = keywords.some((keyword) => similaridadeHabilidade(requisito, keyword));
+
+    return {
+      requisito,
+      peso: ehTecnologia ? PESO_TECNOLOGIA : (ehKeyword ? PESO_KEYWORD : PESO_KEYWORD),
+      tipo: ehTecnologia ? 'tecnologia' : (ehKeyword ? 'keyword' : 'requisito'),
+    };
+  });
+}
+
+function calcularMatch(oportunidade, perfil) {
+  const requisitosPesados = requisitosComPeso(oportunidade);
   const atributos = atributosDoPerfil(perfil);
-  const faltantes = requisitos.filter((requisito) => !requisitoAtendido(requisito, atributos));
-  const requisitosAtendidos = requisitos.length - faltantes.length;
-  const requisitosPercentual = requisitos.length === 0 ? 1 : requisitosAtendidos / requisitos.length;
+  const faltantes = requisitosPesados
+    .filter(({ requisito }) => !requisitoAtendido(requisito, atributos))
+    .map(({ requisito }) => requisito);
+
+  const pesoTotal = requisitosPesados.reduce((total, item) => total + item.peso, 0);
+  const pesoAtendido = requisitosPesados
+    .filter(({ requisito }) => !faltantes.includes(requisito))
+    .reduce((total, item) => total + item.peso, 0);
+  const requisitosPercentual = pesoTotal === 0 ? 1 : pesoAtendido / pesoTotal;
+  const requisitosAtendidos = requisitosPesados.length - faltantes.length;
 
   let contexto = 0;
   let sinais = 0;
@@ -166,7 +193,9 @@ function calcularMatch(oportunidade, perfil) {
       localCompativel,
       idadeCompativel,
       requisitosAtendidos,
-      requisitosTotal: requisitos.length,
+      requisitosTotal: requisitosPesados.length,
+      pesoAtendido,
+      pesoTotal,
     },
   };
 }
@@ -373,4 +402,18 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, listarFiltros, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida, normalizarHabilidade, similaridadeHabilidade, similaridadeArea };
+module.exports = {
+  listar,
+  listarFiltros,
+  buscarPorId,
+  criar,
+  remover,
+  fecharLacuna,
+  calcularMatch,
+  montarFiltros,
+  areaAtendida,
+  normalizarHabilidade,
+  similaridadeHabilidade,
+  similaridadeArea,
+  requisitosComPeso,
+};

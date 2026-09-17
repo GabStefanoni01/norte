@@ -43,6 +43,31 @@ describe('opportunities collector', () => {
     expect(consultas.filter((consulta) => consulta.toLowerCase() === 'administração')).toHaveLength(1);
   });
 
+  test('limita o número de consultas para evitar crescimento descontrolado', () => {
+    const consultas = gerarConsultasDoPerfil(
+      Array.from({ length: 10 }, (_, i) => ({
+        interesses: [`Área ${i + 1}`],
+        areas_sugeridas: [`Especialidade ${i + 1}`],
+        areas_secundarias: [`Atuação ${i + 1}`],
+        perfil_dominante: `Perfil ${i + 1}`,
+      })),
+    );
+
+    expect(consultas).toHaveLength(40);
+  });
+
+  test('não duplica consultas gerais quando aparecem no perfil', () => {
+    const consultas = gerarConsultasDoPerfil([
+      {
+        interesses: ['Estágio', 'aprendiz'],
+        areas_sugeridas: ['Assistente'],
+        areas_secundarias: ['TRAINEE'],
+      },
+    ]);
+
+    expect(consultas.filter((consulta) => ['estágio', 'aprendiz', 'assistente', 'trainee'].includes(consulta.toLowerCase()))).toHaveLength(4);
+  });
+
   test('normaliza uma vaga externa para o modelo do Norte', () => {
     const oportunidade = mapearJob({
       id: '8164933',

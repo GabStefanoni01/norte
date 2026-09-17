@@ -5,12 +5,56 @@ const ORDENACOES_VALIDAS = ['match', 'recentes'];
 const LIMITE_PADRAO = 12;
 const LIMITE_MAXIMO = 50;
 
+const ALIASES_HABILIDADES = new Map([
+  ['js', 'javascript'],
+  ['javascript js', 'javascript'],
+  ['javascript.js', 'javascript'],
+  ['ts', 'typescript'],
+  ['typescript ts', 'typescript'],
+  ['typescript.js', 'typescript'],
+  ['react.js', 'react'],
+  ['reactjs', 'react'],
+  ['node.js', 'node'],
+  ['nodejs', 'node'],
+  ['node js', 'node'],
+  ['next.js', 'next'],
+  ['nextjs', 'next'],
+  ['vue.js', 'vue'],
+  ['vuejs', 'vue'],
+  ['angular.js', 'angular'],
+  ['angularjs', 'angular'],
+  ['postgresql', 'postgres'],
+  ['postgres sql', 'postgres'],
+  ['mysql database', 'mysql'],
+  ['sql server', 'sql server'],
+  ['c#', 'csharp'],
+  ['.net', 'dotnet'],
+  ['dot net', 'dotnet'],
+]);
+
+const PALAVRAS_IGNORADAS_AREA = new Set([
+  'de', 'da', 'do', 'das', 'dos', 'em', 'para', 'com', 'e', 'a', 'o', 'as', 'os',
+]);
+
 function normalizar(valor) {
-  return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function normalizarHabilidade(valor) {
+  const base = normalizar(valor).replace(/[()]/g, '').replace(/\s+/g, ' ');
+  return ALIASES_HABILIDADES.get(base) || base;
 }
 
 function tokens(valor) {
   return normalizar(valor).split(/[^a-z0-9]+/).filter((token) => token.length >= 3);
+}
+
+function tokensArea(valor) {
+  return tokens(valor).filter((token) => !PALAVRAS_IGNORADAS_AREA.has(token));
 }
 
 function atributosDoPerfil(perfil) {
@@ -21,48 +65,58 @@ function atributosDoPerfil(perfil) {
     ...(perfil.areas_secundarias || []),
     perfil.escolaridade,
     perfil.perfil_dominante,
-  ].filter(Boolean).map(normalizar);
+  ].filter(Boolean).map(normalizarHabilidade);
+}
+
+function similaridadeHabilidade(requisito, atributo) {
+  const alvo = normalizarHabilidade(requisito);
+  const candidato = normalizarHabilidade(atributo);
+  if (!alvo || !candidato) return false;
+  if (alvo === candidato || candidato.includes(alvo) || alvo.includes(candidato)) return true;
+
+  const alvoTokens = tokens(alvo);
+  const candidatoTokens = tokens(candidato);
+  if (alvoTokens.length === 0 || candidatoTokens.length === 0) return false;
+
+  return alvoTokens.every((token) => candidatoTokens.some((c) => c === token || c.includes(token) || token.includes(c)));
 }
 
 function requisitoAtendido(requisito, atributos) {
-  const alvo = normalizar(requisito);
-  if (!alvo) return true;
-  return atributos.some((atributo) => {
-    if (atributo === alvo || atributo.includes(alvo) || alvo.includes(atributo)) return true;
-    const palavras = alvo.split(/\s+/).filter((p) => p.length >= 3);
-    return palavras.length > 0 && palavras.every((palavra) => atributo.includes(palavra));
-  });
+  return atributos.some((atributo) => similaridadeHabilidade(requisito, atributo));
+}
+
+function similaridadeArea(areaA, areaB) {
+  const a = tokensArea(areaA);
+  const b = tokensArea(areaB);
+  if (a.length === 0 || b.length === 0) return false;
+  if (a.join(' ') === b.join(' ')) return true;
+
+  const conjuntoB = new Set(b);
+  const interseccao = a.filter((token) => conjuntoB.has(token)).length;
+  const coberturaA = interseccao / a.length;
+  const coberturaB = interseccao / b.length;
+  return coberturaA >= 0.5 || coberturaB >= 0.5;
 }
 
 function areaAtendida(oportunidade, perfil) {
-  const interesse = normalizar(oportunidade.interesse);
-  const categoria = normalizar(oportunidade.categoria);
-  const alvos = [interesse, categoria].filter(Boolean);
+  const alvos = [oportunidade.interesse, oportunidade.categoria]
+    .filter(Boolean)
+    .map(normalizarHabilidade);
   const perfilAreas = [
     ...(perfil.interesses || []),
     ...(perfil.areas_sugeridas || []),
     ...(perfil.areas_secundarias || []),
     perfil.perfil_dominante,
-  ].filter(Boolean).map(normalizar);
+  ].filter(Boolean);
 
   if (alvos.length === 0 || perfilAreas.length === 0) return false;
-
-  return perfilAreas.some((area) => alvos.some((alvo) => {
-    if (area === alvo || area.includes(alvo) || alvo.includes(area)) return true;
-
-    const alvoTokens = new Set(tokens(alvo));
-    const areaTokens = new Set(tokens(area));
-    if (alvoTokens.size < 2 || areaTokens.size === 0) return false;
-
-    const interseccao = [...alvoTokens].filter((token) => areaTokens.has(token)).length;
-    return interseccao >= Math.ceil(alvoTokens.size / 2);
-  }));
+  return perfilAreas.some((area) => alvos.some((alvo) => similaridadeArea(area, alvo)));
 }
 
 function calcularMatch(oportunidade, perfil) {
-  const requisitos = oportunidade.requisitos || [];
+  const requisitos = Array.isArray(oportunidade.requisitos) ? oportunidade.requisitos : [];
   const atributos = atributosDoPerfil(perfil);
-  const faltantes = requisitos.filter((r) => !requisitoAtendido(r, atributos));
+  const faltantes = requisitos.filter((requisito) => !requisitoAtendido(requisito, atributos));
   const requisitosAtendidos = requisitos.length - faltantes.length;
   const requisitosPercentual = requisitos.length === 0 ? 1 : requisitosAtendidos / requisitos.length;
 
@@ -103,6 +157,7 @@ function calcularMatch(oportunidade, perfil) {
 
   const contextoPercentual = sinais > 0 ? contexto / sinais : 1;
   const matchPercent = Math.round((requisitosPercentual * 70) + (contextoPercentual * 30));
+
   return {
     matchPercent,
     faltantes,
@@ -318,4 +373,4 @@ async function fecharLacuna(userId, opportunityId) {
   return { message: `${faltantes.length} item(ns) adicionados ao seu plano de evolução.`, itensAdicionados: faltantes.length };
 }
 
-module.exports = { listar, listarFiltros, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida };
+module.exports = { listar, listarFiltros, buscarPorId, criar, remover, fecharLacuna, calcularMatch, montarFiltros, areaAtendida, normalizarHabilidade, similaridadeHabilidade, similaridadeArea };

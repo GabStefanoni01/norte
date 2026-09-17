@@ -2,6 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
 import { Oportunidade } from '../models/opportunity.model';
 
+export interface FiltrosOportunidades {
+  interesses: string[];
+  estados: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class OpportunitiesService {
   private api = inject(ApiService);
@@ -9,6 +14,10 @@ export class OpportunitiesService {
   listar(filtros: { tipo?: string; interesse?: string; estado?: string; busca?: string } = {}) {
     const params = Object.fromEntries(Object.entries(filtros).filter(([, v]) => !!v)) as Record<string, string>;
     return this.api.get<Oportunidade[]>('/opportunities', params);
+  }
+
+  listarFiltros() {
+    return this.api.get<FiltrosOportunidades>('/opportunities/filtros');
   }
 
   buscarPorId(id: number) {

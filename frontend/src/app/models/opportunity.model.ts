@@ -7,6 +7,8 @@ export interface MatchDetalhes {
   idadeCompativel: boolean;
   requisitosAtendidos: number;
   requisitosTotal: number;
+  pesoAtendido?: number;
+  pesoTotal?: number;
 }
 
 export interface Oportunidade {

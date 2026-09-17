@@ -23,12 +23,29 @@ export class OpportunitiesComponent implements OnInit {
   salvandoId = signal<number | null>(null);
   fechandoLacunaId = signal<number | null>(null);
   mensagemLacuna = signal<string | null>(null);
+  filtrosCarregados = signal(false);
 
+  interesses = signal<string[]>([]);
+  estados = signal<string[]>([]);
   filtroTipo = '';
+  filtroInteresse = '';
+  filtroEstado = '';
   busca = '';
 
   ngOnInit() {
+    this.carregarFiltros();
     this.carregar();
+  }
+
+  carregarFiltros() {
+    this.opportunitiesService.listarFiltros().subscribe({
+      next: (filtros) => {
+        this.interesses.set(filtros.interesses);
+        this.estados.set(filtros.estados);
+        this.filtrosCarregados.set(true);
+      },
+      error: () => this.filtrosCarregados.set(true),
+    });
   }
 
   carregar() {
@@ -51,7 +68,12 @@ export class OpportunitiesComponent implements OnInit {
       return;
     }
 
-    this.opportunitiesService.listar({ tipo: this.filtroTipo, busca: this.busca.trim() }).subscribe({
+    this.opportunitiesService.listar({
+      tipo: this.filtroTipo,
+      interesse: this.filtroInteresse,
+      estado: this.filtroEstado,
+      busca: this.busca.trim(),
+    }).subscribe({
       next: (ops) => { this.oportunidades.set(ops); this.carregando.set(false); },
       error: () => { this.erro.set('Não foi possível carregar as oportunidades.'); this.carregando.set(false); },
     });
@@ -63,9 +85,15 @@ export class OpportunitiesComponent implements OnInit {
   }
 
   pesquisar() {
-    if (this.mostrandoSalvas()) {
-      this.mostrandoSalvas.set(false);
-    }
+    if (this.mostrandoSalvas()) this.mostrandoSalvas.set(false);
+    this.carregar();
+  }
+
+  limparFiltros() {
+    this.filtroTipo = '';
+    this.filtroInteresse = '';
+    this.filtroEstado = '';
+    this.busca = '';
     this.carregar();
   }
 
@@ -78,18 +106,17 @@ export class OpportunitiesComponent implements OnInit {
     this.mostrandoSalvas.set(!this.mostrandoSalvas());
     if (this.mostrandoSalvas()) {
       this.filtroTipo = '';
+      this.filtroInteresse = '';
+      this.filtroEstado = '';
       this.busca = '';
     }
     this.carregar();
   }
 
-  estaSalva(id: number) {
-    return this.salvas().has(id);
-  }
+  estaSalva(id: number) { return this.salvas().has(id); }
 
   alternarSalva(op: Oportunidade) {
     if (this.salvandoId() === op.id) return;
-
     this.salvandoId.set(op.id);
 
     if (this.estaSalva(op.id)) {
@@ -108,16 +135,12 @@ export class OpportunitiesComponent implements OnInit {
 
   private finalizarSalva(id: number, removida: boolean) {
     const novasSalvas = new Set(this.salvas());
-
     if (removida) {
       novasSalvas.delete(id);
-      if (this.mostrandoSalvas()) {
-        this.oportunidades.set(this.oportunidades().filter((item) => item.id !== id));
-      }
+      if (this.mostrandoSalvas()) this.oportunidades.set(this.oportunidades().filter((item) => item.id !== id));
     } else {
       novasSalvas.add(id);
     }
-
     this.salvas.set(novasSalvas);
     this.salvandoId.set(null);
   }

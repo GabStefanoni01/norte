@@ -24,6 +24,9 @@ export class OpportunitiesComponent implements OnInit {
   fechandoLacunaId = signal<number | null>(null);
   mensagemLacuna = signal<string | null>(null);
   filtrosCarregados = signal(false);
+  total = signal(0);
+  totalPaginas = signal(1);
+  paginaAtual = signal(1);
 
   interesses = signal<string[]>([]);
   estados = signal<string[]>([]);
@@ -31,6 +34,7 @@ export class OpportunitiesComponent implements OnInit {
   filtroInteresse = '';
   filtroEstado = '';
   busca = '';
+  ordenacao: 'match' | 'recentes' = 'match';
 
   ngOnInit() {
     this.carregarFiltros();
@@ -58,6 +62,9 @@ export class OpportunitiesComponent implements OnInit {
         next: (ops) => {
           this.oportunidades.set(ops);
           this.salvas.set(new Set(ops.map((op) => op.id)));
+          this.total.set(ops.length);
+          this.totalPaginas.set(1);
+          this.paginaAtual.set(1);
           this.carregando.set(false);
         },
         error: () => {
@@ -73,9 +80,21 @@ export class OpportunitiesComponent implements OnInit {
       interesse: this.filtroInteresse,
       estado: this.filtroEstado,
       busca: this.busca.trim(),
+      pagina: this.paginaAtual(),
+      limite: 12,
+      ordenar: this.ordenacao,
     }).subscribe({
-      next: (ops) => { this.oportunidades.set(ops); this.carregando.set(false); },
-      error: () => { this.erro.set('Não foi possível carregar as oportunidades.'); this.carregando.set(false); },
+      next: (res) => {
+        this.oportunidades.set(res.data);
+        this.total.set(res.pagination.total);
+        this.totalPaginas.set(res.pagination.totalPaginas);
+        this.paginaAtual.set(res.pagination.pagina);
+        this.carregando.set(false);
+      },
+      error: () => {
+        this.erro.set('Não foi possível carregar as oportunidades.');
+        this.carregando.set(false);
+      },
     });
 
     this.opportunitiesService.listarSalvas().subscribe({
@@ -86,7 +105,35 @@ export class OpportunitiesComponent implements OnInit {
 
   pesquisar() {
     if (this.mostrandoSalvas()) this.mostrandoSalvas.set(false);
+    this.paginaAtual.set(1);
     this.carregar();
+  }
+
+  mudarOrdenacao() {
+    this.paginaAtual.set(1);
+    this.carregar();
+  }
+
+  irParaPagina(pagina: number) {
+    if (pagina < 1 || pagina > this.totalPaginas() || pagina === this.paginaAtual()) return;
+    this.paginaAtual.set(pagina);
+    this.carregar();
+  }
+
+  paginaAnterior() {
+    this.irParaPagina(this.paginaAtual() - 1);
+  }
+
+  proximaPagina() {
+    this.irParaPagina(this.paginaAtual() + 1);
+  }
+
+  paginasVisiveis() {
+    const total = this.totalPaginas();
+    const atual = this.paginaAtual();
+    const inicio = Math.max(1, Math.min(atual - 2, total - 4));
+    const fim = Math.min(total, inicio + 4);
+    return Array.from({ length: fim - inicio + 1 }, (_, i) => inicio + i);
   }
 
   limparFiltros() {
@@ -94,11 +141,13 @@ export class OpportunitiesComponent implements OnInit {
     this.filtroInteresse = '';
     this.filtroEstado = '';
     this.busca = '';
+    this.paginaAtual.set(1);
     this.carregar();
   }
 
   limparBusca() {
     this.busca = '';
+    this.paginaAtual.set(1);
     this.carregar();
   }
 
@@ -110,6 +159,7 @@ export class OpportunitiesComponent implements OnInit {
       this.filtroEstado = '';
       this.busca = '';
     }
+    this.paginaAtual.set(1);
     this.carregar();
   }
 

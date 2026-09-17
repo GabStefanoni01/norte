@@ -17,22 +17,56 @@
       </div>
     </header>
 
-    <section class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section class="mb-7 space-y-3">
       <div>
-        <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
-        <p class="text-xs text-white/40">A lista é atualizada automaticamente.</p>
+        <p class="text-sm font-medium text-white/80">Encontre uma oportunidade</p>
+        <p class="text-xs text-white/40">Busque por cargo, empresa, categoria ou palavra-chave.</p>
       </div>
-      <select
-        [(ngModel)]="filtroTipo"
-        (ngModelChange)="carregar()"
-        aria-label="Filtrar oportunidades por tipo"
-        class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
-      >
-        <option value="">Todos os tipos</option>
-        @for (tipo of tipos; track tipo.valor) {
-          <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
-        }
-      </select>
+
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <div class="relative flex-1">
+          <input
+            [(ngModel)]="busca"
+            (keyup.enter)="pesquisar()"
+            type="search"
+            placeholder="Ex.: estágio, enfermagem, marketing, Bradesco..."
+            aria-label="Buscar oportunidades"
+            class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-norte-accent"
+          />
+          @if (busca) {
+            <button
+              type="button"
+              (click)="limparBusca()"
+              aria-label="Limpar busca"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/35 transition hover:text-white"
+            >
+              ×
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          (click)="pesquisar()"
+          class="rounded-xl bg-norte-accent px-5 py-3 text-sm font-medium text-norte-950 transition hover:bg-norte-accent-light"
+        >
+          Buscar
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm font-medium text-white/80">Filtre o que você quer explorar</p>
+        <select
+          [(ngModel)]="filtroTipo"
+          (ngModelChange)="carregar()"
+          aria-label="Filtrar oportunidades por tipo"
+          class="w-full rounded-xl border border-norte-700 bg-norte-900/70 px-4 py-2.5 text-sm text-white outline-none transition focus:border-norte-accent sm:w-56"
+        >
+          <option value="">Todos os tipos</option>
+          @for (tipo of tipos; track tipo.valor) {
+            <option [value]="tipo.valor">{{ tipo.icone }} {{ tipo.rotulo }}</option>
+          }
+        </select>
+      </div>
     </section>
 
     @if (mensagemLacuna()) {
@@ -62,7 +96,7 @@
       <div class="norte-card p-10 text-center">
         <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-norte-800 text-white/50">⌕</div>
         <p class="font-medium text-white">Nenhuma oportunidade encontrada</p>
-        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">Tente outro filtro ou volte mais tarde para conferir novas oportunidades.</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">Tente outra busca ou filtro, ou volte mais tarde para conferir novas oportunidades.</p>
       </div>
     } @else {
       <div class="grid gap-4 lg:grid-cols-2">

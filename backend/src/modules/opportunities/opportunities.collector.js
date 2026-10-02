@@ -16,6 +16,11 @@ const jobspipeCircuit = new CircuitBreaker({
   name: JOBSPIPE_SOURCE,
   failureThreshold: env.jobspipeCircuitFailureThreshold,
   resetTimeoutMs: env.jobspipeCircuitResetTimeoutMs,
+  shouldCountFailure: (err) => {
+    if (err?.code === 'CIRCUIT_OPEN' || err?.code === 'CIRCUIT_HALF_OPEN') return false;
+    if (err?.code === 'EXTERNAL_TIMEOUT' || err?.name === 'TypeError') return true;
+    return Number(err?.status) === 429 || Number(err?.status) >= 500;
+  },
 });
 
 const CONSULTAS_GERAIS = ['estágio', 'aprendiz', 'assistente', 'trainee'];

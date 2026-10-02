@@ -4,10 +4,10 @@
  */
 
 // Mock de variáveis de ambiente
-process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
-process.env.JWT_SECRET = 'test-secret-key-very-long-123456';
-process.env.PORT = '3001';
+process.env.NODE_ENV ||= 'test';
+process.env.DATABASE_URL ||= 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET ||= 'test-secret-key-very-long-123456';
+process.env.PORT ||= '3001';
 
 // Suppress console logs durante testes (opcional)
 global.console = {

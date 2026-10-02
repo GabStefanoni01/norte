@@ -1,5 +1,7 @@
 const env = require('../../config/env');
 const pool = require('../../database/pool');
+const logger = require('../../utils/logger');
+const { fetchResiliente } = require('../../utils/resilient-fetch');
 
 const JOBSPIPE_URL = 'https://api.jobspipe.dev/v1/jobs/search';
 const JOBSPIPE_SOURCE = 'jobspipe';
@@ -8,7 +10,6 @@ const LIMITE = 25;
 const LIMITE_CONSULTAS = 40;
 const MAX_PAGINAS = 8;
 const DIAS_SINCRONIZACAO_COMPLETA = 7;
-const INTERVALO_RETRY_MS = 750;
 
 const CONSULTAS_GERAIS = [
   'estágio',
@@ -18,52 +19,22 @@ const CONSULTAS_GERAIS = [
 ];
 
 const ALIASES_REQUISITOS = new Map([
-  ['js', 'JavaScript'],
-  ['javascript js', 'JavaScript'],
-  ['javascript.js', 'JavaScript'],
-  ['ts', 'TypeScript'],
-  ['typescript ts', 'TypeScript'],
-  ['typescript.js', 'TypeScript'],
-  ['react.js', 'React'],
-  ['reactjs', 'React'],
-  ['react js', 'React'],
-  ['node.js', 'Node.js'],
-  ['nodejs', 'Node.js'],
-  ['node js', 'Node.js'],
-  ['next.js', 'Next.js'],
-  ['nextjs', 'Next.js'],
-  ['vue.js', 'Vue.js'],
-  ['vuejs', 'Vue.js'],
-  ['angular.js', 'Angular'],
-  ['angularjs', 'Angular'],
-  ['postgresql', 'PostgreSQL'],
-  ['postgres', 'PostgreSQL'],
-  ['mysql database', 'MySQL'],
-  ['sql server', 'SQL Server'],
-  ['mssql', 'SQL Server'],
-  ['c#', 'C#'],
-  ['dotnet', '.NET'],
-  ['dot net', '.NET'],
-  ['asp.net', 'ASP.NET'],
-  ['spring boot', 'Spring Boot'],
-  ['spring-boot', 'Spring Boot'],
-  ['springboot', 'Spring Boot'],
-  ['github', 'Git'],
-  ['gitlab', 'Git'],
+  ['js', 'JavaScript'], ['javascript js', 'JavaScript'], ['javascript.js', 'JavaScript'],
+  ['ts', 'TypeScript'], ['typescript ts', 'TypeScript'], ['typescript.js', 'TypeScript'],
+  ['react.js', 'React'], ['reactjs', 'React'], ['react js', 'React'],
+  ['node.js', 'Node.js'], ['nodejs', 'Node.js'], ['node js', 'Node.js'],
+  ['next.js', 'Next.js'], ['nextjs', 'Next.js'], ['vue.js', 'Vue.js'], ['vuejs', 'Vue.js'],
+  ['angular.js', 'Angular'], ['angularjs', 'Angular'],
+  ['postgresql', 'PostgreSQL'], ['postgres', 'PostgreSQL'], ['mysql database', 'MySQL'],
+  ['sql server', 'SQL Server'], ['mssql', 'SQL Server'], ['c#', 'C#'],
+  ['dotnet', '.NET'], ['dot net', '.NET'], ['asp.net', 'ASP.NET'],
+  ['spring boot', 'Spring Boot'], ['spring-boot', 'Spring Boot'], ['springboot', 'Spring Boot'],
+  ['github', 'Git'], ['gitlab', 'Git'],
 ]);
 
 const REQUISITOS_GENERICO = new Set([
-  'job',
-  'jobs',
-  'work',
-  'emprego',
-  'vaga',
-  'vagas',
-  'trabalho',
-  'career',
-  'careers',
-  'full time',
-  'part time',
+  'job', 'jobs', 'work', 'emprego', 'vaga', 'vagas', 'trabalho',
+  'career', 'careers', 'full time', 'part time',
 ]);
 
 function texto(valor) {
@@ -253,46 +224,36 @@ function dataParaJobsPipe(valor) {
   return new Date(valor).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 }
 
-async function aguardar(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+async function buscarPaginaJobsPipe(filtros) {
+  const response = await fetchResiliente(JOBSPIPE_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.jobsPipeApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(filtros),
+  }, {
+    timeoutMs: env.externalTimeoutMs,
+    maxRetries: env.externalMaxRetries,
+    baseDelayMs: env.externalRetryBaseDelayMs,
+    evento: 'jobspipe.search',
+  });
 
-async function buscarPaginaJobsPipe(filtros, tentativa = 0) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-
-  try {
-    const response = await fetch(JOBSPIPE_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.jobsPipeApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(filtros),
-      signal: controller.signal,
-    });
-
-    if (response.status === 429 && tentativa < 2) {
-      await aguardar(INTERVALO_RETRY_MS * (tentativa + 1));
-      return buscarPaginaJobsPipe(filtros, tentativa + 1);
-    }
-
-    if (!response.ok) {
-      const detalhe = await response.text();
-      const erro = new Error(`JobsPipe respondeu ${response.status}: ${detalhe.slice(0, 300)}`);
-      erro.status = response.status;
-      throw erro;
-    }
-
-    return response.json();
-  } finally {
-    clearTimeout(timeout);
+  if (!response.ok) {
+    const detalhe = await response.text();
+    const erro = new Error(`JobsPipe respondeu ${response.status}: ${detalhe.slice(0, 300)}`);
+    erro.status = response.status;
+    throw erro;
   }
+
+  return response.json();
 }
 
 async function buscarJobsPipe(consultas, estado) {
   if (!env.jobsPipeApiKey) {
-    console.warn('Sincronização de oportunidades ignorada: JOBSPIPE_API_KEY não configurada.');
+    logger.warn('opportunities.collector.disabled', {
+      reason: 'JOBSPIPE_API_KEY_not_configured',
+    });
     return { jobs: [], paginas: 0, completa: false, ignorada: true };
   }
 

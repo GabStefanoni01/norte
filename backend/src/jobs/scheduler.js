@@ -1,12 +1,26 @@
 const cron = require('node-cron');
 const env = require('../config/env');
-const { dispararSincronizacao } = require('../modules/opportunities/opportunities.job');
+const {
+  dispararSincronizacao,
+  retomarSincronizacaoPendente,
+} = require('../modules/opportunities/opportunities.job');
 
 function sincronizarOportunidades() {
   return dispararSincronizacao().then((resultado) => {
     console.log('[scheduler] sincronização de oportunidades', resultado);
     return resultado;
   });
+}
+
+async function recuperarSincronizacaoPendente() {
+  try {
+    const resultado = await retomarSincronizacaoPendente();
+    console.log('[scheduler] recuperação de sincronização', resultado);
+    return resultado;
+  } catch (err) {
+    console.error('[scheduler] erro ao recuperar sincronização:', err.message);
+    return { status: 'recovery_failed' };
+  }
 }
 
 function iniciarScheduler() {
@@ -17,13 +31,21 @@ function iniciarScheduler() {
 
   cron.schedule('0 8 * * *', sincronizarOportunidades);
 
-  // O disparo não bloqueia o startup da API. O job é executado em background
-  // e o lock distribuído impede execuções concorrentes entre instâncias.
-  sincronizarOportunidades().catch((err) => {
-    console.error('[scheduler] erro ao disparar sincronização:', err.message);
+  // Recupera jobs que ficaram running ou aguardando retry antes de disparar
+  // uma nova sincronização diária.
+  recuperarSincronizacaoPendente().then((resultado) => {
+    if (resultado.status === 'nothing_to_resume') {
+      sincronizarOportunidades().catch((err) => {
+        console.error('[scheduler] erro ao disparar sincronização:', err.message);
+      });
+    }
   });
 
   console.log('[scheduler] cron habilitado: oportunidades às 8h');
 }
 
-module.exports = { iniciarScheduler, sincronizarOportunidades };
+module.exports = {
+  iniciarScheduler,
+  sincronizarOportunidades,
+  recuperarSincronizacaoPendente,
+};

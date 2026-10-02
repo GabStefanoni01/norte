@@ -30,6 +30,7 @@ jobs:
       DATABASE_URL: postgres://norte:norte@localhost:5432/norte
       JWT_SECRET: ci-only-secret-nunca-usar-em-producao-0123456789abcdef
       NODE_ENV: test
+      INTEGRATION_TESTS: 'true'
 
     steps:
       - uses: actions/checkout@v4

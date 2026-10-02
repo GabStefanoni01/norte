@@ -164,12 +164,13 @@
             </div>
             <span
               class="rounded-full border px-3 py-1 text-xs font-medium"
-              [class]="{
-                'border-emerald-500/20 bg-emerald-500/10 text-emerald-300': observabilidade()?.collector?.status === 'success',
-                'border-amber-500/20 bg-amber-500/10 text-amber-300': observabilidade()?.collector?.status === 'running',
-                'border-red-500/20 bg-red-500/10 text-red-300': observabilidade()?.collector?.status === 'failed',
-                'border-white/10 bg-white/5 text-white/50': !observabilidade()?.collector?.status || observabilidade()?.collector?.status === 'idle'
-              }"
+              [class]="observabilidade()?.collector?.status === 'success'
+                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                : observabilidade()?.collector?.status === 'running'
+                  ? 'border-amber-500/20 bg-amber-500/10 text-amber-300'
+                  : observabilidade()?.collector?.status === 'failed'
+                    ? 'border-red-500/20 bg-red-500/10 text-red-300'
+                    : 'border-white/10 bg-white/5 text-white/50'"
             >
               {{ statusColetor(observabilidade()?.collector?.status) }}
             </span>

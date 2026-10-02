@@ -22,6 +22,7 @@ const { sincronizarJobs } = require('../src/modules/opportunities/opportunities.
 const {
   dispararSincronizacao,
   executarSincronizacao,
+  retomarSincronizacaoPendente,
   erroEhRetentavel,
   calcularDelay,
 } = require('../src/modules/opportunities/opportunities.job');
@@ -100,5 +101,36 @@ describe('opportunities job', () => {
 
     const chamadas = pool.query.mock.calls.map(([sql]) => sql);
     expect(chamadas.some((sql) => sql.includes('ultima_falha_mensagem'))).toBe(true);
+  });
+
+  it('retoma uma execução que ficou running após reinício do processo', async () => {
+    pool.query.mockResolvedValueOnce({
+      rows: [{ status: 'running', tentativas: 1, proxima_tentativa_em: null }],
+    });
+    redis.acquireLock.mockResolvedValue('recovery-token');
+    sincronizarJobs.mockResolvedValue({ encontrados: 4 });
+
+    await expect(retomarSincronizacaoPendente()).resolves.toEqual({
+      status: 'queued',
+      reason: 'process_restart',
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(sincronizarJobs).toHaveBeenCalled();
+    expect(redis.releaseLock).toHaveBeenCalledWith('lock:oportunidades', 'recovery-token');
+  });
+
+  it('não retoma uma execução failed sem retry pendente', async () => {
+    pool.query.mockResolvedValueOnce({
+      rows: [{ status: 'failed', tentativas: 3, proxima_tentativa_em: null }],
+    });
+
+    await expect(retomarSincronizacaoPendente()).resolves.toEqual({
+      status: 'nothing_to_resume',
+    });
+
+    expect(redis.acquireLock).not.toHaveBeenCalled();
   });
 });

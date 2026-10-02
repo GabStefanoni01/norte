@@ -22,8 +22,6 @@ function validarJwtSecret() {
     return;
   }
 
-  // Em teste (jest define NODE_ENV=test automaticamente), não derruba o
-  // processo — só avisa, pra suíte rodar sem precisar de um .env real.
   if (process.env.NODE_ENV === 'test') {
     console.warn('Aviso: JWT_SECRET inseguro/ausente (tolerado apenas em ambiente de teste).');
     return;
@@ -64,4 +62,7 @@ module.exports = {
   dbConnectionTimeoutMs: numeroEnv('DB_CONNECTION_TIMEOUT_MS', 5_000),
   aiTimeoutMs: numeroEnv('AI_TIMEOUT_MS', 15_000),
   aiMaxRetries: numeroEnv('AI_MAX_RETRIES', 2),
+  externalTimeoutMs: numeroEnv('EXTERNAL_TIMEOUT_MS', 20_000),
+  externalMaxRetries: numeroEnv('EXTERNAL_MAX_RETRIES', 2),
+  externalRetryBaseDelayMs: numeroEnv('EXTERNAL_RETRY_BASE_DELAY_MS', 500),
 };

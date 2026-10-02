@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('playwright/test');
 
 const auth = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '.auth.json'), 'utf8'),

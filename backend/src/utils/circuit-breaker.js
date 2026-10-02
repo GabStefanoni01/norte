@@ -5,15 +5,18 @@ class CircuitBreaker {
     name,
     failureThreshold = 3,
     resetTimeoutMs = 30_000,
+    shouldCountFailure = () => true,
   }) {
     if (!name) throw new Error('Circuit breaker name is required');
 
     this.name = name;
     this.failureThreshold = failureThreshold;
     this.resetTimeoutMs = resetTimeoutMs;
+    this.shouldCountFailure = shouldCountFailure;
     this.failures = 0;
     this.state = 'closed';
     this.openedAt = null;
+    this.halfOpenInFlight = false;
   }
 
   getState() {
@@ -32,6 +35,15 @@ class CircuitBreaker {
       throw error;
     }
 
+    if (state === 'half-open') {
+      if (this.halfOpenInFlight) {
+        const error = new Error(`Circuito ${this.name} aguardando recuperação`);
+        error.code = 'CIRCUIT_HALF_OPEN';
+        throw error;
+      }
+      this.halfOpenInFlight = true;
+    }
+
     try {
       const result = await fn();
       this.registrarSucesso();
@@ -39,6 +51,8 @@ class CircuitBreaker {
     } catch (err) {
       this.registrarFalha(err);
       throw err;
+    } finally {
+      if (state === 'half-open') this.halfOpenInFlight = false;
     }
   }
 
@@ -47,6 +61,7 @@ class CircuitBreaker {
     this.failures = 0;
     this.state = 'closed';
     this.openedAt = null;
+    this.halfOpenInFlight = false;
 
     if (anterior === 'half-open') {
       logger.info('circuit_breaker.closed', { name: this.name });
@@ -54,6 +69,18 @@ class CircuitBreaker {
   }
 
   registrarFalha(err) {
+    if (!this.shouldCountFailure(err)) {
+      if (this.state === 'half-open') {
+        this.state = 'open';
+        this.openedAt = Date.now();
+        logger.warn('circuit_breaker.recovery_failed', {
+          name: this.name,
+          errorCode: err?.code,
+        });
+      }
+      return;
+    }
+
     this.failures += 1;
 
     if (this.state === 'half-open' || this.failures >= this.failureThreshold) {
@@ -82,6 +109,7 @@ class CircuitBreaker {
     this.failures = 0;
     this.state = 'closed';
     this.openedAt = null;
+    this.halfOpenInFlight = false;
   }
 }
 

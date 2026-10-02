@@ -5,6 +5,7 @@ const adminGuard = require('../../middlewares/adminGuard');
 const { aiLimiter } = require('../../middlewares/rateLimiters');
 const { executarRotinaDeLembretes } = require('../plans/plans.reminders');
 const { enviarSolicitacoesRetroativas, enviarSolicitacaoParaUsuario } = require('../policy/policy.service');
+const metrics = require('../../utils/metrics');
 
 const router = Router();
 
@@ -12,6 +13,15 @@ router.use(authGuard, adminGuard);
 router.get('/users', controller.listarUsuarios);
 router.patch('/users/:id/role', controller.atualizarRole);
 router.patch('/users/:id/plano', controller.atualizarPlano);
+
+router.get('/observabilidade', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptimeSeconds: Math.floor(process.uptime()),
+    memory: process.memoryUsage(),
+    requests: metrics.snapshot(),
+  });
+});
 
 router.post('/lembretes/enviar', aiLimiter, async (req, res, next) => {
   try {

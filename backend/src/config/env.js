@@ -67,4 +67,6 @@ module.exports = {
   externalRetryBaseDelayMs: numeroEnv('EXTERNAL_RETRY_BASE_DELAY_MS', 500),
   jobspipeCircuitFailureThreshold: numeroEnv('JOBSPIPE_CIRCUIT_FAILURE_THRESHOLD', 3),
   jobspipeCircuitResetTimeoutMs: numeroEnv('JOBSPIPE_CIRCUIT_RESET_TIMEOUT_MS', 30_000),
+  opportunityJobMaxRetries: numeroEnv('OPPORTUNITY_JOB_MAX_RETRIES', 3),
+  opportunityJobRetryBaseDelayMs: numeroEnv('OPPORTUNITY_JOB_RETRY_BASE_DELAY_MS', 5_000),
 };

@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminService } from '../../services/admin.service';
 import { SystemHealthService, HealthResponse, ReadyResponse } from '../../services/system-health.service';
@@ -7,7 +8,7 @@ import { UsuarioAdmin } from '../../models/admin-user.model';
 @Component({
   selector: 'norte-admin',
   standalone: true,
-  imports: [SidebarComponent],
+  imports: [SidebarComponent, DecimalPipe],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {

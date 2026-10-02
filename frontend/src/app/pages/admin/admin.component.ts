@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminService } from '../../services/admin.service';
+import { SystemHealthService, HealthResponse, ReadyResponse } from '../../services/system-health.service';
 import { UsuarioAdmin } from '../../models/admin-user.model';
 
 @Component({
@@ -11,6 +12,7 @@ import { UsuarioAdmin } from '../../models/admin-user.model';
 })
 export class AdminComponent implements OnInit {
   private admin = inject(AdminService);
+  private systemHealth = inject(SystemHealthService);
 
   usuarios = signal<UsuarioAdmin[]>([]);
   carregando = signal(true);
@@ -18,6 +20,11 @@ export class AdminComponent implements OnInit {
   atualizandoId = signal<number | null>(null);
   reenviandoId = signal<number | null>(null);
   mensagemReenvio = signal<string | null>(null);
+
+  health = signal<HealthResponse | null>(null);
+  ready = signal<ReadyResponse | null>(null);
+  carregandoSaude = signal(true);
+  erroSaude = signal<string | null>(null);
 
   totalUsuarios = computed(() => this.usuarios().length);
   usuariosVerificados = computed(
@@ -29,6 +36,7 @@ export class AdminComponent implements OnInit {
 
   ngOnInit() {
     this.carregarUsuarios();
+    this.carregarSaude();
   }
 
   carregarUsuarios() {
@@ -41,6 +49,41 @@ export class AdminComponent implements OnInit {
       error: () => {
         this.erro.set('Não foi possível carregar os usuários.');
         this.carregando.set(false);
+      },
+    });
+  }
+
+  carregarSaude() {
+    this.carregandoSaude.set(true);
+    this.erroSaude.set(null);
+
+    let concluido = 0;
+    const finalizar = () => {
+      concluido += 1;
+      if (concluido === 2) this.carregandoSaude.set(false);
+    };
+
+    this.systemHealth.health().subscribe({
+      next: (response) => {
+        this.health.set(response);
+        finalizar();
+      },
+      error: () => {
+        this.health.set(null);
+        this.erroSaude.set('Não foi possível consultar o health check.');
+        finalizar();
+      },
+    });
+
+    this.systemHealth.ready().subscribe({
+      next: (response) => {
+        this.ready.set(response);
+        finalizar();
+      },
+      error: () => {
+        this.ready.set(null);
+        this.erroSaude.set('Não foi possível consultar o readiness check.');
+        finalizar();
       },
     });
   }

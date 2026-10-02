@@ -19,14 +19,38 @@ describe('Health checks', () => {
     expect(pool.query).not.toHaveBeenCalled();
   });
 
-  it('GET /ready retorna 200 quando o banco está disponível', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [{ '?column?': 1 }] });
+  it('GET /ready retorna 200 quando o banco e o schema estão disponíveis', async () => {
+    pool.query.mockResolvedValueOnce({
+      rows: [{
+        users: 'users',
+        opportunities: 'opportunities',
+        saved_opportunities: 'saved_opportunities',
+      }],
+    });
 
     const response = await request(app).get('/ready');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: 'ready' });
-    expect(pool.query).toHaveBeenCalledWith('SELECT 1');
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('GET /ready retorna 503 quando uma tabela obrigatória não existe', async () => {
+    pool.query.mockResolvedValueOnce({
+      rows: [{
+        users: 'users',
+        opportunities: 'opportunities',
+        saved_opportunities: null,
+      }],
+    });
+
+    const response = await request(app).get('/ready');
+
+    expect(response.status).toBe(503);
+    expect(response.body).toEqual({
+      status: 'unavailable',
+      reason: 'database_schema_incomplete',
+    });
   });
 
   it('GET /ready retorna 503 quando o banco está indisponível', async () => {

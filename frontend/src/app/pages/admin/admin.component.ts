@@ -1,8 +1,15 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminService } from '../../services/admin.service';
-import { SystemHealthService, HealthResponse, ReadyResponse } from '../../services/system-health.service';
+import {
+  SystemHealthService,
+  HealthResponse,
+  ReadyResponse,
+  ObservabilityResponse,
+} from '../../services/system-health.service';
 import { UsuarioAdmin } from '../../models/admin-user.model';
 
 @Component({
@@ -14,6 +21,7 @@ import { UsuarioAdmin } from '../../models/admin-user.model';
 export class AdminComponent implements OnInit {
   private admin = inject(AdminService);
   private systemHealth = inject(SystemHealthService);
+  private destroyRef = inject(DestroyRef);
 
   usuarios = signal<UsuarioAdmin[]>([]);
   carregando = signal(true);
@@ -24,6 +32,7 @@ export class AdminComponent implements OnInit {
 
   health = signal<HealthResponse | null>(null);
   ready = signal<ReadyResponse | null>(null);
+  observabilidade = signal<ObservabilityResponse | null>(null);
   carregandoSaude = signal(true);
   erroSaude = signal<string | null>(null);
 
@@ -35,9 +44,24 @@ export class AdminComponent implements OnInit {
     () => this.usuarios().filter((usuario) => usuario.role === 'admin').length
   );
 
+  taxaErros = computed(() => {
+    const metrics = this.observabilidade()?.requests;
+    if (!metrics || metrics.totalRequests === 0) return 0;
+    return Number(((metrics.totalErrors / metrics.totalRequests) * 100).toFixed(2));
+  });
+
+  statusCodes = computed(() => {
+    const statusCodes = this.observabilidade()?.requests.statusCodes || {};
+    return Object.entries(statusCodes).sort(([a], [b]) => Number(a) - Number(b));
+  });
+
   ngOnInit() {
     this.carregarUsuarios();
     this.carregarSaude();
+
+    interval(10000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarSaude(false));
   }
 
   carregarUsuarios() {
@@ -54,14 +78,14 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  carregarSaude() {
-    this.carregandoSaude.set(true);
+  carregarSaude(exibirLoading = true) {
+    if (exibirLoading) this.carregandoSaude.set(true);
     this.erroSaude.set(null);
 
     let concluido = 0;
     const finalizar = () => {
       concluido += 1;
-      if (concluido === 2) this.carregandoSaude.set(false);
+      if (concluido === 3) this.carregandoSaude.set(false);
     };
 
     this.systemHealth.health().subscribe({
@@ -87,6 +111,44 @@ export class AdminComponent implements OnInit {
         finalizar();
       },
     });
+
+    this.systemHealth.observabilidade().subscribe({
+      next: (response) => {
+        this.observabilidade.set(response);
+        finalizar();
+      },
+      error: () => {
+        this.observabilidade.set(null);
+        this.erroSaude.set('Não foi possível consultar as métricas de observabilidade.');
+        finalizar();
+      },
+    });
+  }
+
+  megabytes(bytes: number | undefined) {
+    if (bytes === undefined) return 0;
+    return Number((bytes / 1024 / 1024).toFixed(2));
+  }
+
+  formatarUptime(seconds: number | undefined) {
+    if (seconds === undefined) return '—';
+
+    const dias = Math.floor(seconds / 86400);
+    const horas = Math.floor((seconds % 86400) / 3600);
+    const minutos = Math.floor((seconds % 3600) / 60);
+
+    if (dias > 0) return `${dias}d ${horas}h ${minutos}min`;
+    if (horas > 0) return `${horas}h ${minutos}min`;
+    return `${minutos}min`;
+  }
+
+  statusColetor(status: string | undefined) {
+    return {
+      idle: 'Aguardando',
+      running: 'Executando',
+      success: 'Sucesso',
+      failed: 'Falhou',
+    }[status || ''] || 'Desconhecido';
   }
 
   alternarRole(usuario: UsuarioAdmin) {

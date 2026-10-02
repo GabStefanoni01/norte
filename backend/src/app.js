@@ -41,13 +41,33 @@ app.use(express.json({ limit: '100kb' }));
 app.use(requestContext);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', uptimeSeconds: Math.floor(process.uptime()) }));
+
 app.get('/ready', async (req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'ready' });
+    const result = await pool.query(`
+      SELECT
+        to_regclass('public.users') AS users,
+        to_regclass('public.opportunities') AS opportunities,
+        to_regclass('public.saved_opportunities') AS saved_opportunities
+    `);
+
+    const schema = result.rows[0];
+    const missing = Object.entries(schema)
+      .filter(([, table]) => !table)
+      .map(([name]) => name);
+
+    if (missing.length > 0) {
+      logger.error('health.readiness_schema_incomplete', new Error('Required database tables are missing'), {
+        requestId: req.requestId,
+        missing,
+      });
+      return res.status(503).json({ status: 'unavailable', reason: 'database_schema_incomplete' });
+    }
+
+    return res.json({ status: 'ready' });
   } catch (err) {
     logger.error('health.readiness_failed', err, { requestId: req.requestId });
-    res.status(503).json({ status: 'unavailable' });
+    return res.status(503).json({ status: 'unavailable' });
   }
 });
 

@@ -116,6 +116,26 @@
           </div>
         }
 
+        <section class="norte-card mt-6 p-6 sm:p-8">
+          <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="norte-eyebrow">Informações do sistema</p>
+              <h2 class="mt-1 text-xl font-semibold text-white">Versão do Norte</h2>
+              <p class="mt-2 text-sm text-white/45">Confira a versão atual da plataforma e quando esta versão foi lançada.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:min-w-[280px]">
+              <div class="rounded-xl border border-norte-800 bg-norte-950/40 p-4">
+                <p class="text-xs uppercase tracking-wider text-white/35">Versão atual</p>
+                <p class="mt-1 text-lg font-semibold text-white">1.0.2</p>
+              </div>
+              <div class="rounded-xl border border-norte-800 bg-norte-950/40 p-4">
+                <p class="text-xs uppercase tracking-wider text-white/35">Lançado em</p>
+                <p class="mt-1 text-lg font-semibold text-white">Julho/2026</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         @if (abaAtiva() === 'assinatura') {
           <div class="norte-card p-6 sm:p-8">
             <div class="mb-7"><p class="norte-eyebrow">Plano</p><h2 class="mt-1 text-xl font-semibold text-white">Sua assinatura</h2><p class="mt-2 text-sm text-white/45">Gerencie seu acesso aos recursos Premium.</p></div>

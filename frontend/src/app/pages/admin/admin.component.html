@@ -53,6 +53,70 @@
         </div>
       </section>
 
+      <section class="mb-8 norte-card">
+        <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+          <h2 class="font-semibold text-white">Saúde da aplicação</h2>
+          <p class="mt-1 text-sm text-white/45">Monitoramento rápido dos endpoints de saúde e disponibilidade do sistema.</p>
+        </div>
+
+        @if (carregandoSaude()) {
+          <div class="grid gap-4 p-5 sm:grid-cols-2">
+            <div class="h-28 animate-pulse rounded-xl bg-white/5"></div>
+            <div class="h-28 animate-pulse rounded-xl bg-white/5"></div>
+          </div>
+        } @else {
+          <div class="grid gap-4 p-5 sm:grid-cols-2">
+            <div class="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-medium uppercase tracking-wider text-white/40">Health</p>
+                  <p class="mt-2 text-lg font-semibold text-white">Liveness</p>
+                </div>
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-medium"
+                  [class]="health()?.status === 'ok'
+                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                    : 'border-red-500/20 bg-red-500/10 text-red-300'"
+                >
+                  {{ health()?.status === 'ok' ? 'Operacional' : 'Indisponível' }}
+                </span>
+              </div>
+              @if (health()?.uptimeSeconds !== undefined) {
+                <p class="mt-4 text-sm text-white/45">Uptime: {{ health()?.uptimeSeconds | number:'1.0-0' }}s</p>
+              }
+            </div>
+
+            <div class="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-medium uppercase tracking-wider text-white/40">Ready</p>
+                  <p class="mt-2 text-lg font-semibold text-white">Readiness</p>
+                </div>
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-medium"
+                  [class]="ready()?.status === 'ready'
+                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                    : 'border-red-500/20 bg-red-500/10 text-red-300'"
+                >
+                  {{ ready()?.status === 'ready' ? 'Pronto' : 'Indisponível' }}
+                </span>
+              </div>
+              @if (ready()?.reason) {
+                <p class="mt-4 text-sm text-red-300">{{ ready()?.reason }}</p>
+              } @else {
+                <p class="mt-4 text-sm text-white/45">Banco e schema disponíveis.</p>
+              }
+            </div>
+          </div>
+
+          @if (erroSaude()) {
+            <div class="border-t border-white/10 px-5 py-4 text-sm text-red-300">
+              {{ erroSaude() }}
+            </div>
+          }
+        }
+      </section>
+
       <section class="norte-card overflow-hidden p-0">
         <div class="border-b border-white/10 px-5 py-4 sm:px-6">
           <h2 class="font-semibold text-white">Usuários cadastrados</h2>

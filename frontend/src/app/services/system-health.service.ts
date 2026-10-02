@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { ApiService } from './api.service';
 
 export interface HealthResponse {
   status: 'ok' | string;
@@ -14,14 +13,13 @@ export interface ReadyResponse {
 
 @Injectable({ providedIn: 'root' })
 export class SystemHealthService {
-  private http = inject(HttpClient);
-  private readonly apiUrl = environment.apiUrl;
+  private api = inject(ApiService);
 
   health() {
-    return this.http.get<HealthResponse>(`${this.apiUrl}/health`);
+    return this.api.get<HealthResponse>('/health');
   }
 
   ready() {
-    return this.http.get<ReadyResponse>(`${this.apiUrl}/ready`);
+    return this.api.get<ReadyResponse>('/ready');
   }
 }

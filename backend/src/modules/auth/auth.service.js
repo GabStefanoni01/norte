@@ -86,6 +86,8 @@ async function login({ email, senha }, meta = {}) {
     { expiresIn: env.jwtExpiresIn }
   );
 
+  await pool.query('UPDATE users SET ultimo_acesso_em = NOW() WHERE id = $1', [user.id]);
+
   // Não-bloqueante: um erro no envio do e-mail nunca deve impedir o login.
   enviarNotificacaoDeLogin(user, meta).catch((err) =>
     console.error('Não foi possível enviar notificação de login:', err.message)

@@ -21,20 +21,18 @@ function getTransporter() {
 }
 
 /**
- * Envia um e-mail. Se SMTP_HOST não estiver configurado (ambiente de
- * desenvolvimento), apenas loga no console — assim o fluxo funciona sem
- * exigir configuração de e-mail real para testar localmente.
+ * Envia um e-mail. Se SMTP_HOST não estiver configurado, falha explicitamente
+ * para que rotinas automáticas e o painel administrativo não tratem um e-mail
+ * não enviado como sucesso.
  */
-async function enviarEmail({ para, assunto, texto }) {
+async function enviarEmail({ para, assunto, texto, html }) {
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.log('--- [dev] E-mail não enviado (SMTP não configurado) ---');
-    console.log(`Para: ${para}`);
-    console.log(`Assunto: ${assunto}`);
-    console.log(texto);
-    console.log('--------------------------------------------------------');
-    return;
+    const err = new Error('SMTP não configurado. Defina SMTP_HOST antes de disparar e-mails.');
+    err.code = 'SMTP_NOT_CONFIGURED';
+    err.status = 503;
+    throw err;
   }
 
   try {
@@ -43,6 +41,7 @@ async function enviarEmail({ para, assunto, texto }) {
       to: para,
       subject: assunto,
       text: texto,
+      ...(html ? { html } : {}),
     });
   } catch (err) {
     // Loga o motivo real (ex: remetente não verificado no provedor) em vez
@@ -56,4 +55,42 @@ async function enviarEmail({ para, assunto, texto }) {
   }
 }
 
-module.exports = { enviarEmail };
+async function statusSMTP() {
+  if (!env.smtp.host) {
+    return {
+      configurado: false,
+      status: 'unavailable',
+      mensagem: 'SMTP não configurado.',
+      hostConfigurado: false,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  }
+
+  try {
+    const transporter = getTransporter();
+    await transporter.verify();
+    return {
+      configurado: true,
+      status: 'ok',
+      mensagem: 'Conexão SMTP verificada com sucesso.',
+      hostConfigurado: true,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  } catch (err) {
+    return {
+      configurado: true,
+      status: 'error',
+      mensagem: String(err.message || err).slice(0, 300),
+      hostConfigurado: true,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  }
+}
+
+module.exports = { enviarEmail, statusSMTP };

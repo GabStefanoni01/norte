@@ -22,8 +22,6 @@ function validarJwtSecret() {
     return;
   }
 
-  // Em teste (jest define NODE_ENV=test automaticamente), não derruba o
-  // processo — só avisa, pra suíte rodar sem precisar de um .env real.
   if (process.env.NODE_ENV === 'test') {
     console.warn('Aviso: JWT_SECRET inseguro/ausente (tolerado apenas em ambiente de teste).');
     return;
@@ -48,7 +46,6 @@ module.exports = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   geminiApiKey: process.env.GEMINI_API_KEY,
   jobsPipeApiKey: process.env.JOBSPIPE_API_KEY,
-  frontendUrl: process.env.FRONTEND_URL,
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,
@@ -58,10 +55,20 @@ module.exports = {
   },
   contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_FROM,
   enableCron: process.env.ENABLE_CRON === 'true',
+  frontendUrl:
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://usenortee.vercel.app' : 'http://localhost:4200'),
   mpAccessToken: process.env.MP_ACCESS_TOKEN,
   dbPoolMax: numeroEnv('DB_POOL_MAX', 10),
   dbIdleTimeoutMs: numeroEnv('DB_IDLE_TIMEOUT_MS', 30_000),
   dbConnectionTimeoutMs: numeroEnv('DB_CONNECTION_TIMEOUT_MS', 5_000),
   aiTimeoutMs: numeroEnv('AI_TIMEOUT_MS', 15_000),
   aiMaxRetries: numeroEnv('AI_MAX_RETRIES', 2),
+  externalTimeoutMs: numeroEnv('EXTERNAL_TIMEOUT_MS', 20_000),
+  externalMaxRetries: numeroEnv('EXTERNAL_MAX_RETRIES', 2),
+  externalRetryBaseDelayMs: numeroEnv('EXTERNAL_RETRY_BASE_DELAY_MS', 500),
+  jobspipeCircuitFailureThreshold: numeroEnv('JOBSPIPE_CIRCUIT_FAILURE_THRESHOLD', 3),
+  jobspipeCircuitResetTimeoutMs: numeroEnv('JOBSPIPE_CIRCUIT_RESET_TIMEOUT_MS', 30_000),
+  opportunityJobMaxRetries: numeroEnv('OPPORTUNITY_JOB_MAX_RETRIES', 3),
+  opportunityJobRetryBaseDelayMs: numeroEnv('OPPORTUNITY_JOB_RETRY_BASE_DELAY_MS', 5_000),
 };

@@ -1,5 +1,8 @@
 const env = require('../../config/env');
 const pool = require('../../database/pool');
+const logger = require('../../utils/logger');
+const { fetchResiliente } = require('../../utils/resilient-fetch');
+const { CircuitBreaker } = require('../../utils/circuit-breaker');
 
 const JOBSPIPE_URL = 'https://api.jobspipe.dev/v1/jobs/search';
 const JOBSPIPE_SOURCE = 'jobspipe';
@@ -8,62 +11,37 @@ const LIMITE = 25;
 const LIMITE_CONSULTAS = 40;
 const MAX_PAGINAS = 8;
 const DIAS_SINCRONIZACAO_COMPLETA = 7;
-const INTERVALO_RETRY_MS = 750;
 
-const CONSULTAS_GERAIS = [
-  'estágio',
-  'aprendiz',
-  'assistente',
-  'trainee',
-];
+const jobspipeCircuit = new CircuitBreaker({
+  name: JOBSPIPE_SOURCE,
+  failureThreshold: env.jobspipeCircuitFailureThreshold,
+  resetTimeoutMs: env.jobspipeCircuitResetTimeoutMs,
+  shouldCountFailure: (err) => {
+    if (err?.code === 'CIRCUIT_OPEN' || err?.code === 'CIRCUIT_HALF_OPEN') return false;
+    if (err?.code === 'EXTERNAL_TIMEOUT' || err?.name === 'TypeError') return true;
+    return Number(err?.status) === 429 || Number(err?.status) >= 500;
+  },
+});
+
+const CONSULTAS_GERAIS = ['estágio', 'aprendiz', 'assistente', 'trainee'];
 
 const ALIASES_REQUISITOS = new Map([
-  ['js', 'JavaScript'],
-  ['javascript js', 'JavaScript'],
-  ['javascript.js', 'JavaScript'],
-  ['ts', 'TypeScript'],
-  ['typescript ts', 'TypeScript'],
-  ['typescript.js', 'TypeScript'],
-  ['react.js', 'React'],
-  ['reactjs', 'React'],
-  ['react js', 'React'],
-  ['node.js', 'Node.js'],
-  ['nodejs', 'Node.js'],
-  ['node js', 'Node.js'],
-  ['next.js', 'Next.js'],
-  ['nextjs', 'Next.js'],
-  ['vue.js', 'Vue.js'],
-  ['vuejs', 'Vue.js'],
-  ['angular.js', 'Angular'],
-  ['angularjs', 'Angular'],
-  ['postgresql', 'PostgreSQL'],
-  ['postgres', 'PostgreSQL'],
-  ['mysql database', 'MySQL'],
-  ['sql server', 'SQL Server'],
-  ['mssql', 'SQL Server'],
-  ['c#', 'C#'],
-  ['dotnet', '.NET'],
-  ['dot net', '.NET'],
-  ['asp.net', 'ASP.NET'],
-  ['spring boot', 'Spring Boot'],
-  ['spring-boot', 'Spring Boot'],
-  ['springboot', 'Spring Boot'],
-  ['github', 'Git'],
-  ['gitlab', 'Git'],
+  ['js', 'JavaScript'], ['javascript js', 'JavaScript'], ['javascript.js', 'JavaScript'],
+  ['ts', 'TypeScript'], ['typescript ts', 'TypeScript'], ['typescript.js', 'TypeScript'],
+  ['react.js', 'React'], ['reactjs', 'React'], ['react js', 'React'],
+  ['node.js', 'Node.js'], ['nodejs', 'Node.js'], ['node js', 'Node.js'],
+  ['next.js', 'Next.js'], ['nextjs', 'Next.js'], ['vue.js', 'Vue.js'], ['vuejs', 'Vue.js'],
+  ['angular.js', 'Angular'], ['angularjs', 'Angular'],
+  ['postgresql', 'PostgreSQL'], ['postgres', 'PostgreSQL'], ['mysql database', 'MySQL'],
+  ['sql server', 'SQL Server'], ['mssql', 'SQL Server'], ['c#', 'C#'],
+  ['dotnet', '.NET'], ['dot net', '.NET'], ['asp.net', 'ASP.NET'],
+  ['spring boot', 'Spring Boot'], ['spring-boot', 'Spring Boot'], ['springboot', 'Spring Boot'],
+  ['github', 'Git'], ['gitlab', 'Git'],
 ]);
 
 const REQUISITOS_GENERICO = new Set([
-  'job',
-  'jobs',
-  'work',
-  'emprego',
-  'vaga',
-  'vagas',
-  'trabalho',
-  'career',
-  'careers',
-  'full time',
-  'part time',
+  'job', 'jobs', 'work', 'emprego', 'vaga', 'vagas', 'trabalho',
+  'career', 'careers', 'full time', 'part time',
 ]);
 
 function texto(valor) {
@@ -114,14 +92,9 @@ function canonicalizarRequisito(valor) {
   const original = texto(valor);
   const chave = normalizar(original);
   if (!chave || REQUISITOS_GENERICO.has(chave)) return null;
-
   const alias = ALIASES_REQUISITOS.get(chave);
   if (alias) return alias;
-
-  return original
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return original.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function requisitosDoJob(job) {
@@ -129,22 +102,17 @@ function requisitosDoJob(job) {
     ...(Array.isArray(job.technology_slugs) ? job.technology_slugs : []),
     ...(Array.isArray(job.keyword_slugs) ? job.keyword_slugs : []),
   ];
-
   const vistos = new Set();
   const resultado = [];
-
   for (const requisito of requisitos) {
     const canonico = canonicalizarRequisito(requisito);
     if (!canonico) continue;
-
     const chave = normalizar(canonico);
     if (chave.length < 2 || vistos.has(chave)) continue;
-
     vistos.add(chave);
     resultado.push(canonico);
     if (resultado.length >= 30) break;
   }
-
   return resultado;
 }
 
@@ -162,11 +130,7 @@ function dataValida(valor) {
 function mapearJob(job) {
   const link = texto(job.url || job.source_url);
   if (!texto(job.job_title) || !link || !texto(job.id)) return null;
-
-  const categoria = texto(job.job_function)
-    || texto(job.occupation_label)
-    || texto(job.isic_division_label)
-    || null;
+  const categoria = texto(job.job_function) || texto(job.occupation_label) || texto(job.isic_division_label) || null;
 
   return {
     externalId: String(job.id),
@@ -210,10 +174,8 @@ async function buscarPerfis() {
   const result = await pool.query(`
     SELECT p.interesses, p.areas_sugeridas, p.areas_secundarias, p.perfil_dominante
     FROM profiles p
-    WHERE p.interesses IS NOT NULL
-       OR p.areas_sugeridas IS NOT NULL
-       OR p.areas_secundarias IS NOT NULL
-       OR p.perfil_dominante IS NOT NULL
+    WHERE p.interesses IS NOT NULL OR p.areas_sugeridas IS NOT NULL
+       OR p.areas_secundarias IS NOT NULL OR p.perfil_dominante IS NOT NULL
   `);
   return result.rows;
 }
@@ -221,8 +183,7 @@ async function buscarPerfis() {
 async function obterEstadoSincronizacao() {
   const result = await pool.query(`
     SELECT ultima_execucao_sucesso, ultima_sincronizacao_completa
-    FROM opportunity_collector_state
-    WHERE chave = $1
+    FROM opportunity_collector_state WHERE chave = $1
   `, [JOBSPIPE_SOURCE]);
   return result.rows[0] || {};
 }
@@ -235,10 +196,8 @@ async function registrarSucessoSincronizacao({ completa }) {
     ON CONFLICT (chave)
     DO UPDATE SET
       ultima_execucao_sucesso = NOW(),
-      ultima_sincronizacao_completa = CASE
-        WHEN $2 THEN NOW()
-        ELSE opportunity_collector_state.ultima_sincronizacao_completa
-      END,
+      ultima_sincronizacao_completa = CASE WHEN $2 THEN NOW()
+        ELSE opportunity_collector_state.ultima_sincronizacao_completa END,
       updated_at = NOW()
   `, [JOBSPIPE_SOURCE, completa]);
 }
@@ -253,29 +212,21 @@ function dataParaJobsPipe(valor) {
   return new Date(valor).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 }
 
-async function aguardar(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function buscarPaginaJobsPipe(filtros, tentativa = 0) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-
-  try {
-    const response = await fetch(JOBSPIPE_URL, {
+async function buscarPaginaJobsPipe(filtros) {
+  return jobspipeCircuit.executar(async () => {
+    const response = await fetchResiliente(JOBSPIPE_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.jobsPipeApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(filtros),
-      signal: controller.signal,
+    }, {
+      timeoutMs: env.externalTimeoutMs,
+      maxRetries: env.externalMaxRetries,
+      baseDelayMs: env.externalRetryBaseDelayMs,
+      evento: 'jobspipe.search',
     });
-
-    if (response.status === 429 && tentativa < 2) {
-      await aguardar(INTERVALO_RETRY_MS * (tentativa + 1));
-      return buscarPaginaJobsPipe(filtros, tentativa + 1);
-    }
 
     if (!response.ok) {
       const detalhe = await response.text();
@@ -285,14 +236,12 @@ async function buscarPaginaJobsPipe(filtros, tentativa = 0) {
     }
 
     return response.json();
-  } finally {
-    clearTimeout(timeout);
-  }
+  });
 }
 
 async function buscarJobsPipe(consultas, estado) {
   if (!env.jobsPipeApiKey) {
-    console.warn('Sincronização de oportunidades ignorada: JOBSPIPE_API_KEY não configurada.');
+    logger.warn('opportunities.collector.disabled', { reason: 'JOBSPIPE_API_KEY_not_configured' });
     return { jobs: [], paginas: 0, completa: false, ignorada: true };
   }
 
@@ -304,13 +253,9 @@ async function buscarJobsPipe(consultas, estado) {
     limit: LIMITE,
   };
 
-  if (completa) {
-    filtrosBase.posted_at_max_age_days = DIAS_MAXIMOS;
-  } else if (estado.ultima_execucao_sucesso) {
-    filtrosBase.discovered_at_gte = dataParaJobsPipe(estado.ultima_execucao_sucesso);
-  } else {
-    filtrosBase.posted_at_max_age_days = DIAS_MAXIMOS;
-  }
+  if (completa) filtrosBase.posted_at_max_age_days = DIAS_MAXIMOS;
+  else if (estado.ultima_execucao_sucesso) filtrosBase.discovered_at_gte = dataParaJobsPipe(estado.ultima_execucao_sucesso);
+  else filtrosBase.posted_at_max_age_days = DIAS_MAXIMOS;
 
   const jobs = [];
   const idsVistos = new Set();
@@ -352,57 +297,29 @@ async function salvarOportunidade(oportunidade) {
       ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'publicada',$12,$13,$14,$15,$16,$17,NOW())
     ON CONFLICT (fonte, external_id) WHERE external_id IS NOT NULL
     DO UPDATE SET
-      titulo = EXCLUDED.titulo,
-      empresa = EXCLUDED.empresa,
-      categoria = EXCLUDED.categoria,
-      descricao = EXCLUDED.descricao,
-      interesse = EXCLUDED.interesse,
-      estado = EXCLUDED.estado,
-      gratuito = EXCLUDED.gratuito,
-      link = EXCLUDED.link,
-      requisitos = EXCLUDED.requisitos,
-      status = 'publicada',
-      last_seen_at = EXCLUDED.last_seen_at,
-      source_url = EXCLUDED.source_url,
-      data_publicacao = EXCLUDED.data_publicacao,
-      dados_origem = EXCLUDED.dados_origem,
-      expires_at = EXCLUDED.expires_at,
-      updated_at = NOW()
+      titulo = EXCLUDED.titulo, empresa = EXCLUDED.empresa, categoria = EXCLUDED.categoria,
+      descricao = EXCLUDED.descricao, interesse = EXCLUDED.interesse, estado = EXCLUDED.estado,
+      gratuito = EXCLUDED.gratuito, link = EXCLUDED.link, requisitos = EXCLUDED.requisitos,
+      status = 'publicada', last_seen_at = EXCLUDED.last_seen_at, source_url = EXCLUDED.source_url,
+      data_publicacao = EXCLUDED.data_publicacao, dados_origem = EXCLUDED.dados_origem,
+      expires_at = EXCLUDED.expires_at, updated_at = NOW()
     RETURNING (xmax = 0) AS inserida
   `, [
-    oportunidade.titulo,
-    oportunidade.empresa,
-    oportunidade.categoria,
-    oportunidade.tipo,
-    oportunidade.descricao,
-    oportunidade.interesse,
-    oportunidade.estado,
-    oportunidade.gratuito,
-    oportunidade.link,
-    oportunidade.requisitos,
-    JOBSPIPE_SOURCE,
-    oportunidade.externalId,
-    oportunidade.lastSeenAt,
-    oportunidade.sourceUrl,
-    oportunidade.dataPublicacao,
-    JSON.stringify(oportunidade.dadosOrigem),
-    dataValida(oportunidade.dadosOrigem.expires_at),
+    oportunidade.titulo, oportunidade.empresa, oportunidade.categoria, oportunidade.tipo,
+    oportunidade.descricao, oportunidade.interesse, oportunidade.estado, oportunidade.gratuito,
+    oportunidade.link, oportunidade.requisitos, JOBSPIPE_SOURCE, oportunidade.externalId,
+    oportunidade.lastSeenAt, oportunidade.sourceUrl, oportunidade.dataPublicacao,
+    JSON.stringify(oportunidade.dadosOrigem), dataValida(oportunidade.dadosOrigem.expires_at),
   ]);
-
   return Boolean(result.rows[0]?.inserida);
 }
 
 async function expirarStaleJobs() {
   const result = await pool.query(`
-    UPDATE opportunities
-       SET status = 'expirada', updated_at = NOW()
-     WHERE fonte = $1
-       AND status = 'publicada'
-       AND external_id IS NOT NULL
-       AND last_seen_at IS NOT NULL
-       AND last_seen_at < NOW() - INTERVAL '14 days'
+    UPDATE opportunities SET status = 'expirada', updated_at = NOW()
+     WHERE fonte = $1 AND status = 'publicada' AND external_id IS NOT NULL
+       AND last_seen_at IS NOT NULL AND last_seen_at < NOW() - INTERVAL '14 days'
   `, [JOBSPIPE_SOURCE]);
-
   return result.rowCount;
 }
 
@@ -413,18 +330,7 @@ async function sincronizarJobs() {
   const resultadoBusca = await buscarJobsPipe(consultas, estado);
 
   if (resultadoBusca.ignorada) {
-    return {
-      fonte: JOBSPIPE_SOURCE,
-      consultas,
-      encontrados: 0,
-      inseridas: 0,
-      atualizadas: 0,
-      ignoradas: 0,
-      expiradas: 0,
-      paginas: 0,
-      truncada: false,
-      modo: 'desabilitado',
-    };
+    return { fonte: JOBSPIPE_SOURCE, consultas, encontrados: 0, inseridas: 0, atualizadas: 0, ignoradas: 0, expiradas: 0, paginas: 0, truncada: false, modo: 'desabilitado' };
   }
 
   let inseridas = 0;
@@ -437,7 +343,6 @@ async function sincronizarJobs() {
       ignoradas += 1;
       continue;
     }
-
     if (await salvarOportunidade(oportunidade)) inseridas += 1;
     else atualizadas += 1;
   }
@@ -468,4 +373,6 @@ module.exports = {
   sincronizarJobs,
   canonicalizarRequisito,
   requisitosDoJob,
+  buscarJobsPipe,
+  jobspipeCircuit,
 };

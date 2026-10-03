@@ -8,6 +8,7 @@ const { enviarSolicitacoesRetroativas, enviarSolicitacaoParaUsuario } = require(
 const pool = require('../../database/pool');
 const metrics = require('../../utils/metrics');
 const { dispararSincronizacao } = require('../opportunities/opportunities.job');
+const { statusSMTP } = require('../mail/mail.service');
 
 const router = Router();
 

@@ -31,6 +31,7 @@ export class AdminComponent implements OnInit {
   mensagemReenvio = signal<string | null>(null);
   campanhaEnviando = signal<string | null>(null);
   mensagemCampanha = signal<string | null>(null);
+  statusEmail = signal<import('../../services/admin.service').EmailStatus | null>(null);
 
   health = signal<HealthResponse | null>(null);
   ready = signal<ReadyResponse | null>(null);
@@ -60,10 +61,18 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     this.carregarUsuarios();
     this.carregarSaude();
+    this.carregarStatusEmail();
 
     interval(10000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.carregarSaude(false));
+  }
+
+  carregarStatusEmail() {
+    this.admin.statusEmail().subscribe({
+      next: (status) => this.statusEmail.set(status),
+      error: () => this.statusEmail.set(null),
+    });
   }
 
   carregarUsuarios() {

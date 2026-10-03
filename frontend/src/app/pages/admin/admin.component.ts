@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { interval } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
-import { AdminService } from '../../services/admin.service';
+import { AdminService, EmailStatus } from '../../services/admin.service';
 import {
   SystemHealthService,
   HealthResponse,
@@ -31,7 +31,7 @@ export class AdminComponent implements OnInit {
   mensagemReenvio = signal<string | null>(null);
   campanhaEnviando = signal<string | null>(null);
   mensagemCampanha = signal<string | null>(null);
-  statusEmail = signal<import('../../services/admin.service').EmailStatus | null>(null);
+  statusEmail = signal<EmailStatus | null>(null);
 
   health = signal<HealthResponse | null>(null);
   ready = signal<ReadyResponse | null>(null);

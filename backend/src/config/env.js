@@ -46,7 +46,6 @@ module.exports = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   geminiApiKey: process.env.GEMINI_API_KEY,
   jobsPipeApiKey: process.env.JOBSPIPE_API_KEY,
-  frontendUrl: process.env.FRONTEND_URL,
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,
@@ -56,7 +55,9 @@ module.exports = {
   },
   contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_FROM,
   enableCron: process.env.ENABLE_CRON === 'true',
-  frontendUrl: process.env.FRONTEND_URL || 'https://usenortee.vercel.app',
+  frontendUrl:
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production' ? 'https://usenortee.vercel.app' : 'http://localhost:4200'),
   mpAccessToken: process.env.MP_ACCESS_TOKEN,
   dbPoolMax: numeroEnv('DB_POOL_MAX', 10),
   dbIdleTimeoutMs: numeroEnv('DB_IDLE_TIMEOUT_MS', 30_000),

@@ -269,6 +269,64 @@
       }
     </section>
 
+
+    <section class="mb-8 norte-card">
+      <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+        <h2 class="font-semibold text-white">Comunicação com usuários</h2>
+        <p class="mt-1 text-sm text-white/45">Dispare manualmente campanhas de engajamento. Cada rotina respeita seu intervalo mínimo para evitar spam.</p>
+      </div>
+
+      <div class="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3">
+        <button type="button" (click)="dispararCampanha('progresso', 'Lembretes de progresso')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">🧭</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'progresso' ? 'Enviando...' : 'Lembretes de progresso' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Chama quem tem plano em andamento.</span>
+        </button>
+
+        <button type="button" (click)="dispararCampanha('renovacao', 'Atualização do plano')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">🔄</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'renovacao' ? 'Enviando...' : 'Atualização do plano' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Convida usuários com plano antigo a se atualizar.</span>
+        </button>
+
+        <button type="button" (click)="dispararCampanha('inativos', 'Reengajamento de inativos')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">👋</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'inativos' ? 'Enviando...' : 'Reengajar inativos' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Alcança quem está há 14–30 dias sem voltar.</span>
+        </button>
+
+        <button type="button" (click)="dispararCampanha('oportunidades', 'Novas oportunidades')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">🎯</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'oportunidades' ? 'Enviando...' : 'Novas oportunidades' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Envia oportunidades recentes compatíveis com o perfil.</span>
+        </button>
+
+        <button type="button" (click)="dispararCampanha('jornada', 'Jornada incompleta')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">🚀</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'jornada' ? 'Enviando...' : 'Jornada incompleta' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Indica o próximo módulo que falta concluir.</span>
+        </button>
+
+        <button type="button" (click)="dispararCampanha('retorno', 'Retorno ao Norte')" [disabled]="campanhaEnviando()"
+          class="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left transition-colors hover:border-norte-accent/30 hover:bg-white/5 disabled:opacity-50">
+          <span class="text-lg">✨</span>
+          <span class="mt-2 block font-medium text-white">{{ campanhaEnviando() === 'retorno' ? 'Enviando...' : 'Retorno ao Norte' }}</span>
+          <span class="mt-1 block text-xs text-white/40">Reconecta quem está há mais de 30 dias ausente.</span>
+        </button>
+      </div>
+
+      @if (mensagemCampanha()) {
+        <div class="border-t border-white/10 px-5 py-4 text-sm text-white/60">
+          {{ mensagemCampanha() }}
+        </div>
+      }
+    </section>
+
     <section class="norte-card overflow-hidden p-0">
       <div class="border-b border-white/10 px-5 py-4 sm:px-6">
         <h2 class="font-semibold text-white">Usuários cadastrados</h2>

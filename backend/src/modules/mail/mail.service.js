@@ -55,4 +55,42 @@ async function enviarEmail({ para, assunto, texto, html }) {
   }
 }
 
-module.exports = { enviarEmail };
+async function statusSMTP() {
+  if (!env.smtp.host) {
+    return {
+      configurado: false,
+      status: 'unavailable',
+      mensagem: 'SMTP não configurado.',
+      hostConfigurado: false,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  }
+
+  try {
+    const transporter = getTransporter();
+    await transporter.verify();
+    return {
+      configurado: true,
+      status: 'ok',
+      mensagem: 'Conexão SMTP verificada com sucesso.',
+      hostConfigurado: true,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  } catch (err) {
+    return {
+      configurado: true,
+      status: 'error',
+      mensagem: String(err.message || err).slice(0, 300),
+      hostConfigurado: true,
+      autenticacaoConfigurada: Boolean(env.smtp.user && env.smtp.pass),
+      remetente: env.smtp.from,
+      porta: env.smtp.port,
+    };
+  }
+}
+
+module.exports = { enviarEmail, statusSMTP };

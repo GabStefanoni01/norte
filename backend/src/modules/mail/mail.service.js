@@ -21,9 +21,9 @@ function getTransporter() {
 }
 
 /**
- * Envia um e-mail. Se SMTP_HOST não estiver configurado (ambiente de
- * desenvolvimento), apenas loga no console — assim o fluxo funciona sem
- * exigir configuração de e-mail real para testar localmente.
+ * Envia um e-mail. Se SMTP_HOST não estiver configurado, falha explicitamente
+ * para que rotinas automáticas e o painel administrativo não tratem um e-mail
+ * não enviado como sucesso.
  */
 async function enviarEmail({ para, assunto, texto, html }) {
   const transporter = getTransporter();

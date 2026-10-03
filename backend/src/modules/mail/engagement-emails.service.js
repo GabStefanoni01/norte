@@ -73,7 +73,7 @@ async function buscarPlanosMaisRecentes() {
 
 async function enviarLembretesDeProgresso() {
   const planos = await buscarPlanosMaisRecentes();
-  const destinatarios = planos.filter((p) => Number(p.progresso) < 100 && calcularProximoPasso(p.etapas));
+  const destinatarios = planos.filter((p) => Number(p.progresso) < 100 && calcularProximoPasso(p.etapas) && diasDesde(p.ultimo_lembrete_progresso_em) >= 7);
   return enviarCampanha({
     campanha: CAMPANHAS.PROGRESSO,
     destinatarios,

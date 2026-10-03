@@ -25,16 +25,14 @@ function getTransporter() {
  * desenvolvimento), apenas loga no console — assim o fluxo funciona sem
  * exigir configuração de e-mail real para testar localmente.
  */
-async function enviarEmail({ para, assunto, texto }) {
+async function enviarEmail({ para, assunto, texto, html }) {
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.log('--- [dev] E-mail não enviado (SMTP não configurado) ---');
-    console.log(`Para: ${para}`);
-    console.log(`Assunto: ${assunto}`);
-    console.log(texto);
-    console.log('--------------------------------------------------------');
-    return;
+    const err = new Error('SMTP não configurado. Defina SMTP_HOST antes de disparar e-mails.');
+    err.code = 'SMTP_NOT_CONFIGURED';
+    err.status = 503;
+    throw err;
   }
 
   try {
@@ -43,6 +41,7 @@ async function enviarEmail({ para, assunto, texto }) {
       to: para,
       subject: assunto,
       text: texto,
+      ...(html ? { html } : {}),
     });
   } catch (err) {
     // Loga o motivo real (ex: remetente não verificado no provedor) em vez

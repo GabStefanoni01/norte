@@ -74,4 +74,33 @@ router.post('/politica/reenviar/:userId', aiLimiter, async (req, res, next) => {
   }
 });
 
+router.get('/emails/status', async (req, res, next) => {
+  try {
+    const resultado = await statusSMTP();
+    res.json(resultado);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const campanhas = {
+  progresso: enviarLembretesDeProgresso,
+  renovacao: enviarLembretesDeRenovacao,
+  inativos: enviarReengajamentoInativos,
+  oportunidades: enviarNovasOportunidades,
+  jornada: enviarJornadaIncompleta,
+  retorno: enviarRetornoAoNorte,
+};
+
+for (const [tipo, executarCampanha] of Object.entries(campanhas)) {
+  router.post(`/emails/campanhas/${tipo}`, aiLimiter, async (req, res, next) => {
+    try {
+      const resultado = await executarCampanha();
+      res.json(resultado);
+    } catch (err) {
+      next(err);
+    }
+  });
+}
+
 module.exports = router;

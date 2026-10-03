@@ -45,8 +45,4 @@ export class AdminService {
   enviarCampanha(tipo: 'progresso' | 'renovacao' | 'inativos' | 'oportunidades' | 'jornada' | 'retorno') {
     return this.api.post<EmailCampaignResult>(`/admin/emails/campanhas/${tipo}`, {});
   }
-
-  enviarTodosOsLembretes() {
-    return this.api.post<EmailCampaignResult>('/admin/lembretes/enviar', {});
-  }
 }

@@ -29,6 +29,8 @@ export class AdminComponent implements OnInit {
   atualizandoId = signal<number | null>(null);
   reenviandoId = signal<number | null>(null);
   mensagemReenvio = signal<string | null>(null);
+  campanhaEnviando = signal<string | null>(null);
+  mensagemCampanha = signal<string | null>(null);
 
   health = signal<HealthResponse | null>(null);
   ready = signal<ReadyResponse | null>(null);
@@ -165,6 +167,27 @@ export class AdminComponent implements OnInit {
       error: () => {
         this.erro.set('Não foi possível atualizar o papel deste usuário.');
         this.atualizandoId.set(null);
+      },
+    });
+  }
+
+  dispararCampanha(tipo: 'progresso' | 'renovacao' | 'inativos' | 'oportunidades' | 'jornada' | 'retorno', nome: string) {
+    this.campanhaEnviando.set(tipo);
+    this.mensagemCampanha.set(null);
+
+    this.admin.enviarCampanha(tipo).subscribe({
+      next: (resultado) => {
+        this.mensagemCampanha.set(
+          nome + ': ' + resultado.enviados + ' enviados, ' +
+          resultado.ignorados + ' ignorados por intervalo e ' +
+          resultado.falhas + ' falhas.'
+        );
+        this.campanhaEnviando.set(null);
+      },
+      error: (err) => {
+        const mensagem = err?.error?.error || 'Não foi possível executar a campanha.';
+        this.mensagemCampanha.set(mensagem);
+        this.campanhaEnviando.set(null);
       },
     });
   }

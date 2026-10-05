@@ -6,7 +6,8 @@ const router = Router();
 
 router.use(authGuard);
 
-router.post('/', controller.criar);
+// Instituições não são criadas por usuários comuns.
+// A criação ocorre após aprovação do Super Admin de uma solicitação institucional.
 router.post('/:id/convites', controller.criarConvite);
 router.post('/convites/aceitar', controller.aceitarConvite);
 router.get('/minhas', controller.listar);

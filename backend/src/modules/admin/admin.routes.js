@@ -32,7 +32,8 @@ router.get('/observabilidade', async (req, res, next) => {
       uptimeSeconds: Math.floor(process.uptime()),
       memory: process.memoryUsage(),
       requests: metrics.snapshot(),
-      collector: result.rows[0] || { status: 'idle' },\n      circuitBreakers: [jobspipeCircuit.snapshot()],
+      collector: result.rows[0] || { status: 'idle' },
+      circuitBreakers: [jobspipeCircuit.snapshot()],
     });
   } catch (err) {
     next(err);

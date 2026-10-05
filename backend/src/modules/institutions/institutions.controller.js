@@ -34,6 +34,23 @@ async function aceitarConvite(req, res, next) {
   }
 }
 
+async function dashboard(req, res, next) {
+  try { res.json(await service.dashboard(Number(req.params.id), req.user.sub)); } catch (err) { next(err); }
+}
+
+async function criarTrilha(req, res, next) {
+  try {
+    res.status(201).json(await service.criarTrilha({
+      institutionId: Number(req.params.id), titulo: req.body.titulo,
+      descricao: req.body.descricao, userId: req.user.sub,
+    }));
+  } catch (err) { next(err); }
+}
+
+async function listarTrilhas(req, res, next) {
+  try { res.json(await service.listarTrilhas(Number(req.params.id), req.user.sub)); } catch (err) { next(err); }
+}
+
 async function listar(req, res, next) {
   try {
     res.json(await service.listarDoUsuario(req.user.sub));
@@ -65,4 +82,4 @@ async function atualizarMembro(req, res, next) {
   }
 }
 
-module.exports = { criar, criarConvite, aceitarConvite, listar, listarParticipantes, atualizarMembro };
+module.exports = { criar, criarConvite, aceitarConvite, dashboard, criarTrilha, listarTrilhas, listar, listarParticipantes, atualizarMembro };

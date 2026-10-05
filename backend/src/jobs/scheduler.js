@@ -23,13 +23,20 @@ async function recuperarSincronizacaoPendente() {
   }
 }
 
+function executarEngajamento() {
+  return executarRotinaDeEngajamento().then((resultado) => {
+    console.log('[scheduler] rotina de e-mails de engajamento concluída', resultado);
+    return resultado;
+  });
+}
+
 function iniciarScheduler() {
   if (!env.enableCron) {
     console.log('[scheduler] cron desabilitado');
     return;
   }
 
-  cron.schedule('0 8 * * *', sincronizarOportunidades);
+  cron.schedule('0 8 * * *', sincronizarOportunidades);\n  cron.schedule('0 9 * * *', executarEngajamento);
 
   // Recupera jobs que ficaram running ou aguardando retry antes de disparar
   // uma nova sincronização diária.
@@ -41,7 +48,7 @@ function iniciarScheduler() {
     }
   });
 
-  console.log('[scheduler] cron habilitado: oportunidades às 8h');
+  console.log('[scheduler] cron habilitado: oportunidades às 8h e e-mails de engajamento às 9h');
 }
 
 module.exports = {

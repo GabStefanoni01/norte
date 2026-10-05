@@ -10,6 +10,7 @@ const metrics = require('../../utils/metrics');
 const { dispararSincronizacao } = require('../opportunities/opportunities.job');
 const { jobspipeCircuit } = require('../opportunities/opportunities.collector');
 const { statusSMTP } = require('../mail/mail.service');
+const institutionInterestController = require('../institution-interest/institution-interest.controller');
 
 const router = Router();
 
@@ -17,6 +18,11 @@ router.use(authGuard, adminGuard);
 router.get('/users', controller.listarUsuarios);
 router.patch('/users/:id/role', controller.atualizarRole);
 router.patch('/users/:id/plano', controller.atualizarPlano);
+
+router.get('/institution-requests', institutionInterestController.listar);
+router.get('/institution-requests/:id', institutionInterestController.obter);
+router.patch('/institution-requests/:id/status', institutionInterestController.atualizarStatus);
+router.post('/institution-requests/:id/approve', institutionInterestController.aprovar);
 
 router.get('/observabilidade', async (req, res, next) => {
   try {

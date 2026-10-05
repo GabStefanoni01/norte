@@ -193,6 +193,75 @@ async function listarParticipantes(institutionId, userId) {
   return result.rows;
 }
 
+async function dashboard(institutionId, userId) {
+  const membro = await obterMembro(institutionId, userId);
+  if (!membro || membro.status !== 'ativo' || !['gestor', 'administrador'].includes(membro.role)) {
+    const err = new Error('Sem permissão para visualizar o dashboard');
+    err.status = 403;
+    throw err;
+  }
+
+  const [total, ativos, perfis, trilhas, progresso] = await Promise.all([
+    pool.query('SELECT COUNT(*)::int AS total FROM institution_memberships WHERE institution_id = $1', [institutionId]),
+    pool.query(`SELECT COUNT(*)::int AS total FROM institution_memberships WHERE institution_id = $1 AND status = 'ativo'`, [institutionId]),
+    pool.query(`SELECT COUNT(DISTINCT p.user_id)::int AS total
+                 FROM institution_memberships m
+                 JOIN profiles p ON p.user_id = m.user_id
+                WHERE m.institution_id = $1 AND m.status = 'ativo'`, [institutionId]),
+    pool.query('SELECT COUNT(*)::int AS total FROM institution_trails WHERE institution_id = $1 AND ativa = true', [institutionId]),
+    pool.query(`SELECT COALESCE(ROUND(AVG(progresso), 2), 0)::numeric AS media
+                 FROM institution_trail_members tm
+                 JOIN institution_trails t ON t.id = tm.trail_id
+                WHERE t.institution_id = $1 AND t.ativa = true`, [institutionId]),
+  ]);
+
+  return {
+    institution: { id: institutionId, nome: membro.institution_nome, tipo: membro.institution_tipo },
+    participantes: { total: total.rows[0].total, ativos: ativos.rows[0].total },
+    perfisCompletos: perfis.rows[0].total,
+    trilhasAtivas: trilhas.rows[0].total,
+    progressoMedio: Number(progresso.rows[0].media),
+  };
+}
+
+async function criarTrilha({ institutionId, titulo, descricao = null, userId }) {
+  const membro = await obterMembro(institutionId, userId);
+  if (!membro || membro.status !== 'ativo' || !['gestor', 'administrador'].includes(membro.role)) {
+    const err = new Error('Sem permissão para criar trilhas');
+    err.status = 403;
+    throw err;
+  }
+  if (!titulo?.trim()) {
+    const err = new Error('Título da trilha é obrigatório');
+    err.status = 400;
+    throw err;
+  }
+  const result = await pool.query(
+    `INSERT INTO institution_trails (institution_id, titulo, descricao)
+     VALUES ($1, $2, $3)
+     RETURNING id, institution_id, titulo, descricao, ativa, created_at, updated_at`,
+    [institutionId, titulo.trim(), descricao?.trim() || null],
+  );
+  return result.rows[0];
+}
+
+async function listarTrilhas(institutionId, userId) {
+  const membro = await obterMembro(institutionId, userId);
+  if (!membro || membro.status !== 'ativo') {
+    const err = new Error('Sem acesso à instituição');
+    err.status = 403;
+    throw err;
+  }
+  const result = await pool.query(
+    `SELECT id, institution_id, titulo, descricao, ativa, created_at, updated_at
+       FROM institution_trails
+      WHERE institution_id = $1
+      ORDER BY created_at DESC`,
+    [institutionId],
+  );
+  return result.rows;
+}
+
 async function atualizarMembro(institutionId, memberId, role, status, userId) {
   const gestor = await obterMembro(institutionId, userId);
   if (!gestor || gestor.status !== 'ativo' || !['gestor', 'administrador'].includes(gestor.role)) {
@@ -230,4 +299,4 @@ async function atualizarMembro(institutionId, memberId, role, status, userId) {
   return result.rows[0];
 }
 
-module.exports = { TIPOS, ROLES, criar, criarConvite, aceitarConvite, listarDoUsuario, listarParticipantes, atualizarMembro };
+module.exports = { TIPOS, ROLES, criar, criarConvite, aceitarConvite, listarDoUsuario, listarParticipantes, atualizarMembro, dashboard, criarTrilha, listarTrilhas };

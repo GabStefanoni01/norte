@@ -36,7 +36,8 @@ function iniciarScheduler() {
     return;
   }
 
-  cron.schedule('0 8 * * *', sincronizarOportunidades);\n  cron.schedule('0 9 * * *', executarEngajamento);
+  cron.schedule('0 8 * * *', sincronizarOportunidades);
+    cron.schedule('0 9 * * *', executarEngajamento);
 
   // Recupera jobs que ficaram running ou aguardando retry antes de disparar
   // uma nova sincronização diária.

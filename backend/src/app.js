@@ -23,6 +23,7 @@ const policyRoutes = require('./modules/policy/policy.routes');
 const billingRoutes = require('./modules/billing/billing.routes');
 const opportunitiesRoutes = require('./modules/opportunities/opportunities.routes');
 const institutionsRoutes = require('./modules/institutions/institutions.routes');
+const institutionInterestRoutes = require('./modules/institution-interest/institution-interest.routes');
 
 const app = express();
 
@@ -88,6 +89,8 @@ app.use('/contact', contactRoutes);
 app.use('/politica', policyRoutes);
 app.use('/billing', billingRoutes);
 app.use('/opportunities', opportunitiesRoutes);
+app.use('/institutions', institutionsRoutes);
+app.use('/institution-interest', institutionInterestRoutes);
 
 app.use(errorHandler);
 

@@ -7,7 +7,8 @@ const { executarRotinaDeLembretes, enviarLembretesDeProgresso, enviarLembretesDe
 const { enviarSolicitacoesRetroativas, enviarSolicitacaoParaUsuario } = require('../policy/policy.service');
 const pool = require('../../database/pool');
 const metrics = require('../../utils/metrics');
-const { dispararSincronizacao } = require('../opportunities/opportunities.job');\nconst { jobspipeCircuit } = require('../opportunities/opportunities.collector');
+const { dispararSincronizacao } = require('../opportunities/opportunities.job');
+const { jobspipeCircuit } = require('../opportunities/opportunities.collector');
 const { statusSMTP } = require('../mail/mail.service');
 
 const router = Router();

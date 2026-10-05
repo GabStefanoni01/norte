@@ -9,6 +9,31 @@ async function criar(req, res, next) {
   }
 }
 
+async function criarConvite(req, res, next) {
+  try {
+    res.status(201).json(await service.criarConvite({
+      institutionId: Number(req.params.id),
+      email: req.body.email,
+      role: req.body.role,
+      userId: req.user.sub,
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function aceitarConvite(req, res, next) {
+  try {
+    res.json(await service.aceitarConvite({
+      token: req.body.token,
+      userId: req.user.sub,
+      email: req.user.email,
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function listar(req, res, next) {
   try {
     res.json(await service.listarDoUsuario(req.user.sub));
@@ -40,4 +65,4 @@ async function atualizarMembro(req, res, next) {
   }
 }
 
-module.exports = { criar, listar, listarParticipantes, atualizarMembro };
+module.exports = { criar, criarConvite, aceitarConvite, listar, listarParticipantes, atualizarMembro };

@@ -7,7 +7,7 @@ const { executarRotinaDeLembretes, enviarLembretesDeProgresso, enviarLembretesDe
 const { enviarSolicitacoesRetroativas, enviarSolicitacaoParaUsuario } = require('../policy/policy.service');
 const pool = require('../../database/pool');
 const metrics = require('../../utils/metrics');
-const { dispararSincronizacao } = require('../opportunities/opportunities.job');
+const { dispararSincronizacao } = require('../opportunities/opportunities.job');\nconst { jobspipeCircuit } = require('../opportunities/opportunities.collector');
 const { statusSMTP } = require('../mail/mail.service');
 
 const router = Router();
@@ -31,7 +31,7 @@ router.get('/observabilidade', async (req, res, next) => {
       uptimeSeconds: Math.floor(process.uptime()),
       memory: process.memoryUsage(),
       requests: metrics.snapshot(),
-      collector: result.rows[0] || { status: 'idle' },
+      collector: result.rows[0] || { status: 'idle' },\n      circuitBreakers: [jobspipeCircuit.snapshot()],
     });
   } catch (err) {
     next(err);

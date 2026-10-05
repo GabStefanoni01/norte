@@ -48,7 +48,7 @@ app.get('/ready', async (req, res) => {
       SELECT
         to_regclass('public.users') AS users,
         to_regclass('public.opportunities') AS opportunities,
-        to_regclass('public.saved_opportunities') AS saved_opportunities
+        to_regclass('public.saved_opportunities') AS saved_opportunities,\n        to_regclass('public.email_dispatch_log') AS email_dispatch_log
     `);
 
     const schema = result.rows[0];

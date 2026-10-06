@@ -275,6 +275,12 @@ async function atualizarMembro(institutionId, memberId, role, status, userId) {
     err.status = 400;
     throw err;
   }
+
+  if (role && role !== gestor.role && gestor.role !== 'administrador') {
+    const err = new Error('Apenas o administrador institucional pode alterar papéis');
+    err.status = 403;
+    throw err;
+  }
   if (status && !['ativo', 'inativo', 'pendente'].includes(status)) {
     const err = new Error('Status de vínculo inválido');
     err.status = 400;

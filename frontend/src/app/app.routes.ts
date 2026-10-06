@@ -56,6 +56,16 @@ export const routes: Routes = [
       import('./pages/reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
   },
   {
+    path: 'convites/instituicao',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/institution-invite/institution-invite.component').then((m) => m.InstitutionInviteComponent),
+  },
+  {
+    path: 'instituicao/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/institution-dashboard/institution-dashboard.component').then((m) => m.InstitutionDashboardComponent),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),

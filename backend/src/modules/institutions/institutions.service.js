@@ -305,4 +305,136 @@ async function atualizarMembro(institutionId, memberId, role, status, userId) {
   return result.rows[0];
 }
 
-module.exports = { TIPOS, ROLES, criar, criarConvite, aceitarConvite, listarDoUsuario, listarParticipantes, atualizarMembro, dashboard, criarTrilha, listarTrilhas };
+
+async function listarTrilhaMembros(institutionId, trailId, userId) {
+  const membro = await obterMembro(institutionId, userId);
+  if (!membro || membro.status !== 'ativo' || !['gestor', 'administrador'].includes(membro.role)) {
+    const err = new Error('Sem permissão para gerenciar esta trilha');
+    err.status = 403;
+    throw err;
+  }
+  const result = await pool.query(
+    `SELECT tm.id, tm.user_id, u.nome, u.email, tm.status, tm.progresso,
+            tm.created_at, tm.updated_at
+       FROM institution_trail_members tm
+       JOIN institution_trails t ON t.id = tm.trail_id
+       JOIN users u ON u.id = tm.user_id
+      WHERE t.id = $1 AND t.institution_id = $2
+      ORDER BY u.nome ASC`,
+    [trailId, institutionId],
+  );
+  return result.rows;
+}
+
+async function atribuirParticipanteTrilha({ institutionId, trailId, userId, participanteId, requesterId }) {
+  const membro = await obterMembro(institutionId, requesterId);
+  if (!membro || membro.status !== 'ativo' || !['gestor', 'administrador'].includes(membro.role)) {
+    const err = new Error('Sem permissão para atribuir participantes');
+    err.status = 403;
+    throw err;
+  }
+  const trail = await pool.query(
+    'SELECT id FROM institution_trails WHERE id = $1 AND institution_id = $2 AND ativa = true',
+    [trailId, institutionId],
+  );
+  if (!trail.rows[0]) {
+    const err = new Error('Trilha não encontrada');
+    err.status = 404;
+    throw err;
+  }
+  const participante = await pool.query(
+    `SELECT id FROM institution_memberships
+      WHERE institution_id = $1 AND user_id = $2 AND status = 'ativo'`,
+    [institutionId, participanteId],
+  );
+  if (!participante.rows[0]) {
+    const err = new Error('Participante não pertence à instituição ou está inativo');
+    err.status = 400;
+    throw err;
+  }
+  const result = await pool.query(
+    `INSERT INTO institution_trail_members (trail_id, user_id, status, progresso)
+     VALUES ($1, $2, 'pendente', 0)
+     ON CONFLICT (trail_id, user_id) DO UPDATE
+       SET updated_at = NOW()
+     RETURNING id, trail_id, user_id, status, progresso, created_at, updated_at`,
+    [trailId, participanteId],
+  );
+  return result.rows[0];
+}
+
+async function minhasJornadas(institutionId, userId) {
+  const membro = await obterMembro(institutionId, userId);
+  if (!membro || membro.status !== 'ativo') {
+    const err = new Error('Sem acesso à instituição');
+    err.status = 403;
+    throw err;
+  }
+  const result = await pool.query(
+    `SELECT tm.id AS membership_id, t.id AS trail_id, t.titulo, t.descricao, t.ativa,
+            tm.status, tm.progresso, tm.created_at, tm.updated_at
+       FROM institution_trail_members tm
+       JOIN institution_trails t ON t.id = tm.trail_id
+      WHERE t.institution_id = $1 AND tm.user_id = $2 AND t.ativa = true
+      ORDER BY tm.updated_at DESC, t.titulo ASC`,
+    [institutionId, userId],
+  );
+  return result.rows;
+}
+
+async function atualizarProgressoTrilha({ institutionId, trailId, userId, status, progresso, requesterId }) {
+  const requester = await obterMembro(institutionId, requesterId);
+  if (!requester || requester.status !== 'ativo') {
+    const err = new Error('Sem acesso à instituição');
+    err.status = 403;
+    throw err;
+  }
+  const podeGerenciar = ['gestor', 'administrador'].includes(requester.role);
+  if (requesterId !== userId && !podeGerenciar) {
+    const err = new Error('Você só pode atualizar seu próprio progresso');
+    err.status = 403;
+    throw err;
+  }
+  if (status && !['pendente', 'em_andamento', 'concluida'].includes(status)) {
+    const err = new Error('Status de jornada inválido');
+    err.status = 400;
+    throw err;
+  }
+  const numericProgress = progresso === undefined || progresso === null ? null : Number(progresso);
+  if (numericProgress !== null && (!Number.isFinite(numericProgress) || numericProgress < 0 || numericProgress > 100)) {
+    const err = new Error('Progresso deve estar entre 0 e 100');
+    err.status = 400;
+    throw err;
+  }
+  if (numericProgress !== null && numericProgress === 100 && !status) status = 'concluida';
+  if (status === 'concluida') progresso = 100;
+  const result = await pool.query(
+    `UPDATE institution_trail_members tm
+        SET status = COALESCE($1, status),
+            progresso = COALESCE($2, progresso),
+            updated_at = NOW()
+      FROM institution_trails t
+      WHERE tm.id = $3 AND tm.trail_id = t.id
+        AND t.id = $4 AND t.institution_id = $5
+      RETURNING tm.id AS membership_id, tm.trail_id, tm.user_id, tm.status, tm.progresso, tm.updated_at`,
+    [status || null, numericProgress, await getTrailMemberId(institutionId, trailId, userId), trailId, institutionId],
+  );
+  if (!result.rows[0]) {
+    const err = new Error('Participação na trilha não encontrada');
+    err.status = 404;
+    throw err;
+  }
+  return result.rows[0];
+}
+
+async function getTrailMemberId(institutionId, trailId, userId) {
+  const result = await pool.query(
+    `SELECT tm.id FROM institution_trail_members tm
+       JOIN institution_trails t ON t.id = tm.trail_id
+      WHERE tm.trail_id = $1 AND tm.user_id = $2 AND t.institution_id = $3`,
+    [trailId, userId, institutionId],
+  );
+  return result.rows[0]?.id || null;
+}
+
+module.exports = { TIPOS, ROLES, criar, criarConvite, aceitarConvite, listarDoUsuario, listarParticipantes, atualizarMembro, dashboard, criarTrilha, listarTrilhas, listarTrilhaMembros, atribuirParticipanteTrilha, minhasJornadas, atualizarProgressoTrilha };

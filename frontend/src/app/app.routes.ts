@@ -30,6 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/contact/contact.component').then((m) => m.ContactComponent),
   },
   {
+    path: 'instituicoes',
+    loadComponent: () => import('./pages/institution-interest/institution-interest.component').then((m) => m.InstitutionInterestComponent),
+  },
+  {
     path: 'entrar',
     loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
   },

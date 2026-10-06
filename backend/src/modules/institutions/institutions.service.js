@@ -195,8 +195,8 @@ async function listarParticipantes(institutionId, userId) {
 
 async function dashboard(institutionId, userId) {
   const membro = await obterMembro(institutionId, userId);
-  if (!membro || membro.status !== 'ativo' || !['gestor', 'administrador'].includes(membro.role)) {
-    const err = new Error('Sem permissão para visualizar o dashboard');
+  if (!membro || membro.status !== 'ativo') {
+    const err = new Error('Sem acesso à instituição');
     err.status = 403;
     throw err;
   }
@@ -216,7 +216,7 @@ async function dashboard(institutionId, userId) {
   ]);
 
   return {
-    institution: { id: institutionId, nome: membro.institution_nome, tipo: membro.institution_tipo },
+    institution: { id: institutionId, nome: membro.institution_nome, tipo: membro.institution_tipo, role: membro.role },
     participantes: { total: total.rows[0].total, ativos: ativos.rows[0].total },
     perfisCompletos: perfis.rows[0].total,
     trilhasAtivas: trilhas.rows[0].total,

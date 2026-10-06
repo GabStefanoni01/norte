@@ -20,6 +20,7 @@ export class InstitutionDashboardComponent implements OnInit {
   carregando = signal(true);
   erro = signal<string | null>(null);
   mensagem = signal<string | null>(null);
+  role = signal<'participante' | 'gestor' | 'administrador'>('participante');
   conviteEmail = '';
   conviteRole: 'participante' | 'gestor' | 'administrador' = 'participante';
   trilhaTitulo = '';
@@ -35,7 +36,10 @@ export class InstitutionDashboardComponent implements OnInit {
     this.institutions.dashboard(this.id).subscribe({
       next: (data) => {
         this.dashboard.set(data);
-        this.institutions.participantes(this.id).subscribe((p) => this.participantes.set(p));
+        this.role.set(data.institution.role);
+        if (data.institution.role !== 'participante') {
+          this.institutions.participantes(this.id).subscribe((p) => this.participantes.set(p));
+        }
         this.institutions.trilhas(this.id).subscribe((t) => {
           this.trilhas.set(t);
           this.carregando.set(false);

@@ -14,7 +14,7 @@ export interface Institution {
 }
 
 export interface InstitutionDashboard {
-  institution: { id: number; nome: string; tipo: string };
+  institution: { id: number; nome: string; tipo: string; role: 'participante' | 'gestor' | 'administrador' };
   participantes: { total: number; ativos: number };
   perfisCompletos: number;
   trilhasAtivas: number;

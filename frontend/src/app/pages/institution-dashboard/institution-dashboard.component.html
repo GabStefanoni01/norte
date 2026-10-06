@@ -32,7 +32,70 @@
           <article class="norte-card p-5"><p class="norte-eyebrow">Progresso médio</p><p class="mt-2 text-3xl font-semibold text-norte-accent-light">{{ d.progressoMedio }}%</p><p class="mt-1 text-xs text-white/35">nas trilhas ativas</p></article>
         </section>
 
-        @if (role() !== 'participante') {
+        @if (role() === 'participante') {
+          <section class="mt-8 norte-card p-6">
+            <p class="norte-eyebrow">Recomendação</p>
+            <h2 class="mt-2 font-display text-2xl">Trilhas mais alinhadas ao seu perfil</h2>
+            <p class="mt-2 text-sm text-white/40">O Norte compara seu perfil com os critérios definidos pela instituição.</p>
+
+            @if (matches().length === 0) {
+              <p class="mt-5 text-sm text-white/40">Ainda não existem trilhas com critérios suficientes para gerar recomendações.</p>
+            } @else {
+              <div class="mt-5 grid gap-4 lg:grid-cols-2">
+                @for (item of matches(); track item.id) {
+                  <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 class="font-semibold">{{ item.titulo }}</h3>
+                        @if (item.descricao) { <p class="mt-1 text-sm text-white/40">{{ item.descricao }}</p> }
+                      </div>
+                      <span class="shrink-0 text-2xl font-semibold text-norte-accent-light">{{ item.match.percentual }}%</span>
+                    </div>
+                    <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                      <div class="h-full rounded-full bg-norte-accent" [style.width.%]="item.match.percentual"></div>
+                    </div>
+                    @if (item.match.motivos.length) {
+                      <div class="mt-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-white/45">Por que combina</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                          @for (motivo of item.match.motivos; track motivo.criterio) {
+                            <span class="rounded-full border border-norte-accent/20 bg-norte-accent/5 px-3 py-1 text-xs text-white/65">{{ motivo.criterio }} · {{ motivo.itens.join(', ') }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (item.match.lacunas.length) {
+                      <div class="mt-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-white/45">Pontos a desenvolver</p>
+                        <p class="mt-2 text-xs text-white/40">{{ item.match.lacunas.length }} critério(s) ainda não atendido(s).</p>
+                      </div>
+                    }
+                  </article>
+                }
+              </div>
+            }
+          </section>
+
+          <section class="mt-8 norte-card p-6">
+            <p class="norte-eyebrow">Jornadas</p>
+            @if (minhasJornadas().length === 0) {
+              <p class="mt-4 text-sm text-white/40">Você ainda não foi adicionado a nenhuma jornada.</p>
+            } @else {
+              <div class="mt-4 grid gap-3">
+                @for (jornada of minhasJornadas(); track jornada.membership_id) {
+                  <article class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                    <div class="flex items-center justify-between gap-4">
+                      <div><h3 class="font-medium">{{ jornada.titulo }}</h3>@if (jornada.descricao) { <p class="mt-1 text-sm text-white/40">{{ jornada.descricao }}</p> }</div>
+                      <span class="text-sm text-norte-accent-light">{{ jornada.progresso }}%</span>
+                    </div>
+                    <input type="range" min="0" max="100" [value]="jornada.progresso" (change)="atualizarProgresso(jornada, $any($event.target).value)" class="mt-4 w-full accent-norte-accent" />
+                    <p class="mt-2 text-xs text-white/35">{{ jornada.status === 'concluida' ? 'Concluída' : jornada.status === 'em_andamento' ? 'Em andamento' : 'Pendente' }}</p>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        } @else {
           <section class="mt-8 grid gap-6 lg:grid-cols-2">
             <article class="norte-card p-6">
               <p class="norte-eyebrow">Convidar</p>
@@ -77,57 +140,83 @@
               </div>
             }
           </section>
-        }
 
-        <section class="mt-8 norte-card p-6">
-          <p class="norte-eyebrow">Jornadas</p>
-          @if (role() === 'participante') {
-            @if (minhasJornadas().length === 0) {
-              <p class="mt-4 text-sm text-white/40">Você ainda não foi adicionado a nenhuma jornada.</p>
-            } @else {
-              <div class="mt-4 grid gap-3">
-                @for (jornada of minhasJornadas(); track jornada.membership_id) {
-                  <article class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                    <div class="flex items-center justify-between gap-4">
-                      <div><h3 class="font-medium">{{ jornada.titulo }}</h3>@if (jornada.descricao) { <p class="mt-1 text-sm text-white/40">{{ jornada.descricao }}</p> }</div>
-                      <span class="text-sm text-norte-accent-light">{{ jornada.progresso }}%</span>
-                    </div>
-                    <input type="range" min="0" max="100" [value]="jornada.progresso" (change)="atualizarProgresso(jornada, $any($event.target).value)" class="mt-4 w-full accent-norte-accent" />
-                    <p class="mt-2 text-xs text-white/35">{{ jornada.status === 'concluida' ? 'Concluída' : jornada.status === 'em_andamento' ? 'Em andamento' : 'Pendente' }}</p>
-                  </article>
-                }
-              </div>
-            }
-          } @else {
-            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <section class="mt-8">
+            <div>
+              <p class="norte-eyebrow">Gestão de jornadas</p>
+              <h2 class="mt-2 font-display text-2xl">Critérios e aderência</h2>
+              <p class="mt-2 text-sm text-white/40">Defina critérios objetivos para que o Norte recomende trilhas e mostre quais participantes têm maior aderência.</p>
+            </div>
+
+            <div class="mt-5 grid gap-5 xl:grid-cols-2">
               @for (trilha of trilhas(); track trilha.id) {
-                <article class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                  <h3 class="font-medium">{{ trilha.titulo }}</h3>
-                  @if (trilha.descricao) { <p class="mt-1 text-sm text-white/40">{{ trilha.descricao }}</p> }
-                  <div class="mt-4 flex gap-2">
-                    <select [value]="participanteParaTrilha()[trilha.id] ?? ''" (change)="selecionarParticipante(trilha.id, $any($event.target).value)" class="min-w-0 flex-1 rounded-lg border border-white/10 bg-norte-900 px-3 py-2 text-xs text-white">
-                      <option value="">Adicionar participante...</option>
-                      @for (member of participantes(); track member.id) {
-                        @if (member.status === 'ativo' && member.role === 'participante') {
-                          <option [value]="member.id">{{ member.nome }}</option>
-                        }
-                      }
-                    </select>
-                    <button (click)="atribuir(trilha.id)" class="norte-button-primary px-3 py-2 text-xs">Adicionar</button>
+                <article class="norte-card p-5">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="text-xs uppercase tracking-wide text-white/35">Trilha</p>
+                      <h3 class="mt-1 font-semibold">{{ trilha.titulo }}</h3>
+                      @if (trilha.descricao) { <p class="mt-1 text-sm text-white/40">{{ trilha.descricao }}</p> }
+                    </div>
                   </div>
-                  <div class="mt-3 space-y-2">
-                    @for (member of membrosTrilha()[trilha.id] ?? []; track member.id) {
-                      <div class="flex items-center justify-between text-xs">
-                        <span class="text-white/65">{{ member.nome }}</span>
-                        <span class="text-norte-accent-light">{{ member.progresso }}%</span>
+
+                  <div class="mt-5 grid gap-3">
+                    <input [ngModel]="criterio(trilha.id, 'interesses')" (ngModelChange)="atualizarCriterio(trilha.id, 'interesses', $event)" placeholder="Interesses: tecnologia, gestão, saúde" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-norte-accent" />
+                    <input [ngModel]="criterio(trilha.id, 'habilidades')" (ngModelChange)="atualizarCriterio(trilha.id, 'habilidades', $event)" placeholder="Habilidades: comunicação, Excel, liderança" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-norte-accent" />
+                    <input [ngModel]="criterio(trilha.id, 'escolaridades')" (ngModelChange)="atualizarCriterio(trilha.id, 'escolaridades', $event)" placeholder="Escolaridades: ensino médio, superior" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-norte-accent" />
+                    <input [ngModel]="criterio(trilha.id, 'carreiras')" (ngModelChange)="atualizarCriterio(trilha.id, 'carreiras', $event)" placeholder="Carreiras: administração, tecnologia" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-norte-accent" />
+                    <input [ngModel]="criterio(trilha.id, 'cidades')" (ngModelChange)="atualizarCriterio(trilha.id, 'cidades', $event)" placeholder="Cidades: São Paulo, Santo André" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none focus:border-norte-accent" />
+                  </div>
+                  <p class="mt-2 text-xs text-white/30">Separe os valores por vírgula.</p>
+                  <button (click)="salvarCriterios(trilha.id)" class="norte-button-primary mt-4">Salvar critérios</button>
+
+                  <div class="mt-6 border-t border-white/10 pt-5">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-semibold">Maior aderência</h4>
+                      <span class="text-xs text-white/35">{{ (matchesDaTrilha()[trilha.id] || []).length }} perfis avaliados</span>
+                    </div>
+                    @if ((matchesDaTrilha()[trilha.id] || []).length === 0) {
+                      <p class="mt-3 text-sm text-white/40">Defina critérios para começar a encontrar participantes.</p>
+                    } @else {
+                      <div class="mt-3 space-y-2">
+                        @for (item of matchesDaTrilha()[trilha.id]; track item.user.id) {
+                          <div class="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-3 py-3">
+                            <div>
+                              <p class="text-sm font-medium">{{ item.user.nome }}</p>
+                              <p class="text-xs text-white/35">{{ item.user.email }}</p>
+                            </div>
+                            <span class="text-lg font-semibold text-norte-accent-light">{{ item.match.percentual }}%</span>
+                          </div>
+                        }
                       </div>
                     }
+                  </div>
+
+                  <div class="mt-6 border-t border-white/10 pt-5">
+                    <div class="flex gap-2">
+                      <select [value]="participanteParaTrilha()[trilha.id] ?? ''" (change)="selecionarParticipante(trilha.id, $any($event.target).value)" class="min-w-0 flex-1 rounded-lg border border-white/10 bg-norte-900 px-3 py-2 text-xs text-white">
+                        <option value="">Adicionar participante...</option>
+                        @for (member of participantes(); track member.id) {
+                          @if (member.status === 'ativo' && member.role === 'participante') {
+                            <option [value]="member.id">{{ member.nome }}</option>
+                          }
+                        }
+                      </select>
+                      <button (click)="atribuir(trilha.id)" class="norte-button-primary px-3 py-2 text-xs">Adicionar</button>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                      @for (member of membrosTrilha()[trilha.id] || []; track member.id) {
+                        <div class="flex items-center justify-between text-xs">
+                          <span class="text-white/65">{{ member.nome }}</span>
+                          <span class="text-norte-accent-light">{{ member.progresso }}%</span>
+                        </div>
+                      }
+                    </div>
                   </div>
                 </article>
               }
             </div>
-          }
-        </section>
+          </section>
+        }
       }
     }
   </div>

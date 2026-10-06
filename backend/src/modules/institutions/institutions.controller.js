@@ -82,4 +82,32 @@ async function atualizarMembro(req, res, next) {
   }
 }
 
-module.exports = { criar, criarConvite, aceitarConvite, dashboard, criarTrilha, listarTrilhas, listar, listarParticipantes, atualizarMembro };
+async function listarTrilhaMembros(req, res, next) {
+  try { res.json(await service.listarTrilhaMembros(Number(req.params.id), Number(req.params.trailId), req.user.sub)); } catch (err) { next(err); }
+}
+async function atribuirParticipanteTrilha(req, res, next) {
+  try {
+    res.status(201).json(await service.atribuirParticipanteTrilha({
+      institutionId: Number(req.params.id),
+      trailId: Number(req.params.trailId),
+      participanteId: Number(req.body.participanteId),
+      requesterId: req.user.sub,
+    }));
+  } catch (err) { next(err); }
+}
+async function minhasJornadas(req, res, next) {
+  try { res.json(await service.minhasJornadas(Number(req.params.id), req.user.sub)); } catch (err) { next(err); }
+}
+async function atualizarProgressoTrilha(req, res, next) {
+  try {
+    res.json(await service.atualizarProgressoTrilha({
+      institutionId: Number(req.params.id),
+      trailId: Number(req.params.trailId),
+      userId: Number(req.body.userId || req.user.sub),
+      status: req.body.status,
+      progresso: req.body.progresso,
+      requesterId: req.user.sub,
+    }));
+  } catch (err) { next(err); }
+}
+module.exports = { criar, criarConvite, aceitarConvite, dashboard, criarTrilha, listarTrilhas, listar, listarParticipantes, atualizarMembro, listarTrilhaMembros, atribuirParticipanteTrilha, minhasJornadas, atualizarProgressoTrilha };

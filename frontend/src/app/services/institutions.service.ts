@@ -53,14 +53,46 @@ export interface InstitutionJourney {
   updated_at: string;
 }
 
+export interface InstitutionTrailCriteria {
+  interesses?: string[];
+  habilidades?: string[];
+  escolaridades?: string[];
+  carreiras?: string[];
+  cidades?: string[];
+}
+
+export interface InstitutionTrailMatch {
+  percentual: number;
+  criteriosAtendidos: number;
+  criteriosTotais: number;
+  motivos: Array<{ criterio: string; itens: string[]; peso: number }>;
+  lacunas: Array<{ criterio: string; itens: string[] }>;
+  semCriterios: boolean;
+}
+
 export interface InstitutionTrail {
   id: number;
   institution_id: number;
   titulo: string;
   descricao?: string | null;
+  criterios?: InstitutionTrailCriteria;
   ativa: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface InstitutionTrailMatchResult extends InstitutionTrail {
+  match: InstitutionTrailMatch;
+}
+
+export interface InstitutionTrailParticipantMatch {
+  user: {
+    id: number;
+    nome: string;
+    email: string;
+    role: 'participante' | 'gestor' | 'administrador';
+  };
+  match: InstitutionTrailMatch;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -85,6 +117,25 @@ export class InstitutionsService {
 
   criarTrilha(id: number, titulo: string, descricao?: string) {
     return this.api.post<InstitutionTrail>(`/institutions/${id}/trilhas`, { titulo, descricao });
+  }
+
+  atualizarCriterios(institutionId: number, trailId: number, criterios: InstitutionTrailCriteria) {
+    return this.api.patch<InstitutionTrail>(
+      `/institutions/${institutionId}/trilhas/${trailId}/criterios`,
+      { criterios },
+    );
+  }
+
+  matchesParaUsuario(institutionId: number, limite = 10) {
+    return this.api.get<InstitutionTrailMatchResult[]>(
+      `/institutions/${institutionId}/trilhas/matches?limite=${limite}`,
+    );
+  }
+
+  matchesDaTrilha(institutionId: number, trailId: number, limite = 50) {
+    return this.api.get<InstitutionTrailParticipantMatch[]>(
+      `/institutions/${institutionId}/trilhas/${trailId}/matches?limite=${limite}`,
+    );
   }
 
   convidar(id: number, email: string, role: 'participante' | 'gestor' | 'administrador' = 'participante') {

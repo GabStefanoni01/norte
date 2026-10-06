@@ -239,7 +239,7 @@ async function criarTrilha({ institutionId, titulo, descricao = null, userId }) 
   const result = await pool.query(
     `INSERT INTO institution_trails (institution_id, titulo, descricao)
      VALUES ($1, $2, $3)
-     RETURNING id, institution_id, titulo, descricao, ativa, created_at, updated_at`,
+     RETURNING id, institution_id, titulo, descricao, criterios, ativa, created_at, updated_at`,
     [institutionId, titulo.trim(), descricao?.trim() || null],
   );
   return result.rows[0];

@@ -1,0 +1,90 @@
+<main class="min-h-screen bg-norte-950 px-5 py-8 text-white sm:px-8 lg:px-10">
+  <div class="mx-auto max-w-7xl">
+    <a routerLink="/dashboard" class="text-sm text-white/40 hover:text-white">← Voltar ao dashboard</a>
+
+    @if (carregando()) {
+      <div class="mt-10 grid gap-4 md:grid-cols-4">
+        @for (item of [1,2,3,4]; track item) { <div class="norte-card h-32 animate-pulse"></div> }
+      </div>
+    } @else if (erro()) {
+      <section class="norte-card mt-10 p-7">
+        <h1 class="font-display text-2xl">Não foi possível acessar</h1>
+        <p class="mt-2 text-white/50">{{ erro() }}</p>
+      </section>
+    } @else if (dashboard(); as d) {
+      <header class="mt-10">
+        <p class="norte-eyebrow">Espaço institucional</p>
+        <h1 class="mt-2 font-display text-4xl">{{ d.institution.nome }}</h1>
+        <p class="mt-2 text-white/45">{{ d.institution.tipo }} · gestão de jornadas profissionais</p>
+      </header>
+
+      @if (mensagem()) {
+        <div class="mt-5 rounded-xl border border-norte-accent/20 bg-norte-accent/5 px-4 py-3 text-sm text-norte-accent-light">{{ mensagem() }}</div>
+      }
+
+      <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="norte-card p-5"><p class="norte-eyebrow">Participantes</p><p class="mt-2 text-3xl font-semibold">{{ d.participantes.total }}</p><p class="mt-1 text-xs text-white/35">{{ d.participantes.ativos }} ativos</p></article>
+        <article class="norte-card p-5"><p class="norte-eyebrow">Perfis</p><p class="mt-2 text-3xl font-semibold">{{ d.perfisCompletos }}</p><p class="mt-1 text-xs text-white/35">com perfil criado</p></article>
+        <article class="norte-card p-5"><p class="norte-eyebrow">Trilhas</p><p class="mt-2 text-3xl font-semibold">{{ d.trilhasAtivas }}</p><p class="mt-1 text-xs text-white/35">ativas</p></article>
+        <article class="norte-card p-5"><p class="norte-eyebrow">Progresso médio</p><p class="mt-2 text-3xl font-semibold text-norte-accent-light">{{ d.progressoMedio }}%</p><p class="mt-1 text-xs text-white/35">nas trilhas ativas</p></article>
+      </section>
+
+      <section class="mt-8 grid gap-6 lg:grid-cols-2">
+        <article class="norte-card p-6">
+          <p class="norte-eyebrow">Convidar</p>
+          <h2 class="mt-2 font-display text-2xl">Adicionar uma pessoa</h2>
+          <div class="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input [(ngModel)]="conviteEmail" type="email" placeholder="email@empresa.com" class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none focus:border-norte-accent" />
+            <select [(ngModel)]="conviteRole" class="rounded-xl border border-white/10 bg-norte-900 px-4 py-3 text-white outline-none">
+              <option value="participante">Participante</option>
+              <option value="gestor">Gestor</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </div>
+          <button (click)="convidar()" class="norte-button-primary mt-4">Enviar convite</button>
+        </article>
+
+        <article class="norte-card p-6">
+          <p class="norte-eyebrow">Trilhas</p>
+          <h2 class="mt-2 font-display text-2xl">Criar jornada institucional</h2>
+          <input [(ngModel)]="trilhaTitulo" placeholder="Nome da trilha" class="mt-5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none focus:border-norte-accent" />
+          <textarea [(ngModel)]="trilhaDescricao" rows="2" placeholder="Descrição opcional" class="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none focus:border-norte-accent"></textarea>
+          <button (click)="criarTrilha()" class="norte-button-primary mt-3">Criar trilha</button>
+        </article>
+      </section>
+
+      <section class="mt-8 norte-card overflow-hidden p-0">
+        <div class="border-b border-white/10 px-5 py-4"><h2 class="font-semibold">Participantes</h2></div>
+        @if (participantes().length === 0) {
+          <p class="p-6 text-sm text-white/40">Nenhum participante vinculado ainda.</p>
+        } @else {
+          <div class="divide-y divide-white/5">
+            @for (member of participantes(); track member.id) {
+              <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p class="font-medium">{{ member.nome }}</p><p class="text-xs text-white/35">{{ member.email }}</p></div>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-white/45">{{ member.role }}</span>
+                  <select [ngModel]="member.status" (ngModelChange)="atualizarMembro(member, $event)" class="rounded-lg border border-white/10 bg-norte-900 px-3 py-2 text-xs text-white">
+                    <option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="pendente">Pendente</option>
+                  </select>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="mt-8 norte-card p-6">
+        <p class="norte-eyebrow">Jornadas</p>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          @for (trilha of trilhas(); track trilha.id) {
+            <article class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <h3 class="font-medium">{{ trilha.titulo }}</h3>
+              @if (trilha.descricao) { <p class="mt-1 text-sm text-white/40">{{ trilha.descricao }}</p> }
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</main>

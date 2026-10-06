@@ -1,7 +1,17 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { InstitutionsService, InstitutionDashboard, InstitutionParticipant, InstitutionTrail, InstitutionTrailMember, InstitutionJourney } from '../../services/institutions.service';
+import {
+  InstitutionsService,
+  InstitutionDashboard,
+  InstitutionParticipant,
+  InstitutionTrail,
+  InstitutionTrailMember,
+  InstitutionJourney,
+  InstitutionTrailCriteria,
+  InstitutionTrailMatchResult,
+  InstitutionTrailParticipantMatch,
+} from '../../services/institutions.service';
 
 @Component({
   selector: 'norte-institution-dashboard',
@@ -28,6 +38,9 @@ export class InstitutionDashboardComponent implements OnInit {
   membrosTrilha = signal<Record<number, InstitutionTrailMember[]>>({});
   participanteParaTrilha = signal<Record<number, number | null>>({});
   minhasJornadas = signal<InstitutionJourney[]>([]);
+  matches = signal<InstitutionTrailMatchResult[]>([]);
+  matchesDaTrilha = signal<Record<number, InstitutionTrailParticipantMatch[]>>({});
+  criteriosEdicao = signal<Record<number, Record<keyof InstitutionTrailCriteria, string>>>({});
 
   ngOnInit() {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
@@ -46,9 +59,14 @@ export class InstitutionDashboardComponent implements OnInit {
         this.institutions.trilhas(this.id).subscribe((t) => {
           this.trilhas.set(t);
           if (data.institution.role === 'participante') {
+            this.carregarMatches();
             this.institutions.minhasJornadas(this.id).subscribe((j) => this.minhasJornadas.set(j));
           } else {
-            t.forEach((trail) => this.carregarMembrosTrilha(trail.id));
+            t.forEach((trail) => {
+              this.carregarMembrosTrilha(trail.id);
+              this.inicializarCriterios(trail);
+              this.carregarMatchesDaTrilha(trail.id);
+            });
           }
           this.carregando.set(false);
         });
@@ -57,6 +75,77 @@ export class InstitutionDashboardComponent implements OnInit {
         this.erro.set(err?.error?.error || 'Não foi possível acessar esta instituição.');
         this.carregando.set(false);
       },
+    });
+  }
+
+  carregarMatches() {
+    this.institutions.matchesParaUsuario(this.id).subscribe({
+      next: (matches) => this.matches.set(matches),
+      error: () => this.matches.set([]),
+    });
+  }
+
+  inicializarCriterios(trilha: InstitutionTrail) {
+    const criterios = trilha.criterios || {};
+    this.criteriosEdicao.update((atual) => ({
+      ...atual,
+      [trilha.id]: {
+        interesses: (criterios.interesses || []).join(', '),
+        habilidades: (criterios.habilidades || []).join(', '),
+        escolaridades: (criterios.escolaridades || []).join(', '),
+        carreiras: (criterios.carreiras || []).join(', '),
+        cidades: (criterios.cidades || []).join(', '),
+      },
+    }));
+  }
+
+  criterio(trailId: number, key: keyof InstitutionTrailCriteria) {
+    return this.criteriosEdicao()[trailId]?.[key] || '';
+  }
+
+  atualizarCriterio(trailId: number, key: keyof InstitutionTrailCriteria, value: string) {
+    this.criteriosEdicao.update((atual) => ({
+      ...atual,
+      [trailId]: {
+        ...(atual[trailId] || {
+          interesses: '', habilidades: '', escolaridades: '', carreiras: '', cidades: '',
+        }),
+        [key]: value,
+      },
+    }));
+  }
+
+  salvarCriterios(trailId: number) {
+    const atual = this.criteriosEdicao()[trailId];
+    if (!atual) return;
+
+    const criterios: InstitutionTrailCriteria = {
+      interesses: this.toList(atual.interesses),
+      habilidades: this.toList(atual.habilidades),
+      escolaridades: this.toList(atual.escolaridades),
+      carreiras: this.toList(atual.carreiras),
+      cidades: this.toList(atual.cidades),
+    };
+
+    this.institutions.atualizarCriterios(this.id, trailId, criterios).subscribe({
+      next: (trilha) => {
+        this.trilhas.update((lista) => lista.map((item) => item.id === trilha.id ? trilha : item));
+        this.inicializarCriterios(trilha);
+        this.carregarMatchesDaTrilha(trilha.id);
+        this.mensagem.set('Critérios de match atualizados.');
+      },
+      error: (err) => this.mensagem.set(err?.error?.error || 'Não foi possível salvar os critérios.'),
+    });
+  }
+
+  private toList(value: string) {
+    return value.split(',').map((item) => item.trim()).filter(Boolean).slice(0, 30);
+  }
+
+  carregarMatchesDaTrilha(trailId: number) {
+    this.institutions.matchesDaTrilha(this.id, trailId).subscribe({
+      next: (matches) => this.matchesDaTrilha.update((atual) => ({ ...atual, [trailId]: matches })),
+      error: () => this.matchesDaTrilha.update((atual) => ({ ...atual, [trailId]: [] })),
     });
   }
 
@@ -75,11 +164,14 @@ export class InstitutionDashboardComponent implements OnInit {
   criarTrilha() {
     if (!this.trilhaTitulo.trim()) return;
     this.institutions.criarTrilha(this.id, this.trilhaTitulo.trim(), this.trilhaDescricao.trim()).subscribe({
-      next: () => {
-        this.mensagem.set('Trilha criada com sucesso.');
+      next: (trilha) => {
+        this.mensagem.set('Trilha criada com sucesso. Agora defina os critérios de match.');
         this.trilhaTitulo = '';
         this.trilhaDescricao = '';
-        this.institutions.trilhas(this.id).subscribe((t) => this.trilhas.set(t));
+        this.trilhas.update((lista) => [trilha, ...lista]);
+        this.inicializarCriterios(trilha);
+        this.carregarMembrosTrilha(trilha.id);
+        this.carregarMatchesDaTrilha(trilha.id);
       },
       error: (err) => this.mensagem.set(err?.error?.error || 'Não foi possível criar a trilha.'),
     });

@@ -1,6 +1,6 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations.service';
@@ -34,12 +34,14 @@ export class RegisterComponent implements OnInit {
   private auth = inject(AuthService);
   private locations = inject(LocationsService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   erro = signal<string | null>(null);
   carregando = signal(false);
   carregandoCidades = signal(false);
   estados = signal<Estado[]>([]);
   cidades = signal<Cidade[]>([]);
+  redirectTo = signal('');
 
   hoje = new Date().toISOString().slice(0, 10);
   nivelForca = NIVEIS_FORCA;
@@ -70,12 +72,19 @@ export class RegisterComponent implements OnInit {
   );
 
   ngOnInit() {
+    const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '';
+    this.redirectTo.set(this.normalizarRedirect(redirectTo));
+
     this.locations.getEstados().subscribe({
       next: (estados) => this.estados.set(estados),
       error: () => this.erro.set('Não foi possível carregar a lista de estados.'),
     });
 
     this.form.get('estado')!.valueChanges.subscribe((uf) => this.aoTrocarEstado(uf));
+  }
+
+  private normalizarRedirect(redirectTo: string) {
+    return redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '';
   }
 
   private aoTrocarEstado(uf: string | null) {
@@ -128,7 +137,9 @@ export class RegisterComponent implements OnInit {
       .subscribe({
         next: () => {
           this.carregando.set(false);
-          this.router.navigate(['/verificar-email'], { queryParams: { email: dados.email } });
+          const queryParams: Record<string, string> = { email: dados.email! };
+          if (this.redirectTo()) queryParams['redirectTo'] = this.redirectTo();
+          this.router.navigate(['/verificar-email'], { queryParams });
         },
         error: () => {
           this.carregando.set(false);

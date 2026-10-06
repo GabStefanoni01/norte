@@ -338,6 +338,81 @@
       }
     </section>
 
+
+    <section class="mb-8 norte-card overflow-hidden p-0">
+      <div class="border-b border-white/10 px-5 py-4 sm:px-6">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="font-semibold text-white">Solicitações institucionais</h2>
+            <p class="mt-1 text-sm text-white/45">Interesses recebidos de empresas e instituições de ensino antes da criação do espaço institucional.</p>
+          </div>
+          <span class="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+            {{ solicitacoesInstitucionais().length }} pendentes
+          </span>
+        </div>
+      </div>
+
+      @if (mensagemSolicitacao()) {
+        <div class="border-b border-white/10 px-5 py-4 text-sm text-white/60">
+          {{ mensagemSolicitacao() }}
+        </div>
+      }
+
+      @if (carregandoSolicitacoes()) {
+        <div class="p-6 text-sm text-white/40">Carregando solicitações...</div>
+      } @else if (solicitacoesInstitucionais().length === 0) {
+        <div class="p-8 text-center">
+          <p class="text-sm text-white/40">Nenhuma solicitação institucional pendente.</p>
+        </div>
+      } @else {
+        <div class="divide-y divide-white/5">
+          @for (solicitacao of solicitacoesInstitucionais(); track solicitacao.id) {
+            <article class="p-5 sm:p-6">
+              <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-semibold text-white">{{ solicitacao.nome_instituicao }}</h3>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/50">{{ solicitacao.tipo }}</span>
+                  </div>
+                  <p class="mt-2 text-sm text-white/65">{{ solicitacao.responsavel_nome }} · {{ solicitacao.responsavel_email }}</p>
+                  @if (solicitacao.telefone) {
+                    <p class="mt-1 text-xs text-white/40">{{ solicitacao.telefone }}</p>
+                  }
+                  @if (solicitacao.quantidade_pessoas) {
+                    <p class="mt-1 text-xs text-white/40">{{ solicitacao.quantidade_pessoas }} pessoas</p>
+                  }
+                  @if (solicitacao.mensagem) {
+                    <p class="mt-4 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-white/45">{{ solicitacao.mensagem }}</p>
+                  }
+                </div>
+
+                <div class="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+                  <button type="button"
+                    (click)="aprovarSolicitacao(solicitacao.id)"
+                    [disabled]="processandoSolicitacaoId() === solicitacao.id"
+                    class="norte-button-primary justify-center disabled:opacity-50">
+                    {{ processandoSolicitacaoId() === solicitacao.id ? 'Processando...' : 'Aprovar e convidar' }}
+                  </button>
+                  <button type="button"
+                    (click)="atualizarSolicitacao(solicitacao.id, 'em_contato')"
+                    [disabled]="processandoSolicitacaoId() === solicitacao.id"
+                    class="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/60 hover:bg-white/5 disabled:opacity-50">
+                    Marcar em contato
+                  </button>
+                  <button type="button"
+                    (click)="atualizarSolicitacao(solicitacao.id, 'recusada')"
+                    [disabled]="processandoSolicitacaoId() === solicitacao.id"
+                    class="rounded-xl border border-red-500/15 px-4 py-2 text-sm text-red-300/70 hover:bg-red-500/5 disabled:opacity-50">
+                    Recusar
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
     <section class="norte-card overflow-hidden p-0">
       <div class="border-b border-white/10 px-5 py-4 sm:px-6">
         <h2 class="font-semibold text-white">Usuários cadastrados</h2>

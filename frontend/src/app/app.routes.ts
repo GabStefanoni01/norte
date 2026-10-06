@@ -57,7 +57,6 @@ export const routes: Routes = [
   },
   {
     path: 'convites/instituicao',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/institution-invite/institution-invite.component').then((m) => m.InstitutionInviteComponent),
   },
   {

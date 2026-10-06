@@ -11,7 +11,8 @@
         <h1 class="font-display text-2xl">Não foi possível acessar</h1>
         <p class="mt-2 text-white/50">{{ erro() }}</p>
       </section>
-    } @else {\n      @if (dashboard(); as d) {
+    } @else {
+      @if (dashboard(); as d) {
       <header class="mt-10">
         <p class="norte-eyebrow">Espaço institucional</p>
         <h1 class="mt-2 font-display text-4xl">{{ d.institution.nome }}</h1>

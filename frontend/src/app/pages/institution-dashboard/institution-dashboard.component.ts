@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { InstitutionsService, InstitutionDashboard, InstitutionParticipant, InstitutionTrail } from '../../services/institutions.service';
+import { InstitutionsService, InstitutionDashboard, InstitutionParticipant, InstitutionTrail, InstitutionTrailMember, InstitutionJourney } from '../../services/institutions.service';
 
 @Component({
   selector: 'norte-institution-dashboard',
@@ -25,6 +25,9 @@ export class InstitutionDashboardComponent implements OnInit {
   conviteRole: 'participante' | 'gestor' | 'administrador' = 'participante';
   trilhaTitulo = '';
   trilhaDescricao = '';
+  membrosTrilha = signal<Record<number, InstitutionTrailMember[]>>({});
+  participanteParaTrilha = signal<Record<number, number | null>>({});
+  minhasJornadas = signal<InstitutionJourney[]>([]);
 
   ngOnInit() {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
@@ -42,6 +45,11 @@ export class InstitutionDashboardComponent implements OnInit {
         }
         this.institutions.trilhas(this.id).subscribe((t) => {
           this.trilhas.set(t);
+          if (data.institution.role === 'participante') {
+            this.institutions.minhasJornadas(this.id).subscribe((j) => this.minhasJornadas.set(j));
+          } else {
+            t.forEach((trail) => this.carregarMembrosTrilha(trail.id));
+          }
           this.carregando.set(false);
         });
       },
@@ -74,6 +82,40 @@ export class InstitutionDashboardComponent implements OnInit {
         this.institutions.trilhas(this.id).subscribe((t) => this.trilhas.set(t));
       },
       error: (err) => this.mensagem.set(err?.error?.error || 'Não foi possível criar a trilha.'),
+    });
+  }
+
+  carregarMembrosTrilha(trailId: number) {
+    this.institutions.membrosDaTrilha(this.id, trailId).subscribe({
+      next: (membros) => this.membrosTrilha.update((atual) => ({ ...atual, [trailId]: membros })),
+    });
+  }
+
+  selecionarParticipante(trailId: number, userId: string) {
+    const value = Number(userId);
+    this.participanteParaTrilha.update((atual) => ({ ...atual, [trailId]: Number.isFinite(value) && value > 0 ? value : null }));
+  }
+
+  atribuir(trailId: number) {
+    const participanteId = this.participanteParaTrilha()[trailId];
+    if (!participanteId) return;
+    this.institutions.atribuirParticipante(this.id, trailId, participanteId).subscribe({
+      next: () => {
+        this.mensagem.set('Participante adicionado à trilha.');
+        this.carregarMembrosTrilha(trailId);
+        this.participanteParaTrilha.update((atual) => ({ ...atual, [trailId]: null }));
+      },
+      error: (err) => this.mensagem.set(err?.error?.error || 'Não foi possível atribuir o participante.'),
+    });
+  }
+
+  atualizarProgresso(jornada: InstitutionJourney, progresso: string) {
+    const value = Number(progresso);
+    if (!Number.isFinite(value) || value < 0 || value > 100) return;
+    const status = value >= 100 ? 'concluida' : value > 0 ? 'em_andamento' : 'pendente';
+    this.institutions.atualizarProgresso(this.id, jornada.trail_id, { progresso: value, status }).subscribe({
+      next: (atualizado) => this.minhasJornadas.update((lista) => lista.map((item) => item.membership_id === atualizado.membership_id ? { ...item, ...atualizado } : item)),
+      error: (err) => this.mensagem.set(err?.error?.error || 'Não foi possível atualizar seu progresso.'),
     });
   }
 

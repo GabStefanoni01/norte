@@ -19,6 +19,7 @@ export class VerifyEmailComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   email = signal('');
+  redirectTo = signal('');
   erro = signal<string | null>(null);
   sucesso = signal<string | null>(null);
   carregando = signal(false);
@@ -29,7 +30,13 @@ export class VerifyEmailComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.email.set(this.route.snapshot.queryParamMap.get('email') ?? '');
+    const params = this.route.snapshot.queryParamMap;
+    this.email.set(params.get('email') ?? '');
+    this.redirectTo.set(this.normalizarRedirect(params.get('redirectTo') || ''));
+  }
+
+  private normalizarRedirect(redirectTo: string) {
+    return redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '';
   }
 
   confirmar() {
@@ -44,9 +51,9 @@ export class VerifyEmailComponent implements OnInit {
     this.auth.verificarEmail(this.email(), this.form.value.codigo!).subscribe({
       next: () => {
         this.carregando.set(false);
-        this.router.navigate(['/entrar'], {
-          queryParams: { verificado: '1' },
-        });
+        const queryParams: Record<string, string> = { verificado: '1' };
+        if (this.redirectTo()) queryParams['redirectTo'] = this.redirectTo();
+        this.router.navigate(['/entrar'], { queryParams });
       },
       error: (err) => {
         this.carregando.set(false);

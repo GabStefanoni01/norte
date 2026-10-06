@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { interval } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
-import { AdminService, EmailStatus } from '../../services/admin.service';
+import { AdminService, EmailStatus, InstitutionInterestRequest } from '../../services/admin.service';
 import {
   SystemHealthService,
   HealthResponse,
@@ -32,6 +32,10 @@ export class AdminComponent implements OnInit {
   campanhaEnviando = signal<string | null>(null);
   mensagemCampanha = signal<string | null>(null);
   statusEmail = signal<EmailStatus | null>(null);
+  solicitacoesInstitucionais = signal<InstitutionInterestRequest[]>([]);
+  carregandoSolicitacoes = signal(true);
+  processandoSolicitacaoId = signal<number | null>(null);
+  mensagemSolicitacao = signal<string | null>(null);
 
   health = signal<HealthResponse | null>(null);
   ready = signal<ReadyResponse | null>(null);
@@ -62,10 +66,59 @@ export class AdminComponent implements OnInit {
     this.carregarUsuarios();
     this.carregarSaude();
     this.carregarStatusEmail();
+    this.carregarSolicitacoesInstitucionais();
 
     interval(10000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.carregarSaude(false));
+  }
+
+  carregarSolicitacoesInstitucionais() {
+    this.carregandoSolicitacoes.set(true);
+    this.admin.listarSolicitacoesInstitucionais('pendente').subscribe({
+      next: (solicitacoes) => {
+        this.solicitacoesInstitucionais.set(solicitacoes);
+        this.carregandoSolicitacoes.set(false);
+      },
+      error: () => {
+        this.mensagemSolicitacao.set('Não foi possível carregar as solicitações institucionais.');
+        this.carregandoSolicitacoes.set(false);
+      },
+    });
+  }
+
+  atualizarSolicitacao(id: number, status: 'em_contato' | 'recusada') {
+    this.processandoSolicitacaoId.set(id);
+    this.mensagemSolicitacao.set(null);
+
+    this.admin.atualizarStatusSolicitacao(id, status).subscribe({
+      next: () => {
+        this.mensagemSolicitacao.set('Solicitação atualizada com sucesso.');
+        this.processandoSolicitacaoId.set(null);
+        this.carregarSolicitacoesInstitucionais();
+      },
+      error: (err) => {
+        this.mensagemSolicitacao.set(err?.error?.error || 'Não foi possível atualizar a solicitação.');
+        this.processandoSolicitacaoId.set(null);
+      },
+    });
+  }
+
+  aprovarSolicitacao(id: number) {
+    this.processandoSolicitacaoId.set(id);
+    this.mensagemSolicitacao.set(null);
+
+    this.admin.aprovarSolicitacaoInstitucional(id).subscribe({
+      next: () => {
+        this.mensagemSolicitacao.set('Instituição criada e convite enviado ao responsável.');
+        this.processandoSolicitacaoId.set(null);
+        this.carregarSolicitacoesInstitucionais();
+      },
+      error: (err) => {
+        this.mensagemSolicitacao.set(err?.error?.error || 'Não foi possível aprovar a solicitação.');
+        this.processandoSolicitacaoId.set(null);
+      },
+    });
   }
 
   carregarStatusEmail() {

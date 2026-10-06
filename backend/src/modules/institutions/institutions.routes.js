@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const authGuard = require('../../middlewares/authGuard');
 const controller = require('./institutions.controller');
+const matchController = require('../institution-match/institution-match.controller');
 
 const router = Router();
 
@@ -14,6 +15,9 @@ router.get('/minhas', controller.listar);
 router.get('/:id/dashboard', controller.dashboard);
 router.get('/:id/trilhas', controller.listarTrilhas);
 router.post('/:id/trilhas', controller.criarTrilha);
+router.patch('/:id/trilhas/:trailId/criterios', matchController.atualizarCriterios);
+router.get('/:id/trilhas/matches', matchController.matchesParaUsuario);
+router.get('/:id/trilhas/:trailId/matches', matchController.matchesDaTrilha);
 router.get('/:id/trilhas/:trailId/participantes', controller.listarTrilhaMembros);
 router.post('/:id/trilhas/:trailId/participantes', controller.atribuirParticipanteTrilha);
 router.get('/:id/minhas-jornadas', controller.minhasJornadas);

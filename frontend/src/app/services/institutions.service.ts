@@ -30,6 +30,29 @@ export interface InstitutionParticipant {
   vinculado_em: string;
 }
 
+export interface InstitutionTrailMember {
+  id: number;
+  user_id: number;
+  nome: string;
+  email: string;
+  status: 'pendente' | 'em_andamento' | 'concluida';
+  progresso: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InstitutionJourney {
+  membership_id: number;
+  trail_id: number;
+  titulo: string;
+  descricao?: string | null;
+  ativa: boolean;
+  status: 'pendente' | 'em_andamento' | 'concluida';
+  progresso: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface InstitutionTrail {
   id: number;
   institution_id: number;
@@ -66,6 +89,24 @@ export class InstitutionsService {
 
   convidar(id: number, email: string, role: 'participante' | 'gestor' | 'administrador' = 'participante') {
     return this.api.post<{ id: number; email: string; role: string; expires_at: string }>(`/institutions/${id}/convites`, { email, role });
+  }
+
+  membrosDaTrilha(institutionId: number, trailId: number) {
+    return this.api.get<InstitutionTrailMember[]>(`/institutions/${institutionId}/trilhas/${trailId}/participantes`);
+  }
+
+  atribuirParticipante(institutionId: number, trailId: number, participanteId: number) {
+    return this.api.post<{ id: number; trail_id: number; user_id: number; status: string; progresso: number }>(
+      `/institutions/${institutionId}/trilhas/${trailId}/participantes`, { participanteId },
+    );
+  }
+
+  minhasJornadas(institutionId: number) {
+    return this.api.get<InstitutionJourney[]>(`/institutions/${institutionId}/minhas-jornadas`);
+  }
+
+  atualizarProgresso(institutionId: number, trailId: number, data: { status?: string; progresso?: number; userId?: number }) {
+    return this.api.patch<InstitutionJourney>(`/institutions/${institutionId}/trilhas/${trailId}/progresso`, data);
   }
 
   atualizarMembro(institutionId: number, memberId: number, data: { role?: string; status?: string }) {

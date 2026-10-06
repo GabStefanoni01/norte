@@ -11,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
     <main class="min-h-screen bg-norte-950 px-5 py-12 text-white">
       <div class="mx-auto max-w-xl">
         <a routerLink="/" class="text-sm text-white/40 hover:text-white">← Voltar ao Norte</a>
+
         <section class="norte-card mt-12 p-7 sm:p-9">
           @if (processando()) {
             <p class="text-white/50">Confirmando seu convite...</p>
@@ -21,9 +22,25 @@ import { AuthService } from '../../services/auth.service';
             <a [routerLink]="['/instituicao', institutionId()]" class="norte-button-primary mt-7 inline-flex">Abrir espaço institucional →</a>
           } @else {
             <p class="norte-eyebrow">Convite institucional</p>
-            <h1 class="mt-2 font-display text-3xl">Este convite precisa de uma conta no Norte.</h1>
-            <p class="mt-3 text-white/45">{{ erro() || 'Entre ou crie sua conta para continuar.' }}</p>
-            <a [routerLink]="['/entrar']" [queryParams]="{ redirectTo: '/convites/instituicao?token=' + token }" class="norte-button-primary mt-7 inline-flex">Entrar para aceitar →</a>
+            <h1 class="mt-2 font-display text-3xl">Você recebeu um convite para o Norte.</h1>
+            <p class="mt-3 text-white/45">{{ erro() || 'Entre na sua conta para aceitar o convite.' }}</p>
+
+            <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+              <a
+                [routerLink]="['/entrar']"
+                [queryParams]="{ redirectTo: '/convites/instituicao?token=' + token }"
+                class="norte-button-primary inline-flex justify-center"
+              >
+                Entrar para aceitar →
+              </a>
+
+              <a
+                [routerLink]="['/cadastro']"
+                class="inline-flex justify-center rounded-xl border border-white/10 px-5 py-3 text-sm text-white/70 hover:bg-white/5"
+              >
+                Criar conta
+              </a>
+            </div>
           }
         </section>
       </div>
@@ -43,22 +60,32 @@ export class InstitutionInviteComponent implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
+
     if (!this.token) {
       this.processando.set(false);
-      this.erro.set('Convite inválido.');
+      this.erro.set('Convite inválido ou sem token.');
       return;
     }
-    // A página é pública; o backend só aceita o convite depois que a conta estiver autenticada.
-    this.processando.set(false);
+
+    if (!this.auth.estaAutenticado()) {
+      this.processando.set(false);
+      return;
+    }
+
+    this.aceitar();
   }
 
-  aceitar() {
+  private aceitar() {
     this.institutions.aceitarConvite(this.token).subscribe({
       next: (res) => {
+        this.processando.set(false);
         this.institutionId.set(res.institution.id);
         this.sucesso.set(res.institution.nome);
       },
-      error: (err) => this.erro.set(err?.error?.error || 'Não foi possível aceitar o convite.'),
+      error: (err) => {
+        this.processando.set(false);
+        this.erro.set(err?.error?.error || 'Não foi possível aceitar o convite.');
+      },
     });
   }
 }

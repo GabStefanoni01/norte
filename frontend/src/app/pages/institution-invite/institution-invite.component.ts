@@ -27,7 +27,7 @@ import { AuthService } from '../../services/auth.service';
 
             <div class="mt-7 flex flex-col gap-3 sm:flex-row">
               <a
-                [routerLink]="['/entrar']"
+                routerLink="/entrar"
                 [queryParams]="{ redirectTo: '/convites/instituicao?token=' + token }"
                 class="norte-button-primary inline-flex justify-center"
               >
@@ -35,7 +35,8 @@ import { AuthService } from '../../services/auth.service';
               </a>
 
               <a
-                [routerLink]="['/cadastro']"
+                routerLink="/cadastro"
+                [queryParams]="{ redirectTo: '/convites/instituicao?token=' + token }"
                 class="inline-flex justify-center rounded-xl border border-white/10 px-5 py-3 text-sm text-white/70 hover:bg-white/5"
               >
                 Criar conta

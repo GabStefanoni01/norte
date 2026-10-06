@@ -51,7 +51,12 @@ app.get('/ready', async (req, res) => {
         to_regclass('public.users') AS users,
         to_regclass('public.opportunities') AS opportunities,
         to_regclass('public.saved_opportunities') AS saved_opportunities,
-        to_regclass('public.email_dispatch_log') AS email_dispatch_log
+        to_regclass('public.email_dispatch_log') AS email_dispatch_log,
+        to_regclass('public.institutions') AS institutions,
+        to_regclass('public.institution_memberships') AS institution_memberships,
+        to_regclass('public.institution_invitations') AS institution_invitations,
+        to_regclass('public.institution_trails') AS institution_trails,
+        to_regclass('public.institution_interest_requests') AS institution_interest_requests
     `);
 
     const schema = result.rows[0];

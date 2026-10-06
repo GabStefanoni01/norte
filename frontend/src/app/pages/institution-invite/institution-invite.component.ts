@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { InstitutionsService } from '../../services/institutions.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -32,7 +32,6 @@ import { AuthService } from '../../services/auth.service';
 })
 export class InstitutionInviteComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private institutions = inject(InstitutionsService);
   private auth = inject(AuthService);
 

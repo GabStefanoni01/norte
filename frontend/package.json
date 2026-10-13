@@ -4,6 +4,7 @@
   "description": "Norte — encontre seu norte. Aplicacao Angular do jovem mentorado.",
   "scripts": {
     "start": "ng serve",
+    "prebuild": "node scripts/configure-environment.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

@@ -37,7 +37,13 @@ describe('resilient fetch', () => {
   });
 
   it('retorna erro de timeout após esgotar as tentativas', async () => {
-    global.fetch = jest.fn(() => new Promise(() => {}));
+    global.fetch = jest.fn((_url, options = {}) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => {
+        const error = new Error('The operation was aborted');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
+    }));
 
     await expect(fetchResiliente('https://example.com', {}, {
       maxRetries: 0,

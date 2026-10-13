@@ -4,7 +4,19 @@ on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [develop, main]
+    branches:
+      - develop
+      - main
+      - 'chore/**'
+      - 'feat/**'
+      - 'fix/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend-test:
@@ -33,15 +45,19 @@ jobs:
       INTEGRATION_TESTS: 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Instalar dependências
         working-directory: backend
-        run: npm install
+        run: npm ci
 
       - name: Rodar migrations
         working-directory: backend
@@ -56,25 +72,27 @@ jobs:
         run: find src -name "*.js" -exec node --check {} \;
 
   frontend-build:
-    name: Frontend — build
+    name: Frontend — build de produção
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
       - name: Instalar dependências
         working-directory: frontend
         run: npm ci
 
-      - name: Build
+      - name: Build de produção
         working-directory: frontend
-        run: npx ng build --configuration development
+        run: npm run build -- --configuration production
 
   e2e:
     name: E2E — fluxo principal
@@ -99,19 +117,24 @@ jobs:
       DATABASE_URL: postgres://norte:norte@localhost:5432/norte
       JWT_SECRET: ci-only-secret-nunca-usar-em-producao-0123456789abcdef
       NODE_ENV: test
+      FRONTEND_URL: http://127.0.0.1:4200
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
 
       - name: Instalar dependências do backend
         working-directory: backend
-        run: npm install
+        run: npm ci
 
       - name: Rodar migrations
         working-directory: backend
@@ -125,9 +148,13 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Instalar Playwright Test para o E2E
+        working-directory: frontend
+        run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+
       - name: Instalar Chromium
         working-directory: frontend
-        run: npx playwright@1.55.0 install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Subir backend
         working-directory: backend
@@ -136,8 +163,7 @@ jobs:
           echo $! > /tmp/norte-backend.pid
 
       - name: Aguardar backend
-        run: |
-          curl --retry 30 --retry-delay 1 --fail http://127.0.0.1:3000/health
+        run: curl --retry 30 --retry-delay 1 --retry-connrefused --fail --silent --show-error http://127.0.0.1:3000/health
 
       - name: Subir frontend
         working-directory: frontend
@@ -146,12 +172,11 @@ jobs:
           echo $! > /tmp/norte-frontend.pid
 
       - name: Aguardar frontend
-        run: |
-          curl --retry 30 --retry-delay 1 --fail http://127.0.0.1:4200/
+        run: curl --retry 30 --retry-delay 1 --retry-connrefused --fail --silent --show-error http://127.0.0.1:4200/
 
       - name: Executar E2E
         working-directory: frontend
-        run: npx playwright@1.55.0 test -c e2e/playwright.config.js
+        run: npx playwright test -c e2e/playwright.config.js
 
       - name: Logs do backend em caso de falha
         if: failure()
@@ -161,7 +186,7 @@ jobs:
         if: failure()
         run: cat /tmp/norte-frontend.log || true
 
-      - name: Limpar dados do E2E
+      - name: Limpar dados e credenciais temporárias do E2E
         if: always()
         working-directory: backend
         run: node tests/e2e/cleanup.js

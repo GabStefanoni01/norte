@@ -35,7 +35,7 @@ const target = path.join(__dirname, '../src/environments/environment.prod.ts');
 const contents = `// Gerado durante o build a partir de NORTE_API_URL.
 export const environment = {
   production: true,
-  apiUrl: ${JSON.stringify(apiUrl.replace(/\\/$/, ''))},
+  apiUrl: ${JSON.stringify(apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl)},
 };
 `;
 

@@ -7,6 +7,19 @@ const auth = JSON.parse(
 );
 
 test.beforeEach(async ({ page }) => {
+  page.on('response', async (response) => {
+    if (response.request().method() === 'GET' && /\/opportunities(?:\?.*)?$/.test(response.url())) {
+      let body = '';
+      try { body = await response.text(); } catch { body = '<body unavailable>'; }
+      console.log('[E2E] GET opportunities', response.status(), body);
+    }
+  });
+  page.on('requestfailed', (request) => {
+    if (request.url().includes('localhost:3000')) {
+      console.log('[E2E] API request failed', request.method(), request.url(), request.failure()?.errorText);
+    }
+  });
+
   await page.addInitScript((token) => {
     localStorage.setItem('norte_token', token);
   }, auth.token);

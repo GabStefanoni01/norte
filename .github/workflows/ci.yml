@@ -63,7 +63,7 @@ jobs:
         working-directory: backend
         run: npm run migrate
 
-      - name: Rodar testes com cobertura
+      - name: Rodar testes
         working-directory: backend
         run: npm test
 

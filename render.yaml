@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: norte-api-staging
+    runtime: node
+    plan: free
+    branch: develop
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: ENABLE_CRON
+        value: "false"

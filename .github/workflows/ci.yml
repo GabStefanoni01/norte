@@ -147,9 +147,9 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Instalar Playwright para o E2E
+      - name: Instalar Playwright Test para o E2E
         working-directory: frontend
-        run: npm install --no-save --package-lock=false playwright@1.55.0
+        run: npm install --no-save --package-lock=false @playwright/test@1.55.0
 
       - name: Instalar Chromium
         working-directory: frontend

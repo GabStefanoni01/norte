@@ -151,3 +151,45 @@ sem impedir a criação da conta (o usuário pode pedir um novo código depois).
 ## Licença
 
 MIT — ver [LICENSE](LICENSE).
+
+
+## Ambiente de homologação (Vercel + Render)
+
+A homologação deve ser isolada da produção: use uma aplicação Vercel separada, uma API Render separada e um banco PostgreSQL próprio para testes. **Nunca reutilize a `DATABASE_URL` de produção.**
+
+### 1. Banco de dados de homologação
+
+Crie um banco ou branch separado no Neon (ou outro PostgreSQL) e copie a connection string com SSL para usar apenas na homologação. Não use dados pessoais/reais da produção.
+
+### 2. API no Render
+
+O arquivo `render.yaml` define o serviço `norte-api-staging), ligado à branch `develop`, com health check em `/ready`, migrations na inicialização e cron desativado.
+
+No Render, crie/sincronize um Blueprint a partir deste repositório e preencha as variáveis solicitadas:
+- `DATABASE_URL`: connection string do banco de homologação.
+- `FRONTEND_URL`: URL pública da aplicação Vercel de homologação, sem barra final.
+- `JWT_SECRET`: gere um segredo novo e exclusivo para homologação, se o painel não o gerar automaticamente.
+- Chaves opcionais de IA, e-mail, vagas e pagamentos devem ser de teste ou ficar vazias. Não copie tokens de produção.
+
+O serviço usa o plano gratuito do Render para reduzir custos; ele pode ter suspensão por inatividade e limites de recursos. Confirme as condições atuais no painel antes de criar o recurso.
+
+### 3. Frontend no Vercel
+
+Crie um **projeto Vercel separado** chamado, por exemplo, `norte-staging`, conectado ao repositório e com:
+- Root Directory: `frontend`
+- Production Branch: `develop`
+- Build Command: `npm run build`
+- Output Directory: `dist/norte-frontend/browser`
+- Environment Variable `NORTE_API_URL`: URL HTTPS da API de homologação do Render (por exemplo, `https://norte-api-staging.onrender.com`, confirme a URL real no painel).
+
+O script `frontend/scripts/configure-environment.js` injeta essa URL no build. O build na Vercel falha se `NORTE_API_URL` não estiver configurada, evitando publicar o frontend apontando para `localhost).
+
+### 4. Validação após o deploy
+
+1. Confirme que `/health` e `/ready` da API retornam sucesso.
+2. Abra a URL Vercel e teste cadastro, login, perfil, mentor e oportunidades.
+3. Confira nos logs do Render que não há erros de CORS ou conexão com PostgreSQL.
+4. Teste e-mails e pagamentos apenas com credenciais de teste.
+5. Não conecte domínios de produção nem altere o projeto de produção durante esta configuração.
+
+A configuração no repositório prepara os serviços, mas a criação dos recursos e o preenchimento dos segredos precisam ser concluídos nos painéis Vercel/Render/Neon.

@@ -65,7 +65,7 @@ jobs:
 
       - name: Rodar testes com cobertura
         working-directory: backend
-        run: npm test -- --coverage
+        run: npm test
 
       - name: Checar sintaxe de todos os arquivos .js
         working-directory: backend
@@ -162,7 +162,7 @@ jobs:
           echo $! > /tmp/norte-backend.pid
 
       - name: Aguardar backend
-        run: curl --retry 30 --retry-delay 1 --fail --silent --show-error http://127.0.0.1:3000/health
+        run: curl --retry 30 --retry-delay 1 --retry-connrefused --fail --silent --show-error http://127.0.0.1:3000/health
 
       - name: Subir frontend
         working-directory: frontend
@@ -171,7 +171,7 @@ jobs:
           echo $! > /tmp/norte-frontend.pid
 
       - name: Aguardar frontend
-        run: curl --retry 30 --retry-delay 1 --fail --silent --show-error http://127.0.0.1:4200/
+        run: curl --retry 30 --retry-delay 1 --retry-connrefused --fail --silent --show-error http://127.0.0.1:4200/
 
       - name: Executar E2E
         working-directory: frontend

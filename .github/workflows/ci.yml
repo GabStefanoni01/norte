@@ -117,6 +117,7 @@ jobs:
       DATABASE_URL: postgres://norte:norte@localhost:5432/norte
       JWT_SECRET: ci-only-secret-nunca-usar-em-producao-0123456789abcdef
       NODE_ENV: test
+      FRONTEND_URL: http://127.0.0.1:4200
 
     steps:
       - name: Checkout

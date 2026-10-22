@@ -8,7 +8,7 @@ const SYSTEM_PROMPT = [
   'Prefira recursos gratuitos ou de baixo custo e projetos que possam ser demonstrados em portfólio.',
   'Cada etapa deve ser concreta, executável e ter um resultado observável. Evite recomendações genéricas.',
   'Responda APENAS com JSON válido, sem markdown ou texto adicional, neste formato:',
-  '[{"titulo":"string curta do mês","itens":[{"descricao":"string com ação e resultado esperado","tipo":"aprender" ou "projeto"}]}].',
+  'Formato de exemplo válido: [{"titulo":"Fundamentos","itens":[{"descricao":"Concluir uma atividade prática e registrar o resultado","tipo":"aprender"},{"descricao":"Construir um projeto demonstrável","tipo":"projeto"}]}]. O campo tipo aceita somente "aprender" ou "projeto".',
   'Gere exatamente 3 meses, cada um com 2 a 4 itens.',
 ].join(' ');
 

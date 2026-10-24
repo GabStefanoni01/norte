@@ -78,6 +78,26 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     if (body.evidence !== undefined && (!Array.isArray(body.evidence) || body.evidence.length > 50)) {
       return res.status(400).json({ error: 'invalid_evidence' });
     }
+    const repositoryName = body.repositoryName == null ? null : body.repositoryName;
+    const repositoryUrl = body.repositoryUrl == null ? null : body.repositoryUrl;
+    const repositoryRef = body.repositoryRef == null ? null : body.repositoryRef;
+    if (repositoryName !== null && !validText(repositoryName, 120)) {
+      return res.status(400).json({ error: 'invalid_repository_name' });
+    }
+    if (repositoryUrl !== null) {
+      if (!validText(repositoryUrl, 1000)) return res.status(400).json({ error: 'invalid_repository_url' });
+      try {
+        const parsed = new URL(repositoryUrl);
+        if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.search || parsed.hash) {
+          return res.status(400).json({ error: 'invalid_repository_url' });
+        }
+      } catch {
+        return res.status(400).json({ error: 'invalid_repository_url' });
+      }
+    }
+    if (repositoryRef !== null && (!validText(repositoryRef, 255) || /[\\r\\n]/.test(repositoryRef))) {
+      return res.status(400).json({ error: 'invalid_repository_ref' });
+    }
     const priority = Number(body.priority ?? 0);
     const impact = body.impact == null ? null : Number(body.impact);
     const confidence = body.confidence == null ? null : Number(body.confidence);
@@ -101,11 +121,13 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     }
     const result = await pool.query(
       `INSERT INTO engineering_improvements
-        (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence)
-       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb)
+        (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence,
+         repository_name, repository_url, repository_ref)
+       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13)
        ON CONFLICT (id) DO NOTHING
        RETURNING id, title, category, status, priority, created_at AS "createdAt"`,
-      [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk, JSON.stringify(evidence)],
+      [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
+        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef],
     );
     if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
     return res.status(201).json({ task: result.rows[0] });
@@ -121,9 +143,10 @@ app.get('/api/tasks', requireToken, async (req, res, next) => {
     const category = typeof req.query.category === 'string' ? req.query.category : null;
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
-              effort, risk, evidence, branch_name AS "branchName",
-              pull_request_url AS "pullRequestUrl", blocked_reason AS "blockedReason",
-              created_at AS "createdAt", updated_at AS "updatedAt"
+              effort, risk, evidence, repository_name AS "repositoryName",
+              repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
+              branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
+              blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"
          FROM engineering_improvements
         WHERE ($1::text IS NULL OR status = $1)
           AND ($2::text IS NULL OR category = $2)
@@ -142,9 +165,10 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
-              effort, risk, evidence, branch_name AS "branchName",
-              pull_request_url AS "pullRequestUrl", blocked_reason AS "blockedReason",
-              created_at AS "createdAt", updated_at AS "updatedAt"
+              effort, risk, evidence, repository_name AS "repositoryName",
+              repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
+              branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
+              blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"
          FROM engineering_improvements WHERE id = $1 LIMIT 1`,
       [req.params.id],
     );

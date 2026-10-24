@@ -95,7 +95,7 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
         return res.status(400).json({ error: 'invalid_repository_url' });
       }
     }
-    if (repositoryRef !== null && (!validText(repositoryRef, 255) || /[\\r\\n]/.test(repositoryRef))) {
+    if (repositoryRef !== null && (!validText(repositoryRef, 255) || repositoryRef.includes(String.fromCharCode(13)) || repositoryRef.includes(String.fromCharCode(10)))) {
       return res.status(400).json({ error: 'invalid_repository_ref' });
     }
     const priority = Number(body.priority ?? 0);

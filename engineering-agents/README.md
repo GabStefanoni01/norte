@@ -32,6 +32,7 @@ Os serviços são separados por contratos e permissões, sem exigir que cada age
 - Migrações versionadas, com checksum e lock de execução.
 - Dashboard alinhado à identidade visual do Norte.
 - Discovery inicial somente leitura: encontra marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. É uma heurística inicial, não uma análise semântica nem um agente de IA.
+- Proveniência das descobertas: cada tarefa registra o repositório de origem; o dashboard mostra projeto, caminho, linha e evidência, com links diretos quando a URL e a ref do repositório estão configuradas.
 
 Para executar localmente sem Docker, consulte [GETTING_STARTED.md](GETTING_STARTED.md).
 

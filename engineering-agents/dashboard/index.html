@@ -303,8 +303,8 @@
       const filePath = typeof evidence.path === 'string' ? evidence.path : '';
       const line = Number(evidence.startLine);
       if (!repositoryUrl || !ref || !filePath || filePath.startsWith('/') ||
-          filePath.includes('\\\\') || filePath.split('/').some(part => !part || part === '.' || part === '..') ||
-          /[\\r\\n]/.test(ref) || ref.length > 255) return null;
+          filePath.includes('\\') || filePath.split('/').some(part => !part || part === '.' || part === '..') ||
+          /[\r\n]/.test(ref) || ref.length > 255) return null;
       const encodedRef = ref.split('/').map(encodeURIComponent).join('/');
       const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
       const lineSuffix = Number.isInteger(line) && line > 0 ? '#L' + line : '';

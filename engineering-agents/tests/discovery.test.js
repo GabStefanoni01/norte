@@ -19,6 +19,9 @@ test('detects maintenance markers without copying source line content into evide
   assert.equal(findings[0].line, 1);
   assert.equal(findings[0].evidence, 'Marcador FIXME encontrado na linha 1.');
   assert.equal(findings[0].title, 'FIXME pendente no código');
+  assert.equal(typeof findings[0].recommendedAction, 'string');
+  assert.match(findings[0].priorityRationale, /impacto 2\/5/);
+  assert.ok(findings[0].priority >= 0 && findings[0].priority <= 100);
 });
 
 test('detects empty catch blocks in JavaScript and TypeScript', () => {
@@ -27,6 +30,8 @@ test('detects empty catch blocks in JavaScript and TypeScript', () => {
   assert.equal(findings[0].rule, 'empty-catch');
   assert.equal(findings[0].category, 'reliability');
   assert.equal(findings[0].findingType, 'potential_defect');
+  assert.match(findings[0].recommendedAction, /fluxo de erro/);
+  assert.match(findings[0].priorityRationale, /confiança 78%/);
 });
 
 test('does not apply JavaScript-specific rules to markdown', () => {
@@ -41,4 +46,6 @@ test('detects console.log but never includes the logged content in evidence', ()
   assert.equal(findings[0].rule, 'console-log');
   assert.equal(findings[0].findingType, 'code_smell');
   assert.equal(findings[0].evidence.includes('potentially sensitive value'), false);
+  assert.equal(findings[0].recommendedAction.includes('dados pessoais'), true);
+  assert.match(findings[0].priorityRationale, /esforço 1\/5/);
 });

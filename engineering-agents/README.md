@@ -34,6 +34,7 @@ Os serviços são separados por contratos e permissões, sem exigir que cada age
 - Discovery inicial somente leitura: encontra marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. É uma heurística inicial, não uma análise semântica nem um agente de IA.
 - Proveniência das descobertas: cada tarefa registra o repositório de origem; o dashboard mostra projeto, caminho, linha e evidência, com links diretos quando a URL e a ref do repositório estão configuradas.
 - Triagem inicial por tipo de sinal: `potential_defect` (possível defeito, como `catch` vazio), `code_smell` (ponto para revisão, como `console.log`) e `maintenance_signal` (marcadores `TODO/FIXME/HACK/XXX`). Essas classes orientam a revisão; não confirmam defeitos automaticamente. O dashboard permite filtrar por tipo.
+- Priorização explicável: cada achado recebe uma pontuação heurística de 0 a 100 a partir de impacto (40%), confiança da regra (30%), menor esforço estimado (15%) e menor risco de mudança (15%). O dashboard mostra a ação sugerida e os fatores que explicam a pontuação; isso é apoio à triagem, não uma decisão automática nem uma garantia de correção.
 
 Para executar localmente sem Docker, consulte [GETTING_STARTED.md](GETTING_STARTED.md).
 

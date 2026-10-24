@@ -19,6 +19,7 @@ Edite `.env` e configure:
 - `PGSSLMODE=require` para uma conexão TLS com o Neon.
 - `AGENTS_API_TOKEN` e `AGENTS_INGEST_TOKEN`: segredos diferentes, com pelo menos 32 caracteres.
 - `DASHBOARD_ORIGIN=http://localhost:8080`.
+- `CONTROL_API_URL=http://localhost:4310`.
 
 Não versione nem compartilhe o arquivo `.env`. Se usar Docker Compose com PostgreSQL local, defina também `POSTGRES_PASSWORD`; o Compose configura a API para usar o banco local, independentemente de `DATABASE_URL`.
 
@@ -36,7 +37,7 @@ Se a tabela `engineering_improvements` já foi criada manualmente no Neon, a pri
 
 ## Rodar API sem Docker
 
-Em um terminal PowerShell, entre na pasta da API e execute:
+Em um terminal PowerShell, execute:
 
 ```powershell
 Set-Location .\services\control-api
@@ -59,7 +60,23 @@ Set-Location .\dashboard
 py -m http.server 8080 --bind 127.0.0.1
 ```
 
-Abra exatamente `http://localhost:8080`, informe `http://localhost:4310` e o valor de `AGENTS_API_TOKEN`. O endereço deve ser `localhost`, porque precisa corresponder ao `DASHBOARD_ORIGIN` configurado.
+Abra exatamente `http://localhost:8080`, informe `http://localhost:4310` e o valor de `AGENTS_API_TOKEN`.
+
+## Executar a primeira descoberta (somente leitura)
+
+Com a API ligada, abra um **terceiro terminal** e execute na raiz da pasta `engineering-agents`:
+
+```powershell
+npm run check
+npm test
+npm run discover
+```
+
+O Discovery Service percorre arquivos de código selecionados do clone local do Norte, ignorando diretórios gerados, dependências, a pasta `engineering-agents` e arquivos `.env`. Ele procura apenas sinais determinísticos iniciais: marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. Os resultados são enviados à API com o token interno de ingestão e aparecem no dashboard como tarefas `discovered`.
+
+O scanner é **somente leitura**: não edita arquivos, não instala dependências no projeto-alvo, não executa código encontrado e não usa um modelo de IA. Cada achado usa um ID estável para evitar duplicação em execuções seguintes. O envio tem limite de 100 achados por execução e 5.000 arquivos examinados. Esses padrões são heurísticas, não prova de defeito; revise os achados antes de agir.
+
+Por padrão, a raiz analisada é o clone local do repositório Norte onde esta pasta está. Para apontar para outro checkout, defina `DISCOVERY_REPO_PATH` no `.env` com o caminho absoluto.
 
 ## Inserir uma tarefa manual de teste
 
@@ -105,8 +122,7 @@ docker compose down
 
 ## Limitações desta etapa
 
-- O Discovery Service ainda não foi implementado; não há análise autônoma nem preenchimento automático da fila.
+- A descoberta é baseada em padrões estáticos simples; não há agente de IA, análise semântica profunda ou execução periódica.
 - A API aceita ingestão autenticada e consulta tarefas, mas ainda não implementa todas as transições do workflow.
 - O dashboard monitora e filtra tarefas; não executa agentes nem autoriza merge.
 - Antes de permitir escrita a workers, configure e verifique as proteções de branches no GitHub. Nenhum agente deve escrever diretamente em `main` ou `develop`.
-- Valide os testes localmente antes de conectar agentes com permissões de escrita.

@@ -15,7 +15,7 @@ Plataforma independente para descobrir, priorizar, implementar, revisar e valida
 ## Serviços-alvo
 
 - `control-api`: consulta de tarefas, fila, resultados e estado das execuções.
-- `discovery-service`: análise periódica e registro de oportunidades.
+- `discovery-service`: análise estática determinística, somente leitura, e registro de oportunidades.
 - `prioritization-service`: deduplicação e pontuação das melhorias.
 - `orchestrator-service`: máquina de estados e coordenação das etapas.
 - `implementation-service`: alterações apenas em workspace/branch isolados.
@@ -24,7 +24,16 @@ Plataforma independente para descobrir, priorizar, implementar, revisar e valida
 - `github-integration`: webhooks, leitura de PRs e abertura de PRs após validação.
 - `dashboard`: interface para acompanhar fila, execuções, achados e PRs.
 
-Os serviços serão separados por contratos e permissões, sem exigir que cada agente de IA seja um processo autônomo. Agentes são componentes especializados executados por workers controlados.
+Os serviços são separados por contratos e permissões, sem exigir que cada agente de IA seja um processo autônomo. Agentes são componentes especializados executados por workers controlados.
+
+## Estado atual
+
+- API de consulta e ingestão autenticada com PostgreSQL.
+- Migrações versionadas, com checksum e lock de execução.
+- Dashboard alinhado à identidade visual do Norte.
+- Discovery inicial somente leitura: encontra marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. É uma heurística inicial, não uma análise semântica nem um agente de IA.
+
+Para executar localmente sem Docker, consulte [GETTING_STARTED.md](GETTING_STARTED.md).
 
 ## Estados de uma melhoria
 
@@ -46,8 +55,9 @@ Estados terminais/alternativos: `rejected`, `blocked`, `failed`, `cancelled`, `c
 1. Contratos, política de segurança e modelo de tarefas.
 2. API de consulta e persistência dos estados.
 3. Dashboard conectado à API.
-4. Discovery somente leitura e fila priorizada.
-5. Implementação isolada, revisão independente e validação.
-6. Integração GitHub para PRs, com aprovação humana obrigatória.
+4. Discovery determinístico somente leitura (primeira versão implementada).
+5. Priorização e orquestração de etapas.
+6. Implementação isolada, revisão independente e validação.
+7. Integração GitHub para PRs, com aprovação humana obrigatória.
 
 Não executar agentes com permissões de escrita antes de implementar e testar as barreiras de segurança.

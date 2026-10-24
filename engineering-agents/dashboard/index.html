@@ -249,6 +249,9 @@
       awaiting_approval: 'Aguardando aprovação', rejected: 'Rejeitada', blocked: 'Bloqueada',
       failed: 'Falhou', cancelled: 'Cancelada', completed: 'Concluída'
     };
+    const findingTypeLabels = {
+      potential_defect: 'Possível defeito', code_smell: 'Sinal de manutenção', maintenance_signal: 'Manutenção pendente'
+    };
     const categoryLabels = {
       security: 'Segurança', reliability: 'Confiabilidade', performance: 'Desempenho',
       testing: 'Testes', architecture: 'Arquitetura', maintainability: 'Manutenibilidade',
@@ -383,6 +386,7 @@
         const meta = element('div', 'task-meta');
         meta.append(element('span', 'pill status status-' + String(task.status || 'unknown'), statusLabels[task.status] || task.status || 'Sem status'));
         meta.append(element('span', 'pill', categoryLabels[task.category] || task.category || 'Sem categoria'));
+        meta.append(element('span', 'pill', findingTypeLabels[task.findingType] || 'Classificação pendente'));
         if (task.id) meta.append(element('span', 'pill', 'ID: ' + task.id));
         if (Number.isFinite(Number(task.confidence)) && task.confidence !== null) meta.append(element('span', 'pill', 'Confiança ' + Math.round(Number(task.confidence) * 100) + '%'));
         if (task.branchName) meta.append(element('span', 'pill', 'Branch: ' + task.branchName));

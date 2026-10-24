@@ -1,0 +1,36 @@
+name: Engineering Agents CI
+
+on:
+  push:
+    branches:
+      - feat/engineering-agents-platform
+      - feature/ai-agents
+    paths:
+      - "engineering-agents/**"
+      - ".github/workflows/engineering-agents-ci.yml"
+  pull_request:
+    paths:
+      - "engineering-agents/**"
+      - ".github/workflows/engineering-agents-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check JavaScript syntax
+        working-directory: engineering-agents
+        run: npm run check
+      - name: Test branch write policy
+        working-directory: engineering-agents
+        run: npm test
+      - name: Validate JSON contract
+        run: node -e "JSON.parse(require('node:fs').readFileSync('engineering-agents/contracts/improvement.schema.json', 'utf8'))"

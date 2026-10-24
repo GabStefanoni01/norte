@@ -3,102 +3,252 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <title>Norte Engineering Agents</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1120">
+  <title>Norte | Engineering Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #18202b; background: #f5f7fa; }
+    :root {
+      color-scheme: dark;
+      --norte-950: #0b1120;
+      --norte-900: #111a30;
+      --norte-850: #15213b;
+      --norte-800: #1b2a4a;
+      --norte-700: #28406b;
+      --gold: #e0a944;
+      --gold-light: #f2c979;
+      --text: #f5f7fc;
+      --muted: #a7b2c7;
+      --line: rgba(174, 190, 219, .15);
+      --surface: rgba(21, 33, 59, .76);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--norte-950);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; }
-    header { background: #fff; border-bottom: 1px solid #dce2e9; padding: 22px max(20px, calc((100vw - 1180px) / 2)); }
-    h1 { font-size: 1.4rem; margin: 0 0 5px; }
-    p { margin: 0; color: #657181; }
-    main { max-width: 1180px; margin: 24px auto; padding: 0 20px 40px; }
-    .panel { background: #fff; border: 1px solid #dce2e9; border-radius: 14px; padding: 18px; margin-bottom: 18px; }
-    .connection { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; gap: 12px; align-items: end; }
-    label { display: block; font-size: .82rem; color: #596474; margin-bottom: 6px; }
-    input, select, button { font: inherit; border: 1px solid #cbd3dd; border-radius: 8px; padding: 10px 12px; min-height: 40px; }
-    input, select { width: 100%; background: #fff; color: #18202b; }
-    button { cursor: pointer; background: #172b4d; color: #fff; border-color: #172b4d; font-weight: 600; }
-    button.secondary { background: #fff; color: #172b4d; }
-    button:disabled { opacity: .55; cursor: wait; }
-    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-    .stat { border: 1px solid #e0e5ec; border-radius: 10px; padding: 14px; }
-    .stat span { display: block; color: #657181; font-size: .82rem; }
-    .stat strong { display: block; font-size: 1.65rem; margin-top: 6px; }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .toolbar h2 { font-size: 1rem; margin: 0; }
-    .filters { display: flex; gap: 8px; align-items: center; }
-    .filters select { width: auto; min-width: 150px; }
-    .task { border-top: 1px solid #e5e9ef; padding: 16px 0; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
-    .task:first-child { border-top: 0; }
-    .task h3 { margin: 0 0 6px; font-size: .98rem; }
-    .task p { line-height: 1.45; }
-    .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-    .pill { display: inline-flex; align-items: center; border-radius: 999px; background: #edf1f6; color: #344256; padding: 4px 9px; font-size: .76rem; }
-    .status { background: #e7eefb; color: #254a83; }
-    .priority { font-weight: 700; white-space: nowrap; }
-    .empty, .notice { color: #657181; padding: 20px 0; }
-    .notice.error { color: #a42323; }
-    .small { font-size: .8rem; }
-    @media (max-width: 720px) { .connection, .stats { grid-template-columns: 1fr 1fr; } .connection button { grid-column: 1 / -1; } .toolbar { align-items: stretch; flex-direction: column; } .filters { flex-wrap: wrap; } .filters select { flex: 1; } .task { grid-template-columns: 1fr; } }
+    body {
+      min-height: 100vh; margin: 0;
+      background:
+        radial-gradient(ellipse at 76% -10%, rgba(40, 64, 107, .35), transparent 42rem),
+        radial-gradient(ellipse at 0% 38%, rgba(224, 169, 68, .055), transparent 34rem),
+        var(--norte-950);
+    }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    a { color: var(--gold-light); }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 56px) 52px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 25px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(224,169,68,.45); border-radius: 15px; background: linear-gradient(145deg, rgba(224,169,68,.14), rgba(27,42,74,.65)); box-shadow: inset 0 0 24px rgba(224,169,68,.06); }
+    .brand-name { font-family: Fraunces, Georgia, serif; font-size: 1.45rem; letter-spacing: -.035em; margin: 0; }
+    .brand-name span { color: var(--gold-light); }
+    .brand-subtitle { margin: 4px 0 0; font-size: .78rem; color: var(--muted); }
+    .top-meta { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .82rem; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #718096; box-shadow: 0 0 0 4px rgba(113,128,150,.12); }
+    .live-dot.connected { background: #67d6a1; box-shadow: 0 0 0 4px rgba(103,214,161,.12); }
+    .intro { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 34px 0 26px; }
+    .eyebrow { color: var(--gold-light); font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 10px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.08; font-weight: 400; letter-spacing: -.04em; margin: 0; }
+    .intro-copy { max-width: 720px; color: var(--muted); line-height: 1.65; margin: 12px 0 0; font-size: .95rem; }
+    .intro-mark { width: 88px; height: 88px; flex: 0 0 auto; opacity: .8; color: var(--gold); }
+    .panel { background: linear-gradient(145deg, rgba(27,42,74,.72), rgba(17,26,48,.84)); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: 0 16px 42px rgba(0,0,0,.12); }
+    .connection { margin-bottom: 18px; }
+    .section-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
+    .section-heading h2 { font-size: 1rem; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+    .section-heading p { margin: 6px 0 0; font-size: .82rem; line-height: 1.5; color: var(--muted); }
+    .connection-grid { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(200px, 1fr) auto; gap: 12px; align-items: end; }
+    label { display: block; color: #c2cce0; font-size: .78rem; margin: 0 0 7px; }
+    input, select { width: 100%; min-height: 43px; border: 1px solid rgba(174,190,219,.22); border-radius: 10px; background: rgba(11,17,32,.66); color: var(--text); padding: 10px 12px; outline: none; }
+    input::placeholder { color: #77849b; }
+    input:focus, select:focus { border-color: rgba(224,169,68,.8); box-shadow: 0 0 0 3px rgba(224,169,68,.12); }
+    .btn { min-height: 43px; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; font-size: .83rem; font-weight: 700; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn-primary { color: #1a2030; background: linear-gradient(120deg, var(--gold-light), var(--gold)); box-shadow: 0 5px 18px rgba(224,169,68,.12); }
+    .btn-primary:hover:not(:disabled) { background: #f5d28b; }
+    .btn-secondary { color: var(--text); background: rgba(255,255,255,.035); border-color: var(--line); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .safety-note { display: flex; gap: 8px; align-items: start; margin: 14px 0 0; color: var(--muted); font-size: .75rem; line-height: 1.55; }
+    .notice { display: flex; gap: 9px; align-items: center; margin-top: 15px; padding: 11px 13px; border-radius: 10px; color: #cbd5e7; background: rgba(11,17,32,.48); border: 1px solid var(--line); font-size: .8rem; }
+    .notice.error { color: #ffc0c0; border-color: rgba(248,113,113,.3); background: rgba(127,29,29,.14); }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat { position: relative; overflow: hidden; min-height: 124px; padding: 19px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(27,42,74,.7), rgba(17,26,48,.82)); }
+    .stat::after { content: ""; position: absolute; width: 86px; height: 86px; right: -30px; bottom: -38px; border: 1px solid rgba(224,169,68,.17); border-radius: 50%; box-shadow: 0 0 0 12px rgba(224,169,68,.025), 0 0 0 25px rgba(224,169,68,.02); }
+    .stat-label { color: var(--muted); font-size: .78rem; display: flex; align-items: center; gap: 8px; }
+    .stat-icon { display: inline-grid; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: rgba(224,169,68,.1); color: var(--gold-light); font-size: .9rem; }
+    .stat strong { display: block; font-size: 2rem; font-weight: 600; margin-top: 12px; letter-spacing: -.04em; }
+    .queue-panel { padding: 0; overflow: hidden; }
+    .queue-header { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 18px; border-bottom: 1px solid var(--line); }
+    .queue-title { display: flex; align-items: center; gap: 11px; }
+    .queue-title h2 { margin: 0; font-size: 1rem; }
+    .queue-title p { margin: 5px 0 0; font-size: .78rem; color: var(--muted); }
+    .queue-glyph { color: var(--gold-light); font-size: 1.15rem; }
+    .filters { display: flex; align-items: center; gap: 9px; }
+    .filters select { min-width: 160px; width: auto; font-size: .8rem; }
+    #tasks { padding: 0 22px; }
+    .task { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px; padding: 21px 0; border-bottom: 1px solid var(--line); }
+    .task:last-child { border-bottom: 0; }
+    .task h3 { font-size: .94rem; font-weight: 600; margin: 0; line-height: 1.45; }
+    .task-description { color: #b1bdd1; line-height: 1.65; font-size: .82rem; margin: 8px 0 0; overflow-wrap: anywhere; }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .pill { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; color: #c1cce0; background: rgba(11,17,32,.38); font-size: .7rem; }
+    .pill.status { color: var(--gold-light); background: rgba(224,169,68,.09); border-color: rgba(224,169,68,.22); }
+    .pill.status.status-completed { color: #85e0b4; background: rgba(103,214,161,.08); border-color: rgba(103,214,161,.2); }
+    .pill.status.status-failed, .pill.status.status-blocked { color: #ffb4b4; background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.2); }
+    .pill.status.status-awaiting_approval { color: #a9c7ff; background: rgba(111,155,255,.1); border-color: rgba(111,155,255,.22); }
+    .task-side { display: flex; flex-direction: column; align-items: end; gap: 10px; min-width: 120px; }
+    .priority-label { font-size: .68rem; color: var(--muted); }
+    .priority-score { color: var(--gold-light); font-size: 1.2rem; font-weight: 700; letter-spacing: -.03em; }
+    .task-link { font-size: .76rem; text-decoration: none; border-bottom: 1px solid rgba(242,201,121,.4); padding-bottom: 2px; }
+    .task-link:hover { color: #fff; border-color: #fff; }
+    .empty { text-align: center; padding: 48px 18px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+    .empty-symbol { font-size: 1.8rem; color: var(--gold); margin-bottom: 10px; }
+    .footer-note { text-align: center; color: #738099; font-size: .72rem; margin-top: 22px; line-height: 1.6; }
+    @media (max-width: 820px) {
+      .connection-grid { grid-template-columns: 1fr 1fr; }
+      .connection-grid .btn { grid-column: 1 / -1; }
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .queue-header { align-items: start; flex-direction: column; }
+      .filters { width: 100%; }
+      .filters select { flex: 1; min-width: 0; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding-top: 18px; }
+      .topbar { align-items: start; }
+      .brand-mark { width: 39px; height: 39px; border-radius: 12px; }
+      .brand-name { font-size: 1.2rem; }
+      .brand-subtitle { font-size: .68rem; }
+      .top-meta { font-size: 0; padding-top: 12px; }
+      .intro { padding-top: 26px; }
+      .intro-mark { width: 48px; height: 48px; }
+      .intro-copy { font-size: .85rem; }
+      .panel { padding: 16px; border-radius: 14px; }
+      .connection-grid { grid-template-columns: 1fr; }
+      .connection-grid .btn { grid-column: auto; }
+      .stat { padding: 14px; min-height: 110px; }
+      .stat strong { font-size: 1.7rem; }
+      .stat-label { font-size: .7rem; }
+      .queue-header { padding: 17px; }
+      #tasks { padding: 0 17px; }
+      .filters { flex-direction: column; align-items: stretch; }
+      .filters select, .filters .btn { width: 100%; }
+      .task { grid-template-columns: 1fr; gap: 12px; }
+      .task-side { align-items: start; flex-direction: row; flex-wrap: wrap; justify-content: space-between; min-width: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Norte Engineering Agents</h1>
-    <p>Fila de melhorias, execuções e validações — painel de acompanhamento</p>
-  </header>
-  <main>
-    <section class="panel">
-      <div class="connection">
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="27" height="27" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="11" stroke="#e0a944" stroke-opacity=".6"/>
+            <circle cx="16" cy="16" r="6" stroke="#e0a944" stroke-opacity=".35"/>
+            <path d="M16 3.5 18.4 13.6 28.5 16 18.4 18.4 16 28.5 13.6 18.4 3.5 16 13.6 13.6 16 3.5Z" fill="#f2c979"/>
+            <circle cx="16" cy="16" r="2" fill="#0b1120"/>
+          </svg>
+        </div>
         <div>
-          <label for="apiUrl">URL da Control API</label>
-          <input id="apiUrl" type="url" placeholder="http://localhost:4310" autocomplete="url">
+          <p class="brand-name">norte<span>.</span></p>
+          <p class="brand-subtitle">Engineering Agents · console</p>
+        </div>
+      </div>
+      <div class="top-meta"><span class="live-dot" id="connectionDot"></span><span id="connectionLabel">Desconectado</span></div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Central de engenharia</p>
+        <h1>Encontre o próximo<br><span style="color:var(--gold-light)">passo de evolução.</span></h1>
+        <p class="intro-copy">Acompanhe oportunidades técnicas, priorização e validações em um só lugar. Os agentes preparam melhorias; a decisão final continua humana.</p>
+      </div>
+      <svg class="intro-mark" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <circle cx="50" cy="50" r="37" stroke="currentColor" stroke-opacity=".23"/>
+        <circle cx="50" cy="50" r="25" stroke="currentColor" stroke-opacity=".2" stroke-dasharray="2 5"/>
+        <path d="M50 8 57 43 92 50 57 57 50 92 43 57 8 50 43 43 50 8Z" fill="currentColor" fill-opacity=".9"/>
+        <circle cx="50" cy="50" r="5" fill="#0b1120"/>
+        <circle cx="76" cy="22" r="2" fill="#f2c979"/>
+        <circle cx="20" cy="72" r="1.8" fill="#f2c979"/>
+      </svg>
+    </section>
+
+    <section class="panel connection" aria-labelledby="connectionTitle">
+      <div class="section-heading">
+        <div>
+          <h2 id="connectionTitle">Conectar à Control API</h2>
+          <p>Use o endereço local durante o desenvolvimento e seu token de leitura.</p>
+        </div>
+      </div>
+      <div class="connection-grid">
+        <div>
+          <label for="apiUrl">URL da API</label>
+          <input id="apiUrl" type="url" value="http://localhost:4310" placeholder="http://localhost:4310" autocomplete="url">
         </div>
         <div>
           <label for="apiToken">Token de acesso</label>
-          <input id="apiToken" type="password" placeholder="Token da API" autocomplete="off">
+          <input id="apiToken" type="password" placeholder="AGENTS_API_TOKEN" autocomplete="off">
         </div>
-        <button id="connect">Conectar</button>
+        <button class="btn btn-primary" id="connect">Conectar</button>
       </div>
-      <p class="small" style="margin-top:10px">O token fica apenas nesta sessão do navegador. Use HTTPS fora do ambiente local. Este painel consulta tarefas; não autoriza merge.</p>
-      <div id="notice" class="notice" role="status" aria-live="polite">Informe a URL e o token da API para carregar as tarefas.</div>
+      <p class="safety-note"><span aria-hidden="true">✦</span><span>O token fica somente na sessão atual do navegador. Use HTTPS fora do ambiente local. Este painel é de acompanhamento: não faz push, merge nem deploy.</span></p>
+      <div id="notice" class="notice" role="status" aria-live="polite">Informe o token para carregar a fila de melhorias.</div>
     </section>
 
-    <section class="panel stats" aria-label="Resumo da fila">
-      <div class="stat"><span>Total carregado</span><strong id="total">—</strong></div>
-      <div class="stat"><span>Em execução</span><strong id="running">—</strong></div>
-      <div class="stat"><span>Aguardando aprovação</span><strong id="approval">—</strong></div>
-      <div class="stat"><span>Bloqueadas ou falhas</span><strong id="blocked">—</strong></div>
+    <section class="stats" aria-label="Resumo da fila">
+      <article class="stat"><div class="stat-label"><span class="stat-icon">✧</span>Total de melhorias</div><strong id="total">—</strong></article>
+      <article class="stat"><div class="stat-label"><span class="stat-icon">↗</span>Em andamento</div><strong id="running">—</strong></article>
+      <article class="stat"><div class="stat-label"><span class="stat-icon">◎</span>Aguardando aprovação</div><strong id="approval">—</strong></article>
+      <article class="stat"><div class="stat-label"><span class="stat-icon">!</span>Bloqueadas ou falhas</div><strong id="blocked">—</strong></article>
     </section>
 
-    <section class="panel">
-      <div class="toolbar">
-        <h2>Fila de melhorias</h2>
+    <section class="panel queue-panel" aria-labelledby="queueTitle">
+      <div class="queue-header">
+        <div class="queue-title">
+          <span class="queue-glyph" aria-hidden="true">✧</span>
+          <div><h2 id="queueTitle">Fila de melhorias</h2><p id="queueSubtitle">Oportunidades encontradas no repositório</p></div>
+        </div>
         <div class="filters">
           <select id="statusFilter" aria-label="Filtrar por status">
             <option value="">Todos os status</option>
-            <option>discovered</option><option>triaged</option><option>queued</option>
-            <option>analyzing</option><option>planned</option><option>implementing</option>
-            <option>reviewing</option><option>validating</option><option>awaiting_approval</option>
-            <option>blocked</option><option>failed</option><option>rejected</option>
-            <option>cancelled</option><option>completed</option>
+            <option value="discovered">Descoberta</option><option value="triaged">Triagem</option><option value="queued">Na fila</option>
+            <option value="analyzing">Analisando</option><option value="planned">Planejada</option><option value="implementing">Implementando</option>
+            <option value="reviewing">Em revisão</option><option value="validating">Validando</option><option value="awaiting_approval">Aguardando aprovação</option>
+            <option value="blocked">Bloqueada</option><option value="failed">Falhou</option><option value="rejected">Rejeitada</option>
+            <option value="cancelled">Cancelada</option><option value="completed">Concluída</option>
           </select>
           <select id="categoryFilter" aria-label="Filtrar por categoria">
             <option value="">Todas as categorias</option>
-            <option>security</option><option>reliability</option><option>performance</option>
-            <option>testing</option><option>architecture</option><option>maintainability</option>
-            <option>documentation</option><option>accessibility</option><option>other</option>
+            <option value="security">Segurança</option><option value="reliability">Confiabilidade</option><option value="performance">Desempenho</option>
+            <option value="testing">Testes</option><option value="architecture">Arquitetura</option><option value="maintainability">Manutenibilidade</option>
+            <option value="documentation">Documentação</option><option value="accessibility">Acessibilidade</option><option value="other">Outros</option>
           </select>
-          <button class="secondary" id="refresh">Atualizar</button>
+          <button class="btn btn-secondary" id="refresh">Atualizar</button>
         </div>
       </div>
-      <div id="tasks"><div class="empty">Nenhuma tarefa carregada.</div></div>
+      <div id="tasks"><div class="empty"><div class="empty-symbol">✧</div>Conecte à API para visualizar as melhorias.<br>Um passo de cada vez já é progresso.</div></div>
     </section>
-  </main>
+    <p class="footer-note">Norte Engineering Agents · Construído para evoluir com segurança.<br>Implementações isoladas, validação independente e aprovação humana obrigatória.</p>
+  </div>
+
   <script>
     const byId = (id) => document.getElementById(id);
     const activeStates = new Set(['analyzing', 'implementing', 'reviewing', 'validating']);
+    const statusLabels = {
+      discovered: 'Descoberta', triaged: 'Triagem', queued: 'Na fila', analyzing: 'Analisando',
+      planned: 'Planejada', implementing: 'Implementando', reviewing: 'Em revisão', validating: 'Validando',
+      awaiting_approval: 'Aguardando aprovação', rejected: 'Rejeitada', blocked: 'Bloqueada',
+      failed: 'Falhou', cancelled: 'Cancelada', completed: 'Concluída'
+    };
+    const categoryLabels = {
+      security: 'Segurança', reliability: 'Confiabilidade', performance: 'Desempenho',
+      testing: 'Testes', architecture: 'Arquitetura', maintainability: 'Manutenibilidade',
+      documentation: 'Documentação', accessibility: 'Acessibilidade', other: 'Outros'
+    };
     let lastTasks = [];
 
     function apiBase() {
@@ -124,6 +274,11 @@
       return node;
     }
 
+    function setConnection(connected) {
+      byId('connectionDot').classList.toggle('connected', connected);
+      byId('connectionLabel').textContent = connected ? 'API conectada' : 'Desconectado';
+    }
+
     function render() {
       const status = byId('statusFilter').value;
       const category = byId('categoryFilter').value;
@@ -132,75 +287,92 @@
       byId('running').textContent = String(lastTasks.filter(task => activeStates.has(task.status)).length);
       byId('approval').textContent = String(lastTasks.filter(task => task.status === 'awaiting_approval').length);
       byId('blocked').textContent = String(lastTasks.filter(task => ['blocked', 'failed'].includes(task.status)).length);
+      byId('queueSubtitle').textContent = filtered.length + (filtered.length === 1 ? ' melhoria exibida' : ' melhorias exibidas');
       const root = byId('tasks');
       root.replaceChildren();
       if (!filtered.length) {
-        root.append(element('div', 'empty', 'Nenhuma tarefa encontrada para este filtro.'));
+        const empty = element('div', 'empty');
+        empty.append(element('div', 'empty-symbol', '✧'));
+        empty.append(document.createTextNode(lastTasks.length ? 'Nenhuma melhoria corresponde aos filtros selecionados.' : 'Ainda não há melhorias na fila. Quando uma oportunidade for registrada, ela aparecerá aqui.'));
+        root.append(empty);
         return;
       }
+
       for (const task of filtered) {
         const article = element('article', 'task');
-        const main = element('div');
-        main.append(element('h3', '', task.title || task.id));
-        main.append(element('p', '', task.summary || 'Sem descrição.'));
-        const meta = element('div', 'meta');
-        meta.append(element('span', 'pill status', task.status));
-        meta.append(element('span', 'pill', task.category));
-        if (Number.isFinite(Number(task.confidence))) meta.append(element('span', 'pill', 'Confiança: ' + Math.round(Number(task.confidence) * 100) + '%'));
+        const content = element('div');
+        content.append(element('h3', '', task.title || task.id));
+        content.append(element('p', 'task-description', task.summary || 'Sem descrição.'));
+        const meta = element('div', 'task-meta');
+        meta.append(element('span', 'pill status status-' + String(task.status || 'unknown'), statusLabels[task.status] || task.status || 'Sem status'));
+        meta.append(element('span', 'pill', categoryLabels[task.category] || task.category || 'Sem categoria'));
+        if (task.id) meta.append(element('span', 'pill', 'ID: ' + task.id));
+        if (Number.isFinite(Number(task.confidence)) && task.confidence !== null) meta.append(element('span', 'pill', 'Confiança ' + Math.round(Number(task.confidence) * 100) + '%'));
         if (task.branchName) meta.append(element('span', 'pill', 'Branch: ' + task.branchName));
-        main.append(meta);
+        content.append(meta);
+        if (task.blockedReason) {
+          const reason = element('p', 'task-description', 'Motivo do bloqueio: ' + task.blockedReason);
+          content.append(reason);
+        }
+
+        const side = element('div', 'task-side');
+        const priority = element('div');
+        priority.append(element('div', 'priority-label', 'PRIORIDADE'));
+        priority.append(element('div', 'priority-score', String(Math.round(Number(task.priority) || 0)).padStart(2, '0')));
+        side.append(priority);
         if (task.pullRequestUrl) {
-          const link = element('a', 'small', 'Abrir Pull Request');
+          const link = element('a', 'task-link', 'Abrir Pull Request ↗');
           link.href = task.pullRequestUrl;
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
-          link.style.display = 'inline-block';
-          link.style.marginTop = '10px';
-          main.append(link);
+          side.append(link);
         }
-        if (task.blockedReason) main.append(element('p', 'small', 'Bloqueio: ' + task.blockedReason));
-        article.append(main);
-        article.append(element('div', 'priority', 'Prioridade ' + Math.round(Number(task.priority) || 0)));
+        article.append(content, side);
         root.append(article);
       }
     }
 
     async function loadTasks() {
-      const button = byId('connect');
-      button.disabled = true;
+      const connectButton = byId('connect');
+      const refreshButton = byId('refresh');
+      connectButton.disabled = true;
+      refreshButton.disabled = true;
       try {
         const base = apiBase();
         const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
-        if (!token) throw new Error('Informe o token da API.');
+        if (!token) throw new Error('Informe o token de leitura da API.');
         sessionStorage.setItem('norteAgentsToken', token);
-        const status = byId('statusFilter').value;
-        const category = byId('categoryFilter').value;
-        const params = new URLSearchParams({ limit: '100' });
-        if (status) params.set('status', status);
-        if (category) params.set('category', category);
-        const response = await fetch(base + '/api/tasks?' + params.toString(), {
+        const response = await fetch(base + '/api/tasks?limit=100', {
           headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
           cache: 'no-store'
         });
-        if (!response.ok) throw new Error(response.status === 401 ? 'A API recusou o token.' : 'Falha ao consultar a API (HTTP ' + response.status + ').');
+        if (!response.ok) {
+          if (response.status === 401) throw new Error('A API recusou o token. Confira o AGENTS_API_TOKEN.');
+          throw new Error('Falha ao consultar a API (HTTP ' + response.status + ').');
+        }
         const payload = await response.json();
         if (!Array.isArray(payload.tasks)) throw new Error('Resposta da API em formato inesperado.');
         lastTasks = payload.tasks;
-        showNotice('Conectado. Última atualização: ' + new Date().toLocaleTimeString('pt-BR'));
+        setConnection(true);
+        showNotice('Conectado · última atualização às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         render();
       } catch (error) {
+        setConnection(false);
         showNotice(error.message || 'Não foi possível carregar as tarefas.', true);
       } finally {
-        button.disabled = false;
+        connectButton.disabled = false;
+        refreshButton.disabled = false;
       }
     }
 
     byId('connect').addEventListener('click', loadTasks);
     byId('refresh').addEventListener('click', loadTasks);
-    byId('statusFilter').addEventListener('change', () => { render(); loadTasks(); });
-    byId('categoryFilter').addEventListener('change', () => { render(); loadTasks(); });
+    byId('statusFilter').addEventListener('change', render);
+    byId('categoryFilter').addEventListener('change', render);
     byId('apiToken').value = sessionStorage.getItem('norteAgentsToken') || '';
-    setInterval(() => { if (byId('apiUrl').value && (byId('apiToken').value || sessionStorage.getItem('norteAgentsToken'))) loadTasks(); }, 30000);
+    setInterval(() => {
+      if (byId('apiUrl').value && (byId('apiToken').value || sessionStorage.getItem('norteAgentsToken'))) loadTasks();
+    }, 30000);
   </script>
 </body>
 </html>

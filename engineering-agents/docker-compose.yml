@@ -22,6 +22,7 @@ services:
       PORT: 4310
       DATABASE_URL: postgres://agents_user:${POSTGRES_PASSWORD}@db:5432/norte_agents
       AGENTS_API_TOKEN: ${AGENTS_API_TOKEN:?Set AGENTS_API_TOKEN in engineering-agents/.env}
+      AGENTS_INGEST_TOKEN: ${AGENTS_INGEST_TOKEN:?Set AGENTS_INGEST_TOKEN in engineering-agents/.env}
       DASHBOARD_ORIGIN: http://localhost:8080
       PGSSLMODE: disable
     depends_on:

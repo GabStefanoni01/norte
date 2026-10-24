@@ -175,7 +175,7 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
-              effort, risk, evidence, repository_name AS "repositoryName",
+              effort, risk, evidence, finding_type AS "findingType", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
               blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"

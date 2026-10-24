@@ -93,6 +93,11 @@
     .task:last-child { border-bottom: 0; }
     .task h3 { font-size: .94rem; font-weight: 600; margin: 0; line-height: 1.45; }
     .task-description { color: #b1bdd1; line-height: 1.65; font-size: .82rem; margin: 8px 0 0; overflow-wrap: anywhere; }
+    .source-list { display: grid; gap: 7px; margin-top: 12px; }
+    .source-item { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
+    .source-item code { color: #dce5f5; font: inherit; overflow-wrap: anywhere; }
+    .source-link { color: var(--gold-light); text-decoration: none; border-bottom: 1px solid rgba(242,201,121,.35); }
+    .source-link:hover { color: #fff; border-color: #fff; }
     .task-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
     .pill { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; color: #c1cce0; background: rgba(11,17,32,.38); font-size: .7rem; }
     .pill.status { color: var(--gold-light); background: rgba(224,169,68,.09); border-color: rgba(224,169,68,.22); }
@@ -279,6 +284,76 @@
       byId('connectionLabel').textContent = connected ? 'API conectada' : 'Desconectado';
     }
 
+    function safeRepositoryUrl(value) {
+      if (typeof value !== 'string' || !value.trim()) return null;
+      try {
+        const url = new URL(value);
+        if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) return null;
+        return url.toString().replace(/\\/+$/, '');
+      } catch {
+        return null;
+      }
+    }
+
+    function sourceFileUrl(task, evidence) {
+      const repositoryUrl = safeRepositoryUrl(task.repositoryUrl);
+      const ref = typeof task.repositoryRef === 'string' ? task.repositoryRef.trim() : '';
+      const filePath = typeof evidence.path === 'string' ? evidence.path : '';
+      const line = Number(evidence.startLine);
+      if (!repositoryUrl || !ref || !filePath || filePath.startsWith('/') ||
+          filePath.includes('\\\\') || filePath.split('/').some(part => !part || part === '.' || part === '..') ||
+          /[\\r\\n]/.test(ref) || ref.length > 255) return null;
+      const encodedRef = ref.split('/').map(encodeURIComponent).join('/');
+      const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+      const lineSuffix = Number.isInteger(line) && line > 0 ? '#L' + line : '';
+      return repositoryUrl + '/blob/' + encodedRef + '/' + encodedPath + lineSuffix;
+    }
+
+    function renderSource(task, content) {
+      const evidence = Array.isArray(task.evidence) ? task.evidence : [];
+      const repositoryName = typeof task.repositoryName === 'string' && task.repositoryName.trim()
+        ? task.repositoryName.trim() : 'Repositório não identificado';
+      const repositoryUrl = safeRepositoryUrl(task.repositoryUrl);
+      const section = element('div', 'source-list');
+      const repositoryRow = element('div', 'source-item');
+      repositoryRow.append(element('span', '', 'Projeto:'));
+      if (repositoryUrl) {
+        const link = element('a', 'source-link', repositoryName);
+        link.href = repositoryUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        repositoryRow.append(link);
+      } else {
+        repositoryRow.append(element('strong', '', repositoryName));
+      }
+      section.append(repositoryRow);
+
+      if (!evidence.length) {
+        section.append(element('div', 'source-item', 'Arquivo de origem não registrado.'));
+      } else {
+        for (const item of evidence.slice(0, 3)) {
+          const row = element('div', 'source-item');
+          const filePath = typeof item.path === 'string' && item.path ? item.path : 'Caminho não registrado';
+          const line = Number(item.startLine);
+          row.append(element('span', '', 'Arquivo:'));
+          const fileUrl = sourceFileUrl(task, item);
+          if (fileUrl) {
+            const link = element('a', 'source-link', filePath + (Number.isInteger(line) && line > 0 ? ':' + line : ''));
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            row.append(link);
+          } else {
+            row.append(element('code', '', filePath + (Number.isInteger(line) && line > 0 ? ':' + line : '')));
+          }
+          if (item.description) row.append(element('span', '', '— ' + item.description));
+          section.append(row);
+        }
+        if (evidence.length > 3) section.append(element('div', 'source-item', '+' + (evidence.length - 3) + ' evidências adicionais'));
+      }
+      content.append(section);
+    }
+
     function render() {
       const status = byId('statusFilter').value;
       const category = byId('categoryFilter').value;
@@ -310,6 +385,7 @@
         if (Number.isFinite(Number(task.confidence)) && task.confidence !== null) meta.append(element('span', 'pill', 'Confiança ' + Math.round(Number(task.confidence) * 100) + '%'));
         if (task.branchName) meta.append(element('span', 'pill', 'Branch: ' + task.branchName));
         content.append(meta);
+        renderSource(task, content);
         if (task.blockedReason) {
           const reason = element('p', 'task-description', 'Motivo do bloqueio: ' + task.blockedReason);
           content.append(reason);

@@ -227,7 +227,7 @@
             <option value="cancelled">Cancelada</option><option value="completed">Concluída</option>
           </select>
           <select id="findingTypeFilter" aria-label="Filtrar por tipo de achado">
-            <option value="">Todos os tipos</option><option value="potential_defect">Possível defeito</option><option value="code_smell">Sinal de manutenção</option><option value="maintenance_signal">Manutenção pendente</option>
+            <option value="">Todos os tipos</option><option value="pending">Classificação pendente</option><option value="potential_defect">Possível defeito</option><option value="code_smell">Sinal de manutenção</option><option value="maintenance_signal">Manutenção pendente</option>
           </select>
           <select id="categoryFilter" aria-label="Filtrar por categoria">
             <option value="">Todas as categorias</option>
@@ -366,7 +366,7 @@
       const status = byId('statusFilter').value;
       const category = byId('categoryFilter').value;
       const findingType = byId('findingTypeFilter').value;
-      const filtered = lastTasks.filter(task => (!status || task.status === status) && (!category || task.category === category) && (!findingType || (task.findingType || 'maintenance_signal') === findingType));
+      const filtered = lastTasks.filter(task => (!status || task.status === status) && (!category || task.category === category) && (!findingType || (task.findingType || 'pending') === findingType));
       byId('total').textContent = String(lastTasks.length);
       byId('running').textContent = String(lastTasks.filter(task => activeStates.has(task.status)).length);
       byId('approval').textContent = String(lastTasks.filter(task => task.status === 'awaiting_approval').length);

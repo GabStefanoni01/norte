@@ -97,10 +97,12 @@ function scanText(relativePath, content) {
   return findings.map((finding) => {
     const priority = scorePriority(finding);
     const recommendedAction = recommendedActionFor(finding);
+    const analysisPlan = analysisPlanFor(finding);
     return {
       ...finding,
       priority,
       recommendedAction,
+      analysisPlan,
       priorityRationale: 'Pontuação heurística ' + priority + '/100: impacto ' + finding.impact +
         '/5, confiança ' + Math.round(finding.confidence * 100) + '%, esforço ' + finding.effort +
         '/5 e risco da mudança ' + finding.risk + '/5. Revise o contexto antes de agir.',
@@ -114,6 +116,69 @@ function scorePriority(finding) {
   const effort = Math.max(1, Math.min(5, Number(finding.effort) || 5));
   const risk = Math.max(1, Math.min(5, Number(finding.risk) || 5));
   return Math.round((impact / 5) * 40 + confidence * 30 + ((6 - effort) / 5) * 15 + ((6 - risk) / 5) * 15);
+}
+
+function analysisPlanFor(finding) {
+  const commonValidation = [
+    'Executar o teste mais próximo da área alterada e confirmar o comportamento esperado.',
+    'Executar a suíte automatizada do projeto e verificar se não houve regressões.',
+  ];
+  if (finding.rule === 'empty-catch') {
+    return {
+      hypothesis: 'Uma exceção pode estar sendo descartada, ocultando uma falha e dificultando o diagnóstico; confirmar o contrato de erro antes de mudar o comportamento.',
+      steps: [
+        'Inspecionar a função, seus chamadores e o comportamento esperado quando ocorre uma falha.',
+        'Decidir explicitamente entre propagar, tratar, registrar contexto seguro ou usar fallback.',
+        'Propor a menor alteração possível e cobrir o caminho de erro com teste.',
+      ],
+      validation: commonValidation,
+      rollback: 'Reverter somente a alteração no tratamento de erro se houver mudança incompatível no comportamento esperado.',
+      humanApprovalRequired: true,
+    };
+  }
+  if (finding.rule === 'console-log') {
+    return {
+      hypothesis: 'A saída pode ser ruído operacional ou expor dados no log; confirmar se a chamada é necessária e qual política de logging o módulo utiliza.',
+      steps: [
+        'Verificar o contexto da chamada e se ela é usada para diagnóstico em produção.',
+        'Se necessário, trocar por logger estruturado já adotado pelo projeto; nunca incluir segredos ou dados pessoais.',
+        'Manter a mudança localizada e revisar os níveis/contextos de log.',
+      ],
+      validation: [
+        'Executar os testes do módulo e verificar se não dependem da saída de console.',
+        'Revisar a alteração para garantir que nenhum dado sensível seja registrado.',
+        'Executar a suíte automatizada do projeto.',
+      ],
+      rollback: 'Reverter apenas a mudança de logging caso ela remova observabilidade necessária ou quebre testes existentes.',
+      humanApprovalRequired: true,
+    };
+  }
+  if (finding.rule === 'maintenance-marker') {
+    return {
+      hypothesis: 'O marcador pode representar trabalho pendente ou estar desatualizado; o texto ao redor e o histórico devem confirmar a intenção antes de removê-lo.',
+      steps: [
+        'Ler o contexto ao redor do marcador e identificar se há comportamento ainda não implementado.',
+        'Se a pendência for válida, propor tarefa rastreável; se já estiver resolvida ou descartada, justificar a remoção.',
+        'Não remover o marcador sem confirmar que nenhum requisito será perdido.',
+      ],
+      validation: [
+        'Confirmar a decisão com o contexto do módulo ou issue relacionado.',
+        'Se houver mudança de código, executar testes relacionados e a suíte automatizada.',
+      ],
+      rollback: 'Restaurar o marcador ou a documentação associada se a decisão tiver descartado trabalho ainda necessário.',
+      humanApprovalRequired: true,
+    };
+  }
+  return {
+    hypothesis: 'O sinal é heurístico e precisa ser confirmado no contexto do código antes de definir uma correção.',
+    steps: [
+      'Inspecionar o código e os chamadores relacionados.',
+      'Definir uma mudança pequena, testável e reversível.',
+    ],
+    validation: commonValidation,
+    rollback: 'Reverter a alteração proposta se os testes ou o comportamento esperado regredirem.',
+    humanApprovalRequired: true,
+  };
 }
 
 function recommendedActionFor(finding) {
@@ -203,6 +268,7 @@ async function submitFinding(apiUrl, token, finding, repository) {
     risk: finding.risk,
     recommendedAction: finding.recommendedAction,
     priorityRationale: finding.priorityRationale,
+    analysisPlan: finding.analysisPlan,
     evidence: [{
       description: finding.evidence,
       path: finding.path,
@@ -315,4 +381,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { hashId, scanText, scanRepository };
+module.exports = { hashId, scanText, scanRepository, analysisPlanFor };

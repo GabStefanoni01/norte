@@ -94,7 +94,39 @@ function scanText(relativePath, content) {
     }
   }
 
-  return findings;
+  return findings.map((finding) => {
+    const priority = scorePriority(finding);
+    const recommendedAction = recommendedActionFor(finding);
+    return {
+      ...finding,
+      priority,
+      recommendedAction,
+      priorityRationale: 'Pontuação heurística ' + priority + '/100: impacto ' + finding.impact +
+        '/5, confiança ' + Math.round(finding.confidence * 100) + '%, esforço ' + finding.effort +
+        '/5 e risco da mudança ' + finding.risk + '/5. Revise o contexto antes de agir.',
+    };
+  });
+}
+
+function scorePriority(finding) {
+  const impact = Math.max(1, Math.min(5, Number(finding.impact) || 1));
+  const confidence = Math.max(0, Math.min(1, Number(finding.confidence) || 0));
+  const effort = Math.max(1, Math.min(5, Number(finding.effort) || 5));
+  const risk = Math.max(1, Math.min(5, Number(finding.risk) || 5));
+  return Math.round((impact / 5) * 40 + confidence * 30 + ((6 - effort) / 5) * 15 + ((6 - risk) / 5) * 15);
+}
+
+function recommendedActionFor(finding) {
+  if (finding.rule === 'empty-catch') {
+    return 'Inspecionar o fluxo de erro e decidir se a falha deve ser propagada, tratada ou registrada com contexto seguro; adicionar teste para o comportamento esperado.';
+  }
+  if (finding.rule === 'console-log') {
+    return 'Confirmar se a chamada é necessária em produção; removê-la ou substituí-la pelo logger estruturado do projeto, sem registrar segredos ou dados pessoais.';
+  }
+  if (finding.rule === 'maintenance-marker') {
+    return 'Verificar se o trabalho ainda é necessário; converter em tarefa rastreável com responsável e prazo ou remover o marcador após resolver/descartar a pendência.';
+  }
+  return 'Inspecionar o contexto e definir uma ação mínima, testável e reversível antes de alterar o código.';
 }
 
 async function collectFiles(root) {

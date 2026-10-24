@@ -137,12 +137,22 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
          repository_url = COALESCE(engineering_improvements.repository_url, EXCLUDED.repository_url),
          repository_ref = COALESCE(engineering_improvements.repository_ref, EXCLUDED.repository_ref),
          finding_type = COALESCE(engineering_improvements.finding_type, EXCLUDED.finding_type),
+         priority = EXCLUDED.priority,
+         impact = EXCLUDED.impact,
+         confidence = EXCLUDED.confidence,
+         effort = EXCLUDED.effort,
+         risk = EXCLUDED.risk,
          recommended_action = COALESCE(engineering_improvements.recommended_action, EXCLUDED.recommended_action),
          priority_rationale = COALESCE(engineering_improvements.priority_rationale, EXCLUDED.priority_rationale)
        WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
           OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
           OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
           OR (engineering_improvements.finding_type IS NULL AND EXCLUDED.finding_type IS NOT NULL)
+          OR engineering_improvements.priority IS DISTINCT FROM EXCLUDED.priority
+          OR engineering_improvements.impact IS DISTINCT FROM EXCLUDED.impact
+          OR engineering_improvements.confidence IS DISTINCT FROM EXCLUDED.confidence
+          OR engineering_improvements.effort IS DISTINCT FROM EXCLUDED.effort
+          OR engineering_improvements.risk IS DISTINCT FROM EXCLUDED.risk
           OR (engineering_improvements.recommended_action IS NULL AND EXCLUDED.recommended_action IS NOT NULL)
           OR (engineering_improvements.priority_rationale IS NULL AND EXCLUDED.priority_rationale IS NOT NULL)
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,

@@ -93,6 +93,10 @@
     .task:last-child { border-bottom: 0; }
     .task h3 { font-size: .94rem; font-weight: 600; margin: 0; line-height: 1.45; }
     .task-description { color: #b1bdd1; line-height: 1.65; font-size: .82rem; margin: 8px 0 0; overflow-wrap: anywhere; }
+    .recommendation-panel { margin-top: 13px; padding: 12px 14px; border: 1px solid rgba(224,169,68,.18); border-radius: 12px; background: rgba(224,169,68,.045); }
+    .recommendation-title { color: var(--gold-light); font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .recommendation-copy { color: #d1d9e8; font-size: .8rem; line-height: 1.6; margin: 6px 0 0; overflow-wrap: anywhere; }
+    .recommendation-rationale { color: var(--muted); font-size: .74rem; line-height: 1.55; margin: 7px 0 0; overflow-wrap: anywhere; }
     .source-list { display: grid; gap: 7px; margin-top: 12px; }
     .source-item { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
     .source-item code { color: #dce5f5; font: inherit; overflow-wrap: anywhere; }
@@ -387,6 +391,15 @@
         const content = element('div');
         content.append(element('h3', '', task.title || task.id));
         content.append(element('p', 'task-description', task.summary || 'Sem descrição.'));
+        if (task.recommendedAction || task.priorityRationale) {
+          const recommendation = element('section', 'recommendation-panel');
+          recommendation.append(element('div', 'recommendation-title', 'Próxima ação sugerida'));
+          recommendation.append(element('p', 'recommendation-copy', task.recommendedAction || 'Ação sugerida ainda não registrada.'));
+          if (task.priorityRationale) {
+            recommendation.append(element('p', 'recommendation-rationale', 'Por que essa prioridade: ' + task.priorityRationale));
+          }
+          content.append(recommendation);
+        }
         const meta = element('div', 'task-meta');
         meta.append(element('span', 'pill status status-' + String(task.status || 'unknown'), statusLabels[task.status] || task.status || 'Sem status'));
         meta.append(element('span', 'pill', categoryLabels[task.category] || task.category || 'Sem categoria'));

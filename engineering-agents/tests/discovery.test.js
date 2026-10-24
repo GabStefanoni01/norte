@@ -22,6 +22,10 @@ test('detects maintenance markers without copying source line content into evide
   assert.equal(typeof findings[0].recommendedAction, 'string');
   assert.match(findings[0].priorityRationale, /impacto 2\/5/);
   assert.ok(findings[0].priority >= 0 && findings[0].priority <= 100);
+  assert.equal(findings[0].analysisPlan.humanApprovalRequired, true);
+  assert.ok(findings[0].analysisPlan.steps.length >= 1);
+  assert.ok(findings[0].analysisPlan.validation.length >= 1);
+  assert.match(findings[0].analysisPlan.hypothesis, /marcador|pendente|contexto/i);
 });
 
 test('detects empty catch blocks in JavaScript and TypeScript', () => {
@@ -31,6 +35,8 @@ test('detects empty catch blocks in JavaScript and TypeScript', () => {
   assert.equal(findings[0].category, 'reliability');
   assert.equal(findings[0].findingType, 'potential_defect');
   assert.match(findings[0].recommendedAction, /fluxo de erro/);
+  assert.match(findings[0].analysisPlan.steps[0], /Inspecionar a função/);
+  assert.equal(findings[0].analysisPlan.humanApprovalRequired, true);
   assert.match(findings[0].priorityRationale, /confiança 78%/);
 });
 

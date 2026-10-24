@@ -21,9 +21,9 @@ const IGNORED_FILES = new Set([
   'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lockb',
 ]);
 
-function hashId(rule, relativePath, lineNumber, text, repositoryIdentity = '') {
+function hashId(rule, relativePath, lineNumber, text) {
   return 'disc-' + crypto.createHash('sha256')
-    .update([repositoryIdentity, rule, relativePath.replace(/\\/g, '/'), lineNumber, text.trim()].join('\n'))
+    .update([rule, relativePath.replace(/\\/g, '/'), lineNumber, text.trim()].join('\n'))
     .digest('hex')
     .slice(0, 24);
 }
@@ -151,7 +151,7 @@ async function scanRepository(root) {
 }
 
 async function submitFinding(apiUrl, token, finding, repository) {
-  const id = hashId(finding.rule, finding.path, finding.line, finding.evidence, repository.url || repository.name);
+  const id = hashId(finding.rule, finding.path, finding.line, finding.evidence);
   const payload = {
     id,
     title: finding.title,

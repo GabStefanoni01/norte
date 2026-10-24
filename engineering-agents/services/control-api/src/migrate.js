@@ -25,7 +25,7 @@ async function runMigrations() {
   let lockAcquired = false;
 
   try {
-    await client.query('SELECT pg_advisory_lock($1)', [lockKey]);
+    await client.query('SELECT pg_advisory_lock($1::bigint)', [lockKey]);
     lockAcquired = true;
 
     await client.query(`
@@ -80,7 +80,7 @@ async function runMigrations() {
   } finally {
     if (lockAcquired) {
       try {
-        await client.query('SELECT pg_advisory_unlock($1)', [lockKey]);
+        await client.query('SELECT pg_advisory_unlock($1::bigint)', [lockKey]);
       } catch {
         // A conexão pode já ter sido encerrada pelo banco.
       }

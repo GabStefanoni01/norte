@@ -20,6 +20,8 @@ Edite `.env` e configure:
 - `AGENTS_API_TOKEN` e `AGENTS_INGEST_TOKEN`: segredos diferentes, com pelo menos 32 caracteres.
 - `DASHBOARD_ORIGIN=http://localhost:8080`.
 - `CONTROL_API_URL=http://localhost:4310`.
+- `DISCOVERY_REPOSITORY_NAME=Norte` e `DISCOVERY_REPOSITORY_URL=https://github.com/GabStefanoni01/norte` para registrar a origem de cada achado.
+- `DISCOVERY_REPOSITORY_REF` opcional: defina a branch exata analisada (por exemplo, `feat/engineering-agents-platform`) para habilitar links diretos ao arquivo e à linha no GitHub.
 
 Não versione nem compartilhe o arquivo `.env`. Se usar Docker Compose com PostgreSQL local, defina também `POSTGRES_PASSWORD`; o Compose configura a API para usar o banco local, independentemente de `DATABASE_URL`.
 
@@ -72,7 +74,7 @@ npm test
 npm run discover
 ```
 
-O Discovery Service percorre arquivos de código selecionados do clone local do Norte, ignorando diretórios gerados, dependências, a pasta `engineering-agents` e arquivos `.env`. Ele procura apenas sinais determinísticos iniciais: marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. Os resultados são enviados à API com o token interno de ingestão e aparecem no dashboard como tarefas `discovered`.
+O Discovery Service percorre arquivos de código selecionados do clone local do Norte, ignorando diretórios gerados, dependências, a pasta `engineering-agents` e arquivos `.env`. Cada tarefa registra o nome do repositório e, quando configurados, a URL e a ref de origem; o dashboard exibe esses metadados junto com caminho, linha e evidência. Links diretos para arquivo exigem `DISCOVERY_REPOSITORY_URL` e `DISCOVERY_REPOSITORY_REF` corretos. Ele procura apenas sinais determinísticos iniciais: marcadores `TODO/FIXME/HACK/XXX`, chamadas `console.log` em código de aplicação e blocos `catch` vazios em JavaScript/TypeScript. Os resultados são enviados à API com o token interno de ingestão e aparecem no dashboard como tarefas `discovered`.
 
 O scanner é **somente leitura**: não edita arquivos, não instala dependências no projeto-alvo, não executa código encontrado e não usa um modelo de IA. Cada achado usa um ID estável para evitar duplicação em execuções seguintes. O envio tem limite de 100 achados por execução e 5.000 arquivos examinados. Esses padrões são heurísticas, não prova de defeito; revise os achados antes de agir.
 

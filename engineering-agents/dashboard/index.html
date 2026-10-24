@@ -96,6 +96,8 @@
     .recommendation-panel { margin-top: 13px; padding: 12px 14px; border: 1px solid rgba(224,169,68,.18); border-radius: 12px; background: rgba(224,169,68,.045); }
     .recommendation-title { color: var(--gold-light); font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
     .recommendation-copy { color: #d1d9e8; font-size: .8rem; line-height: 1.6; margin: 6px 0 0; overflow-wrap: anywhere; }
+    .analysis-plan-list { margin: 0.35rem 0 0.75rem; padding-left: 1.25rem; color: var(--text-secondary); }
+    .analysis-plan-list li { margin: 0.25rem 0; }
     .recommendation-rationale { color: var(--muted); font-size: .74rem; line-height: 1.55; margin: 7px 0 0; overflow-wrap: anywhere; }
     .source-list { display: grid; gap: 7px; margin-top: 12px; }
     .source-item { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
@@ -399,6 +401,28 @@
             recommendation.append(element('p', 'recommendation-rationale', 'Por que essa prioridade: ' + task.priorityRationale));
           }
           content.append(recommendation);
+        }
+        if (task.analysisPlan && typeof task.analysisPlan === 'object') {
+          const plan = task.analysisPlan;
+          const planPanel = element('section', 'recommendation-panel');
+          planPanel.append(element('div', 'recommendation-title', 'Plano de análise proposto'));
+          planPanel.append(element('p', 'recommendation-copy', plan.hypothesis || 'Hipótese ainda não registrada.'));
+          const appendPlanList = (title, items) => {
+            if (!Array.isArray(items) || items.length === 0) return;
+            planPanel.append(element('div', 'recommendation-title', title));
+            const list = element('ul', 'analysis-plan-list');
+            for (const item of items.slice(0, 5)) {
+              if (typeof item === 'string') list.append(element('li', '', item));
+            }
+            planPanel.append(list);
+          };
+          appendPlanList('Etapas sugeridas', plan.steps);
+          appendPlanList('Validação sugerida', plan.validation);
+          if (plan.rollback) planPanel.append(element('p', 'recommendation-rationale', 'Plano de reversão: ' + plan.rollback));
+          if (plan.humanApprovalRequired === true) {
+            planPanel.append(element('p', 'recommendation-rationale', 'Aprovação humana obrigatória antes de qualquer alteração.'));
+          }
+          content.append(planPanel);
         }
         const meta = element('div', 'task-meta');
         meta.append(element('span', 'pill status status-' + String(task.status || 'unknown'), statusLabels[task.status] || task.status || 'Sem status'));

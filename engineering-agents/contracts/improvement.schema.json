@@ -10,6 +10,7 @@
     "title": { "type": "string", "minLength": 1, "maxLength": 200 },
     "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
     "category": { "type": "string", "enum": ["security", "reliability", "performance", "testing", "architecture", "maintainability", "documentation", "accessibility", "other"] },
+    "findingType": { "type": "string", "enum": ["potential_defect", "code_smell", "maintenance_signal"] },
     "status": { "type": "string", "enum": ["discovered", "triaged", "queued", "analyzing", "planned", "implementing", "reviewing", "validating", "awaiting_approval", "rejected", "blocked", "failed", "cancelled", "completed"] },
     "priority": { "type": "number", "minimum": 0, "maximum": 100 },
     "impact": { "type": "integer", "minimum": 1, "maximum": 5 },

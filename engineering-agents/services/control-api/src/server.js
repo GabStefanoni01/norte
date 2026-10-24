@@ -124,13 +124,20 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
         (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence,
          repository_name, repository_url, repository_ref)
        VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13)
-       ON CONFLICT (id) DO NOTHING
-       RETURNING id, title, category, status, priority, created_at AS "createdAt"`,
+       ON CONFLICT (id) DO UPDATE SET
+         repository_name = COALESCE(engineering_improvements.repository_name, EXCLUDED.repository_name),
+         repository_url = COALESCE(engineering_improvements.repository_url, EXCLUDED.repository_url),
+         repository_ref = COALESCE(engineering_improvements.repository_ref, EXCLUDED.repository_ref)
+       WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
+          OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
+          OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
+       RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
         JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef],
     );
     if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
-    return res.status(201).json({ task: result.rows[0] });
+    const statusCode = result.rows[0].inserted ? 201 : 200;
+    return res.status(statusCode).json({ task: result.rows[0] });
   } catch (error) {
     next(error);
   }

@@ -170,7 +170,7 @@
       <div>
         <p class="eyebrow">Central de engenharia</p>
         <h1>Encontre o próximo<br><span style="color:var(--gold-light)">passo de evolução.</span></h1>
-        <p class="intro-copy">Acompanhe oportunidades técnicas, priorização e validações em um só lugar. Os agentes preparam melhorias; a decisão final continua humana.</p>
+        <p class="intro-copy">Acompanhe oportunidades técnicas, classificação e validações em um só lugar. Os sinais automáticos são heurísticas, não defeitos confirmados; a decisão final continua humana.</p>
       </div>
       <svg class="intro-mark" viewBox="0 0 100 100" fill="none" aria-hidden="true">
         <circle cx="50" cy="50" r="37" stroke="currentColor" stroke-opacity=".23"/>
@@ -225,6 +225,9 @@
             <option value="reviewing">Em revisão</option><option value="validating">Validando</option><option value="awaiting_approval">Aguardando aprovação</option>
             <option value="blocked">Bloqueada</option><option value="failed">Falhou</option><option value="rejected">Rejeitada</option>
             <option value="cancelled">Cancelada</option><option value="completed">Concluída</option>
+          </select>
+          <select id="findingTypeFilter" aria-label="Filtrar por tipo de achado">
+            <option value="">Todos os tipos</option><option value="potential_defect">Possível defeito</option><option value="code_smell">Sinal de manutenção</option><option value="maintenance_signal">Manutenção pendente</option>
           </select>
           <select id="categoryFilter" aria-label="Filtrar por categoria">
             <option value="">Todas as categorias</option>
@@ -362,7 +365,8 @@
     function render() {
       const status = byId('statusFilter').value;
       const category = byId('categoryFilter').value;
-      const filtered = lastTasks.filter(task => (!status || task.status === status) && (!category || task.category === category));
+      const findingType = byId('findingTypeFilter').value;
+      const filtered = lastTasks.filter(task => (!status || task.status === status) && (!category || task.category === category) && (!findingType || (task.findingType || 'maintenance_signal') === findingType));
       byId('total').textContent = String(lastTasks.length);
       byId('running').textContent = String(lastTasks.filter(task => activeStates.has(task.status)).length);
       byId('approval').textContent = String(lastTasks.filter(task => task.status === 'awaiting_approval').length);
@@ -451,6 +455,7 @@
     byId('refresh').addEventListener('click', loadTasks);
     byId('statusFilter').addEventListener('change', render);
     byId('categoryFilter').addEventListener('change', render);
+    byId('findingTypeFilter').addEventListener('change', render);
     byId('apiToken').value = sessionStorage.getItem('norteAgentsToken') || '';
     setInterval(() => {
       if (byId('apiUrl').value && (byId('apiToken').value || sessionStorage.getItem('norteAgentsToken'))) loadTasks();

@@ -5,7 +5,8 @@
   "description": "Independent engineering agents platform",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check shared/branch-policy.js && node --check services/control-api/src/server.js"
+    "check": "node --check shared/branch-policy.js && node --check services/control-api/src/server.js && node --check services/control-api/src/migrate.js",
+    "migrate": "npm --prefix services/control-api run migrate"
   },
-  "engines": { "node": ">=20" }
+  "engines": { "node": ">=20.6.0" }
 }

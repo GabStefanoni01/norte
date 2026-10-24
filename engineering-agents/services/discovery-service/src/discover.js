@@ -201,6 +201,8 @@ async function submitFinding(apiUrl, token, finding, repository) {
     confidence: finding.confidence,
     effort: finding.effort,
     risk: finding.risk,
+    recommendedAction: finding.recommendedAction,
+    priorityRationale: finding.priorityRationale,
     evidence: [{
       description: finding.evidence,
       path: finding.path,

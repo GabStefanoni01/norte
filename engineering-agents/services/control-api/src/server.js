@@ -72,10 +72,16 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     const categories = new Set(['security', 'reliability', 'performance', 'testing', 'architecture', 'maintainability', 'documentation', 'accessibility', 'other']);
     const findingTypes = new Set(['potential_defect', 'code_smell', 'maintenance_signal']);
     const findingType = body.findingType == null ? 'maintenance_signal' : body.findingType;
+    const recommendedAction = body.recommendedAction == null ? null : body.recommendedAction;
+    const priorityRationale = body.priorityRationale == null ? null : body.priorityRationale;
     const validId = typeof body.id === 'string' && /^[A-Za-z0-9._-]{1,100}$/.test(body.id);
     const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
     if (!validId || !validText(body.title, 200) || !validText(body.summary, 4000) || !categories.has(body.category) || !findingTypes.has(findingType)) {
       return res.status(400).json({ error: 'invalid_task_payload' });
+    }
+    if ((recommendedAction !== null && !validText(recommendedAction, 2000)) ||
+        (priorityRationale !== null && !validText(priorityRationale, 2000))) {
+      return res.status(400).json({ error: 'invalid_recommendation_fields' });
     }
     if (body.evidence !== undefined && (!Array.isArray(body.evidence) || body.evidence.length > 50)) {
       return res.status(400).json({ error: 'invalid_evidence' });
@@ -124,20 +130,24 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     const result = await pool.query(
       `INSERT INTO engineering_improvements
         (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence,
-         repository_name, repository_url, repository_ref, finding_type)
-       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14)
+         repository_name, repository_url, repository_ref, finding_type, recommended_action, priority_rationale)
+       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16)
        ON CONFLICT (id) DO UPDATE SET
          repository_name = COALESCE(engineering_improvements.repository_name, EXCLUDED.repository_name),
          repository_url = COALESCE(engineering_improvements.repository_url, EXCLUDED.repository_url),
          repository_ref = COALESCE(engineering_improvements.repository_ref, EXCLUDED.repository_ref),
-         finding_type = COALESCE(engineering_improvements.finding_type, EXCLUDED.finding_type)
+         finding_type = COALESCE(engineering_improvements.finding_type, EXCLUDED.finding_type),
+         recommended_action = COALESCE(engineering_improvements.recommended_action, EXCLUDED.recommended_action),
+         priority_rationale = COALESCE(engineering_improvements.priority_rationale, EXCLUDED.priority_rationale)
        WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
           OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
           OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
           OR (engineering_improvements.finding_type IS NULL AND EXCLUDED.finding_type IS NOT NULL)
+          OR (engineering_improvements.recommended_action IS NULL AND EXCLUDED.recommended_action IS NOT NULL)
+          OR (engineering_improvements.priority_rationale IS NULL AND EXCLUDED.priority_rationale IS NOT NULL)
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
-        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType],
+        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType, recommendedAction, priorityRationale],
     );
     if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
     const statusCode = result.rows[0].inserted ? 201 : 200;
@@ -154,7 +164,8 @@ app.get('/api/tasks', requireToken, async (req, res, next) => {
     const category = typeof req.query.category === 'string' ? req.query.category : null;
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
-              effort, risk, evidence, finding_type AS "findingType", repository_name AS "repositoryName",
+              effort, risk, evidence, finding_type AS "findingType", recommended_action AS "recommendedAction",
+              priority_rationale AS "priorityRationale", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
               blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"

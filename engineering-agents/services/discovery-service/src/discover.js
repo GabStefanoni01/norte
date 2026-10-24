@@ -185,6 +185,7 @@ async function submitFinding(apiUrl, token, finding, repository) {
   });
 
   if (response.status === 201) return 'created';
+  if (response.status === 200) return 'updated';
   if (response.status === 409) return 'duplicate';
   if (response.status === 401) throw new Error('A API recusou AGENTS_INGEST_TOKEN. Confira o .env.');
   throw new Error('A API recusou um achado (HTTP ' + response.status + ').');
@@ -223,6 +224,7 @@ async function main() {
 
   const { filesScanned, findings } = await scanRepository(root);
   let created = 0;
+  let updated = 0;
   let duplicates = 0;
   let failed = 0;
 
@@ -230,6 +232,7 @@ async function main() {
     try {
       const result = await submitFinding(apiUrl, token, finding, repository);
       if (result === 'created') created += 1;
+      else if (result === 'updated') updated += 1;
       else duplicates += 1;
     } catch (error) {
       failed += 1;
@@ -254,6 +257,7 @@ async function main() {
     filesScanned,
     findingsDetected: findings.length,
     tasksCreated: created,
+    tasksUpdated: updated,
     duplicates,
     failed,
     capped: findings.length >= MAX_FINDINGS_PER_RUN,

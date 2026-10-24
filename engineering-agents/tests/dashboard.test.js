@@ -9,7 +9,7 @@ const vm = require('node:vm');
 test('dashboard inline JavaScript has valid syntax', () => {
   const dashboardPath = path.join(__dirname, '..', 'dashboard', 'index.html');
   const html = fs.readFileSync(dashboardPath, 'utf8');
-  const scripts = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.ok(scripts.length > 0, 'expected at least one inline script');
   for (const [index, match] of scripts.entries()) {
     assert.doesNotThrow(() => new vm.Script(match[1], { filename: 'dashboard-inline-' + index + '.js' }));

@@ -11,11 +11,15 @@ app.use(express.json({ limit: '32kb', strict: true }));
 
 const port = Number(process.env.PORT || 4310);
 const apiToken = process.env.AGENTS_API_TOKEN;
+const ingestToken = process.env.AGENTS_INGEST_TOKEN;
 const databaseUrl = process.env.DATABASE_URL;
 const allowedOrigin = process.env.DASHBOARD_ORIGIN;
 
 if (!apiToken || apiToken.length < 32) {
   throw new Error('AGENTS_API_TOKEN must be configured with at least 32 characters');
+}
+if (!ingestToken || ingestToken.length < 32) {
+  throw new Error('AGENTS_INGEST_TOKEN must be configured with at least 32 characters');
 }
 if (!databaseUrl) {
   throw new Error('DATABASE_URL must be configured');
@@ -41,20 +45,74 @@ app.use((req, res, next) => {
   next();
 });
 
-function requireToken(req, res, next) {
+function tokenMatches(req, expectedToken) {
   const header = req.get('authorization') || '';
   const supplied = header.startsWith('Bearer ') ? header.slice(7) : '';
-  const expected = Buffer.from(apiToken);
+  const expected = Buffer.from(expectedToken);
   const actual = Buffer.from(supplied);
   const { timingSafeEqual } = require('node:crypto');
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
 
-  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
+function requireToken(req, res, next) {
+  if (!tokenMatches(req, apiToken)) return res.status(401).json({ error: 'unauthorized' });
+  next();
+}
+
+function requireIngestToken(req, res, next) {
+  if (!tokenMatches(req, ingestToken)) return res.status(401).json({ error: 'unauthorized' });
   next();
 }
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'control-api' }));
+
+app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const categories = new Set(['security', 'reliability', 'performance', 'testing', 'architecture', 'maintainability', 'documentation', 'accessibility', 'other']);
+    const validId = typeof body.id === 'string' && /^[A-Za-z0-9._-]{1,100}$/.test(body.id);
+    const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+    if (!validId || !validText(body.title, 200) || !validText(body.summary, 4000) || !categories.has(body.category)) {
+      return res.status(400).json({ error: 'invalid_task_payload' });
+    }
+    if (body.evidence !== undefined && (!Array.isArray(body.evidence) || body.evidence.length > 50)) {
+      return res.status(400).json({ error: 'invalid_evidence' });
+    }
+    const priority = Number(body.priority ?? 0);
+    const impact = body.impact == null ? null : Number(body.impact);
+    const confidence = body.confidence == null ? null : Number(body.confidence);
+    const effort = body.effort == null ? null : Number(body.effort);
+    const risk = body.risk == null ? null : Number(body.risk);
+    if (!Number.isFinite(priority) || priority < 0 || priority > 100 ||
+        (impact !== null && (!Number.isInteger(impact) || impact < 1 || impact > 5)) ||
+        (confidence !== null && (!Number.isFinite(confidence) || confidence < 0 || confidence > 1)) ||
+        (effort !== null && (!Number.isInteger(effort) || effort < 1 || effort > 5)) ||
+        (risk !== null && (!Number.isInteger(risk) || risk < 1 || risk > 5))) {
+      return res.status(400).json({ error: 'invalid_scoring_fields' });
+    }
+    const evidence = body.evidence || [];
+    if (!evidence.every(item => item && typeof item === 'object' && !Array.isArray(item) &&
+        validText(item.description, 2000) &&
+        (item.path === undefined || (typeof item.path === 'string' && item.path.length <= 500)) &&
+        (item.startLine === undefined || (Number.isInteger(item.startLine) && item.startLine > 0)) &&
+        (item.endLine === undefined || (Number.isInteger(item.endLine) && item.endLine > 0)) &&
+        (item.url === undefined || (typeof item.url === 'string' && /^https?:\\/\\//.test(item.url))))) {
+      return res.status(400).json({ error: 'invalid_evidence' });
+    }
+    const result = await pool.query(
+      `INSERT INTO engineering_improvements
+        (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence)
+       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING id, title, category, status, priority, created_at AS "createdAt"`,
+      [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk, JSON.stringify(evidence)],
+    );
+    if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
+    return res.status(201).json({ task: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/api/tasks', requireToken, async (req, res, next) => {
   try {

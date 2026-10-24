@@ -40,6 +40,7 @@ function scanText(relativePath, content) {
       const marker = line.match(/\b(TODO|FIXME|HACK|XXX)\b/i)?.[1]?.toUpperCase() || 'TODO';
       findings.push({
         rule: 'maintenance-marker',
+        findingType: 'maintenance_signal',
         title: marker + ' pendente no código',
         summary: 'Foi encontrado um marcador ' + marker + ' que pode indicar trabalho pendente. Verifique o contexto e decida se a tarefa ainda é necessária ou se o marcador pode ser removido.',
         category: 'maintainability',
@@ -56,6 +57,7 @@ function scanText(relativePath, content) {
     if (isCode && /\bconsole\.log\s*\(/.test(line) && !/(^|[/\\])(test|tests|spec|specs|scripts?)([/\\]|$)/i.test(relativePath)) {
       findings.push({
         rule: 'console-log',
+        findingType: 'code_smell',
         title: 'console.log no código da aplicação',
         summary: 'Foi encontrado console.log em um arquivo de código. Avalie se a mensagem deve ser removida ou substituída por logging estruturado com nível, contexto e tratamento adequado de dados sensíveis.',
         category: 'reliability',
@@ -77,6 +79,7 @@ function scanText(relativePath, content) {
       const line = content.slice(0, match.index).split(/\r?\n/).length;
       findings.push({
         rule: 'empty-catch',
+        findingType: 'potential_defect',
         title: 'Bloco catch vazio',
         summary: 'Um bloco catch vazio pode ocultar erros e dificultar a observabilidade. Confirme se o erro é intencionalmente ignorado; caso contrário, trate-o explicitamente ou registre contexto seguro.',
         category: 'reliability',
@@ -160,6 +163,7 @@ async function submitFinding(apiUrl, token, finding, repository) {
     ...(repository.url ? { repositoryUrl: repository.url } : {}),
     ...(repository.ref ? { repositoryRef: repository.ref } : {}),
     category: finding.category,
+    findingType: finding.findingType,
     priority: finding.priority,
     impact: finding.impact,
     confidence: finding.confidence,

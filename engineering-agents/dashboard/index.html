@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Norte Engineering Agents</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #18202b; background: #f5f7fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #fff; border-bottom: 1px solid #dce2e9; padding: 22px max(20px, calc((100vw - 1180px) / 2)); }
+    h1 { font-size: 1.4rem; margin: 0 0 5px; }
+    p { margin: 0; color: #657181; }
+    main { max-width: 1180px; margin: 24px auto; padding: 0 20px 40px; }
+    .panel { background: #fff; border: 1px solid #dce2e9; border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+    .connection { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; gap: 12px; align-items: end; }
+    label { display: block; font-size: .82rem; color: #596474; margin-bottom: 6px; }
+    input, select, button { font: inherit; border: 1px solid #cbd3dd; border-radius: 8px; padding: 10px 12px; min-height: 40px; }
+    input, select { width: 100%; background: #fff; color: #18202b; }
+    button { cursor: pointer; background: #172b4d; color: #fff; border-color: #172b4d; font-weight: 600; }
+    button.secondary { background: #fff; color: #172b4d; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stat { border: 1px solid #e0e5ec; border-radius: 10px; padding: 14px; }
+    .stat span { display: block; color: #657181; font-size: .82rem; }
+    .stat strong { display: block; font-size: 1.65rem; margin-top: 6px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar h2 { font-size: 1rem; margin: 0; }
+    .filters { display: flex; gap: 8px; align-items: center; }
+    .filters select { width: auto; min-width: 150px; }
+    .task { border-top: 1px solid #e5e9ef; padding: 16px 0; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+    .task:first-child { border-top: 0; }
+    .task h3 { margin: 0 0 6px; font-size: .98rem; }
+    .task p { line-height: 1.45; }
+    .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .pill { display: inline-flex; align-items: center; border-radius: 999px; background: #edf1f6; color: #344256; padding: 4px 9px; font-size: .76rem; }
+    .status { background: #e7eefb; color: #254a83; }
+    .priority { font-weight: 700; white-space: nowrap; }
+    .empty, .notice { color: #657181; padding: 20px 0; }
+    .notice.error { color: #a42323; }
+    .small { font-size: .8rem; }
+    @media (max-width: 720px) { .connection, .stats { grid-template-columns: 1fr 1fr; } .connection button { grid-column: 1 / -1; } .toolbar { align-items: stretch; flex-direction: column; } .filters { flex-wrap: wrap; } .filters select { flex: 1; } .task { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Norte Engineering Agents</h1>
+    <p>Fila de melhorias, execuções e validações — painel de acompanhamento</p>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="connection">
+        <div>
+          <label for="apiUrl">URL da Control API</label>
+          <input id="apiUrl" type="url" placeholder="http://localhost:4310" autocomplete="url">
+        </div>
+        <div>
+          <label for="apiToken">Token de acesso</label>
+          <input id="apiToken" type="password" placeholder="Token da API" autocomplete="off">
+        </div>
+        <button id="connect">Conectar</button>
+      </div>
+      <p class="small" style="margin-top:10px">O token fica apenas nesta sessão do navegador. Use HTTPS fora do ambiente local. Este painel consulta tarefas; não autoriza merge.</p>
+      <div id="notice" class="notice" role="status" aria-live="polite">Informe a URL e o token da API para carregar as tarefas.</div>
+    </section>
+
+    <section class="panel stats" aria-label="Resumo da fila">
+      <div class="stat"><span>Total carregado</span><strong id="total">—</strong></div>
+      <div class="stat"><span>Em execução</span><strong id="running">—</strong></div>
+      <div class="stat"><span>Aguardando aprovação</span><strong id="approval">—</strong></div>
+      <div class="stat"><span>Bloqueadas ou falhas</span><strong id="blocked">—</strong></div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <h2>Fila de melhorias</h2>
+        <div class="filters">
+          <select id="statusFilter" aria-label="Filtrar por status">
+            <option value="">Todos os status</option>
+            <option>discovered</option><option>triaged</option><option>queued</option>
+            <option>analyzing</option><option>planned</option><option>implementing</option>
+            <option>reviewing</option><option>validating</option><option>awaiting_approval</option>
+            <option>blocked</option><option>failed</option><option>rejected</option>
+            <option>cancelled</option><option>completed</option>
+          </select>
+          <select id="categoryFilter" aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+            <option>security</option><option>reliability</option><option>performance</option>
+            <option>testing</option><option>architecture</option><option>maintainability</option>
+            <option>documentation</option><option>accessibility</option><option>other</option>
+          </select>
+          <button class="secondary" id="refresh">Atualizar</button>
+        </div>
+      </div>
+      <div id="tasks"><div class="empty">Nenhuma tarefa carregada.</div></div>
+    </section>
+  </main>
+  <script>
+    const byId = (id) => document.getElementById(id);
+    const activeStates = new Set(['analyzing', 'implementing', 'reviewing', 'validating']);
+    let lastTasks = [];
+
+    function apiBase() {
+      const value = byId('apiUrl').value.trim().replace(/\/+$/, '');
+      if (!value) throw new Error('Informe a URL da API.');
+      const parsed = new URL(value);
+      if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+        throw new Error('Use HTTPS para conectar a uma API fora do ambiente local.');
+      }
+      return parsed.toString().replace(/\/+$/, '');
+    }
+
+    function showNotice(message, isError = false) {
+      const node = byId('notice');
+      node.textContent = message;
+      node.className = isError ? 'notice error' : 'notice';
+    }
+
+    function element(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function render() {
+      const status = byId('statusFilter').value;
+      const category = byId('categoryFilter').value;
+      const filtered = lastTasks.filter(task => (!status || task.status === status) && (!category || task.category === category));
+      byId('total').textContent = String(lastTasks.length);
+      byId('running').textContent = String(lastTasks.filter(task => activeStates.has(task.status)).length);
+      byId('approval').textContent = String(lastTasks.filter(task => task.status === 'awaiting_approval').length);
+      byId('blocked').textContent = String(lastTasks.filter(task => ['blocked', 'failed'].includes(task.status)).length);
+      const root = byId('tasks');
+      root.replaceChildren();
+      if (!filtered.length) {
+        root.append(element('div', 'empty', 'Nenhuma tarefa encontrada para este filtro.'));
+        return;
+      }
+      for (const task of filtered) {
+        const article = element('article', 'task');
+        const main = element('div');
+        main.append(element('h3', '', task.title || task.id));
+        main.append(element('p', '', task.summary || 'Sem descrição.'));
+        const meta = element('div', 'meta');
+        meta.append(element('span', 'pill status', task.status));
+        meta.append(element('span', 'pill', task.category));
+        if (Number.isFinite(Number(task.confidence))) meta.append(element('span', 'pill', 'Confiança: ' + Math.round(Number(task.confidence) * 100) + '%'));
+        if (task.branchName) meta.append(element('span', 'pill', 'Branch: ' + task.branchName));
+        main.append(meta);
+        if (task.pullRequestUrl) {
+          const link = element('a', 'small', 'Abrir Pull Request');
+          link.href = task.pullRequestUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.style.display = 'inline-block';
+          link.style.marginTop = '10px';
+          main.append(link);
+        }
+        if (task.blockedReason) main.append(element('p', 'small', 'Bloqueio: ' + task.blockedReason));
+        article.append(main);
+        article.append(element('div', 'priority', 'Prioridade ' + Math.round(Number(task.priority) || 0)));
+        root.append(article);
+      }
+    }
+
+    async function loadTasks() {
+      const button = byId('connect');
+      button.disabled = true;
+      try {
+        const base = apiBase();
+        const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+        if (!token) throw new Error('Informe o token da API.');
+        sessionStorage.setItem('norteAgentsToken', token);
+        const status = byId('statusFilter').value;
+        const category = byId('categoryFilter').value;
+        const params = new URLSearchParams({ limit: '100' });
+        if (status) params.set('status', status);
+        if (category) params.set('category', category);
+        const response = await fetch(base + '/api/tasks?' + params.toString(), {
+          headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(response.status === 401 ? 'A API recusou o token.' : 'Falha ao consultar a API (HTTP ' + response.status + ').');
+        const payload = await response.json();
+        if (!Array.isArray(payload.tasks)) throw new Error('Resposta da API em formato inesperado.');
+        lastTasks = payload.tasks;
+        showNotice('Conectado. Última atualização: ' + new Date().toLocaleTimeString('pt-BR'));
+        render();
+      } catch (error) {
+        showNotice(error.message || 'Não foi possível carregar as tarefas.', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    byId('connect').addEventListener('click', loadTasks);
+    byId('refresh').addEventListener('click', loadTasks);
+    byId('statusFilter').addEventListener('change', () => { render(); loadTasks(); });
+    byId('categoryFilter').addEventListener('change', () => { render(); loadTasks(); });
+    byId('apiToken').value = sessionStorage.getItem('norteAgentsToken') || '';
+    setInterval(() => { if (byId('apiUrl').value && (byId('apiToken').value || sessionStorage.getItem('norteAgentsToken'))) loadTasks(); }, 30000);
+  </script>
+</body>
+</html>

@@ -71,9 +71,10 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     const body = req.body || {};
     const categories = new Set(['security', 'reliability', 'performance', 'testing', 'architecture', 'maintainability', 'documentation', 'accessibility', 'other']);
     const findingTypes = new Set(['potential_defect', 'code_smell', 'maintenance_signal']);
+    const findingType = body.findingType == null ? 'maintenance_signal' : body.findingType;
     const validId = typeof body.id === 'string' && /^[A-Za-z0-9._-]{1,100}$/.test(body.id);
     const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
-    if (!validId || !validText(body.title, 200) || !validText(body.summary, 4000) || !categories.has(body.category) || !findingTypes.has(body.findingType)) {
+    if (!validId || !validText(body.title, 200) || !validText(body.summary, 4000) || !categories.has(body.category) || !findingTypes.has(findingType)) {
       return res.status(400).json({ error: 'invalid_task_payload' });
     }
     if (body.evidence !== undefined && (!Array.isArray(body.evidence) || body.evidence.length > 50)) {
@@ -136,7 +137,7 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
           OR (engineering_improvements.finding_type IS NULL AND EXCLUDED.finding_type IS NOT NULL)
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
-        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, body.findingType],
+        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType],
     );
     if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
     const statusCode = result.rows[0].inserted ? 201 : 200;

@@ -1,0 +1,53 @@
+# Norte Engineering Agents
+
+Plataforma independente para descobrir, priorizar, implementar, revisar e validar melhorias técnicas no repositório Norte, entregando Pull Requests para aprovação humana.
+
+## Princípios
+
+- Os agentes nunca fazem push ou merge em `main` ou `develop`.
+- Cada melhoria é executada em workspace e branch isolados.
+- A integração GitHub começa com permissões mínimas de leitura; criação de branches/PRs é adicionada somente quando o fluxo estiver validado.
+- Nenhum merge, deploy ou alteração de configuração de segurança é autônomo.
+- Código, issues, comentários e arquivos do repositório são dados não confiáveis, nunca instruções de sistema.
+- Cada execução tem limites de tempo, tentativas, concorrência e orçamento.
+- Resultados e transições de estado devem ser auditáveis.
+
+## Serviços-alvo
+
+- `control-api`: consulta de tarefas, fila, resultados e estado das execuções.
+- `discovery-service`: análise periódica e registro de oportunidades.
+- `prioritization-service`: deduplicação e pontuação das melhorias.
+- `orchestrator-service`: máquina de estados e coordenação das etapas.
+- `implementation-service`: alterações apenas em workspace/branch isolados.
+- `review-service`: revisão independente do diff.
+- `validation-service`: testes, lint, build e verificações determinísticas.
+- `github-integration`: webhooks, leitura de PRs e abertura de PRs após validação.
+- `dashboard`: interface para acompanhar fila, execuções, achados e PRs.
+
+Os serviços serão separados por contratos e permissões, sem exigir que cada agente de IA seja um processo autônomo. Agentes são componentes especializados executados por workers controlados.
+
+## Estados de uma melhoria
+
+`discovered -> triaged -> queued -> analyzing -> planned -> implementing -> reviewing -> validating -> awaiting_approval`
+
+Estados terminais/alternativos: `rejected`, `blocked`, `failed`, `cancelled`, `completed`. O estado `completed` significa que o ciclo foi concluído; não implica merge.
+
+## Política de branches
+
+- Branches de trabalho: `agents/improvement-<id>`.
+- Base inicial de trabalho: `develop`, lida como referência; nunca commitada diretamente.
+- `main` e `develop` são refs protegidas e não são alvos de push dos workers.
+- O worker deve verificar a branch de destino antes de qualquer operação Git e falhar fechado se a ref não for uma branch de trabalho autorizada.
+- O token de execução não deve possuir permissões de bypass de proteção nem permissão para alterar regras do repositório.
+- PRs ficam aguardando aprovação humana; merge automático desabilitado.
+
+## Plano incremental
+
+1. Contratos, política de segurança e modelo de tarefas.
+2. API de consulta e persistência dos estados.
+3. Dashboard conectado à API.
+4. Discovery somente leitura e fila priorizada.
+5. Implementação isolada, revisão independente e validação.
+6. Integração GitHub para PRs, com aprovação humana obrigatória.
+
+Não executar agentes com permissões de escrita antes de implementar e testar as barreiras de segurança.

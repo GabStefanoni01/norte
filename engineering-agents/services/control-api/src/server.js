@@ -74,6 +74,7 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     const findingType = body.findingType == null ? 'maintenance_signal' : body.findingType;
     const recommendedAction = body.recommendedAction == null ? null : body.recommendedAction;
     const priorityRationale = body.priorityRationale == null ? null : body.priorityRationale;
+    const analysisPlan = body.analysisPlan == null ? null : body.analysisPlan;
     const validId = typeof body.id === 'string' && /^[A-Za-z0-9._-]{1,100}$/.test(body.id);
     const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
     if (!validId || !validText(body.title, 200) || !validText(body.summary, 4000) || !categories.has(body.category) || !findingTypes.has(findingType)) {
@@ -83,6 +84,17 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
         (priorityRationale !== null && !validText(priorityRationale, 2000))) {
       return res.status(400).json({ error: 'invalid_recommendation_fields' });
     }
+    const validPlanText = (value, max) => validText(value, max);
+    const validAnalysisPlan = analysisPlan === null || (
+      analysisPlan && typeof analysisPlan === 'object' && !Array.isArray(analysisPlan) &&
+      validPlanText(analysisPlan.hypothesis, 1000) &&
+      Array.isArray(analysisPlan.steps) && analysisPlan.steps.length >= 1 && analysisPlan.steps.length <= 5 &&
+      analysisPlan.steps.every((item) => validPlanText(item, 500)) &&
+      Array.isArray(analysisPlan.validation) && analysisPlan.validation.length >= 1 && analysisPlan.validation.length <= 5 &&
+      analysisPlan.validation.every((item) => validPlanText(item, 500)) &&
+      validPlanText(analysisPlan.rollback, 1000) && analysisPlan.humanApprovalRequired === true
+    );
+    if (!validAnalysisPlan) return res.status(400).json({ error: 'invalid_analysis_plan' });
     if (body.evidence !== undefined && (!Array.isArray(body.evidence) || body.evidence.length > 50)) {
       return res.status(400).json({ error: 'invalid_evidence' });
     }
@@ -130,8 +142,8 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
     const result = await pool.query(
       `INSERT INTO engineering_improvements
         (id, title, summary, category, status, priority, impact, confidence, effort, risk, evidence,
-         repository_name, repository_url, repository_ref, finding_type, recommended_action, priority_rationale)
-       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16)
+         repository_name, repository_url, repository_ref, finding_type, recommended_action, priority_rationale, analysis_plan)
+       VALUES ($1, $2, $3, $4, 'discovered', $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17::jsonb)
        ON CONFLICT (id) DO UPDATE SET
          repository_name = COALESCE(engineering_improvements.repository_name, EXCLUDED.repository_name),
          repository_url = COALESCE(engineering_improvements.repository_url, EXCLUDED.repository_url),
@@ -143,7 +155,8 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
          effort = EXCLUDED.effort,
          risk = EXCLUDED.risk,
          recommended_action = EXCLUDED.recommended_action,
-         priority_rationale = EXCLUDED.priority_rationale
+         priority_rationale = EXCLUDED.priority_rationale,
+         analysis_plan = EXCLUDED.analysis_plan
        WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
           OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
           OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
@@ -155,9 +168,10 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
           OR engineering_improvements.risk IS DISTINCT FROM EXCLUDED.risk
           OR engineering_improvements.recommended_action IS DISTINCT FROM EXCLUDED.recommended_action
           OR engineering_improvements.priority_rationale IS DISTINCT FROM EXCLUDED.priority_rationale
+          OR engineering_improvements.analysis_plan IS DISTINCT FROM EXCLUDED.analysis_plan
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
-        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType, recommendedAction, priorityRationale],
+        JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType, recommendedAction, priorityRationale, analysisPlan ? JSON.stringify(analysisPlan) : null],
     );
     if (!result.rowCount) return res.status(409).json({ error: 'task_already_exists' });
     const statusCode = result.rows[0].inserted ? 201 : 200;
@@ -175,7 +189,7 @@ app.get('/api/tasks', requireToken, async (req, res, next) => {
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
               effort, risk, evidence, finding_type AS "findingType", recommended_action AS "recommendedAction",
-              priority_rationale AS "priorityRationale", repository_name AS "repositoryName",
+              priority_rationale AS "priorityRationale", analysis_plan AS "analysisPlan", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
               blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"
@@ -198,7 +212,7 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
               effort, risk, evidence, finding_type AS "findingType", recommended_action AS "recommendedAction",
-              priority_rationale AS "priorityRationale", repository_name AS "repositoryName",
+              priority_rationale AS "priorityRationale", analysis_plan AS "analysisPlan", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
               blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"

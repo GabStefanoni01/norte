@@ -96,7 +96,7 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
         (item.path === undefined || (typeof item.path === 'string' && item.path.length <= 500)) &&
         (item.startLine === undefined || (Number.isInteger(item.startLine) && item.startLine > 0)) &&
         (item.endLine === undefined || (Number.isInteger(item.endLine) && item.endLine > 0)) &&
-        (item.url === undefined || (typeof item.url === 'string' && /^https?:\\/\\//.test(item.url))))) {
+        (item.url === undefined || (typeof item.url === 'string' && /^https?:\/\//.test(item.url))))) {
       return res.status(400).json({ error: 'invalid_evidence' });
     }
     const result = await pool.query(

@@ -19,9 +19,9 @@ test('dashboard inline JavaScript has valid syntax', () => {
 test('dashboard displays repository provenance and source locations', () => {
   const dashboardPath = path.join(__dirname, '..', 'dashboard', 'index.html');
   const html = fs.readFileSync(dashboardPath, 'utf8');
-  assert.match(html, /task\\.repositoryName/);
-  assert.match(html, /task\\.repositoryUrl/);
-  assert.match(html, /task\\.repositoryRef/);
-  assert.match(html, /evidence\\.path/);
-  assert.match(html, /evidence\\.startLine/);
+  assert.match(html, /task\.repositoryName/);
+  assert.match(html, /task\.repositoryUrl/);
+  assert.match(html, /task\.repositoryRef/);
+  assert.match(html, /evidence\.path/);
+  assert.match(html, /evidence\.startLine/);
 });

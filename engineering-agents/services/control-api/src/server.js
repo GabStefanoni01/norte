@@ -142,8 +142,8 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
          confidence = EXCLUDED.confidence,
          effort = EXCLUDED.effort,
          risk = EXCLUDED.risk,
-         recommended_action = COALESCE(engineering_improvements.recommended_action, EXCLUDED.recommended_action),
-         priority_rationale = COALESCE(engineering_improvements.priority_rationale, EXCLUDED.priority_rationale)
+         recommended_action = EXCLUDED.recommended_action,
+         priority_rationale = EXCLUDED.priority_rationale
        WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
           OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
           OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
@@ -153,8 +153,8 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
           OR engineering_improvements.confidence IS DISTINCT FROM EXCLUDED.confidence
           OR engineering_improvements.effort IS DISTINCT FROM EXCLUDED.effort
           OR engineering_improvements.risk IS DISTINCT FROM EXCLUDED.risk
-          OR (engineering_improvements.recommended_action IS NULL AND EXCLUDED.recommended_action IS NOT NULL)
-          OR (engineering_improvements.priority_rationale IS NULL AND EXCLUDED.priority_rationale IS NOT NULL)
+          OR engineering_improvements.recommended_action IS DISTINCT FROM EXCLUDED.recommended_action
+          OR engineering_improvements.priority_rationale IS DISTINCT FROM EXCLUDED.priority_rationale
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
         JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType, recommendedAction, priorityRationale],
@@ -197,7 +197,8 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT id, title, summary, category, status, priority, impact, confidence,
-              effort, risk, evidence, finding_type AS "findingType", repository_name AS "repositoryName",
+              effort, risk, evidence, finding_type AS "findingType", recommended_action AS "recommendedAction",
+              priority_rationale AS "priorityRationale", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
               blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"

@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: norte_agents
+      POSTGRES_USER: agents_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in engineering-agents/.env}
+    volumes:
+      - agents_pgdata:/var/lib/postgresql/data
+      - ./services/control-api/migrations/001_create_engineering_improvements.sql:/docker-entrypoint-initdb.d/001_create_engineering_improvements.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agents_user -d norte_agents"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  control-api:
+    build:
+      context: ./services/control-api
+    environment:
+      PORT: 4310
+      DATABASE_URL: postgres://agents_user:${POSTGRES_PASSWORD}@db:5432/norte_agents
+      AGENTS_API_TOKEN: ${AGENTS_API_TOKEN:?Set AGENTS_API_TOKEN in engineering-agents/.env}
+      DASHBOARD_ORIGIN: http://localhost:8080
+      PGSSLMODE: disable
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:4310:4310"
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+    depends_on:
+      - control-api
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+
+volumes:
+  agents_pgdata:

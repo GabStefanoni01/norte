@@ -1,0 +1,122 @@
+'use strict';
+
+const express = require('express');
+const helmet = require('helmet');
+const { Pool } = require('pg');
+
+const app = express();
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(express.json({ limit: '32kb', strict: true }));
+
+const port = Number(process.env.PORT || 4310);
+const apiToken = process.env.AGENTS_API_TOKEN;
+const databaseUrl = process.env.DATABASE_URL;
+const allowedOrigin = process.env.DASHBOARD_ORIGIN;
+
+if (!apiToken || apiToken.length < 32) {
+  throw new Error('AGENTS_API_TOKEN must be configured with at least 32 characters');
+}
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL must be configured');
+}
+
+const pool = new Pool({
+  connectionString: databaseUrl,
+  max: 5,
+  connectionTimeoutMillis: 3000,
+  idleTimeoutMillis: 10000,
+  ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: true } : undefined,
+});
+
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  if (origin && allowedOrigin && origin === allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(origin && origin === allowedOrigin ? 204 : 403);
+  next();
+});
+
+function requireToken(req, res, next) {
+  const header = req.get('authorization') || '';
+  const supplied = header.startsWith('Bearer ') ? header.slice(7) : '';
+  const expected = Buffer.from(apiToken);
+  const actual = Buffer.from(supplied);
+  const { timingSafeEqual } = require('node:crypto');
+
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
+
+app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'control-api' }));
+
+app.get('/api/tasks', requireToken, async (req, res, next) => {
+  try {
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const status = typeof req.query.status === 'string' ? req.query.status : null;
+    const category = typeof req.query.category === 'string' ? req.query.category : null;
+    const result = await pool.query(
+      `SELECT id, title, summary, category, status, priority, impact, confidence,
+              effort, risk, evidence, branch_name AS "branchName",
+              pull_request_url AS "pullRequestUrl", blocked_reason AS "blockedReason",
+              created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM engineering_improvements
+        WHERE ($1::text IS NULL OR status = $1)
+          AND ($2::text IS NULL OR category = $2)
+        ORDER BY priority DESC, updated_at DESC
+        LIMIT $3`,
+      [status, category, limit],
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ tasks: result.rows, count: result.rowCount });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, title, summary, category, status, priority, impact, confidence,
+              effort, risk, evidence, branch_name AS "branchName",
+              pull_request_url AS "pullRequestUrl", blocked_reason AS "blockedReason",
+              created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM engineering_improvements WHERE id = $1 LIMIT 1`,
+      [req.params.id],
+    );
+    if (!result.rowCount) return res.status(404).json({ error: 'task_not_found' });
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ task: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use((error, _req, res, _next) => {
+  // Do not leak SQL, credentials, or internal exception details to clients.
+  console.error(JSON.stringify({ event: 'request_failed', name: error?.name || 'Error' }));
+  res.status(500).json({ error: 'internal_error' });
+});
+
+const server = app.listen(port, () => {
+  console.log(JSON.stringify({ event: 'service_started', service: 'control-api', port }));
+});
+
+async function shutdown(signal) {
+  console.log(JSON.stringify({ event: 'service_stopping', signal }));
+  server.close(async () => {
+    await pool.end();
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+module.exports = { app, requireToken };

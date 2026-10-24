@@ -21,9 +21,9 @@ const IGNORED_FILES = new Set([
   'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lockb',
 ]);
 
-function hashId(rule, relativePath, lineNumber, text) {
+function hashId(rule, relativePath, lineNumber, text, repositoryIdentity = '') {
   return 'disc-' + crypto.createHash('sha256')
-    .update([rule, relativePath.replace(/\\/g, '/'), lineNumber, text.trim()].join('\n'))
+    .update([repositoryIdentity, rule, relativePath.replace(/\\/g, '/'), lineNumber, text.trim()].join('\n'))
     .digest('hex')
     .slice(0, 24);
 }
@@ -150,12 +150,15 @@ async function scanRepository(root) {
   return { filesScanned: files.length, findings };
 }
 
-async function submitFinding(apiUrl, token, finding) {
-  const id = hashId(finding.rule, finding.path, finding.line, finding.evidence);
+async function submitFinding(apiUrl, token, finding, repository) {
+  const id = hashId(finding.rule, finding.path, finding.line, finding.evidence, repository.url || repository.name);
   const payload = {
     id,
     title: finding.title,
     summary: finding.summary,
+    repositoryName: repository.name,
+    ...(repository.url ? { repositoryUrl: repository.url } : {}),
+    ...(repository.ref ? { repositoryRef: repository.ref } : {}),
     category: finding.category,
     priority: finding.priority,
     impact: finding.impact,
@@ -194,6 +197,24 @@ async function main() {
   }
 
   const root = process.env.DISCOVERY_REPO_PATH || path.resolve(__dirname, '../../../..');
+  const repository = {
+    name: (process.env.DISCOVERY_REPOSITORY_NAME || path.basename(path.resolve(root)) || 'Repository').trim(),
+    url: process.env.DISCOVERY_REPOSITORY_URL?.trim() || null,
+    ref: process.env.DISCOVERY_REPOSITORY_REF?.trim() || null,
+  };
+  if (!repository.name || repository.name.length > 120) {
+    throw new Error('DISCOVERY_REPOSITORY_NAME deve ter entre 1 e 120 caracteres.');
+  }
+  if (repository.url) {
+    let parsedRepositoryUrl;
+    try { parsedRepositoryUrl = new URL(repository.url); } catch { throw new Error('DISCOVERY_REPOSITORY_URL não é uma URL válida.'); }
+    if (parsedRepositoryUrl.protocol !== 'https:' || parsedRepositoryUrl.username || parsedRepositoryUrl.password || parsedRepositoryUrl.search || parsedRepositoryUrl.hash) {
+      throw new Error('DISCOVERY_REPOSITORY_URL deve ser HTTPS e não pode conter credenciais, query ou fragmento.');
+    }
+  }
+  if (repository.ref && (repository.ref.length > 255 || /[\r\n]/.test(repository.ref))) {
+    throw new Error('DISCOVERY_REPOSITORY_REF deve ter até 255 caracteres e não pode conter quebras de linha.');
+  }
   const apiUrl = (process.env.CONTROL_API_URL || DEFAULT_API_URL).replace(/\/+$/, '');
   const parsedApiUrl = new URL(apiUrl);
   if (parsedApiUrl.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(parsedApiUrl.hostname)) {
@@ -207,7 +228,7 @@ async function main() {
 
   for (const finding of findings) {
     try {
-      const result = await submitFinding(apiUrl, token, finding);
+      const result = await submitFinding(apiUrl, token, finding, repository);
       if (result === 'created') created += 1;
       else duplicates += 1;
     } catch (error) {
@@ -227,7 +248,9 @@ async function main() {
 
   console.log(JSON.stringify({
     event: 'discovery_completed',
-    repository: path.basename(path.resolve(root)),
+    repository: repository.name,
+    repositoryUrl: repository.url,
+    repositoryRef: repository.ref,
     filesScanned,
     findingsDetected: findings.length,
     tasksCreated: created,

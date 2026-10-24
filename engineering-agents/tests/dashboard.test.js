@@ -20,6 +20,8 @@ test('dashboard displays repository provenance and source locations', () => {
   const dashboardPath = path.join(__dirname, '..', 'dashboard', 'index.html');
   const html = fs.readFileSync(dashboardPath, 'utf8');
   assert.match(html, /task\.repositoryName/);
+  assert.match(html, /task\.findingType/);
+  assert.match(html, /findingTypeFilter/);
   assert.match(html, /task\.repositoryUrl/);
   assert.match(html, /task\.repositoryRef/);
   assert.match(html, /evidence\.path/);

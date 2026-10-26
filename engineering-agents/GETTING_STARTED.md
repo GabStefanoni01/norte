@@ -134,6 +134,6 @@ docker compose down
 ## Limitações desta etapa
 
 - A descoberta é baseada em padrões estáticos simples; não há agente de IA, análise semântica profunda ou execução periódica.
-- A API aceita ingestão autenticada e consulta tarefas, mas ainda não implementa todas as transições do workflow.
-- O dashboard monitora e filtra tarefas e permite registrar triagem humana autenticada (achado confirmado, falso positivo ou necessidade de contexto), sempre com justificativa e revisor identificados. O histórico é persistido em `engineering_improvement_triage_events`. A triagem não executa agentes nem autoriza alterações de código ou merge.
+- O workflow valida transições permitidas, registra o responsável e a justificativa, e exige aprovação humana do plano antes de liberar uma tarefa para a fila controlada.
+- O dashboard permite registrar triagem e encaminhar planos para aprovação. Aprovações são vinculadas a um snapshot e hash SHA-256 do plano, com histórico em `engineering_improvement_execution_approvals`; transições ficam em `engineering_improvement_workflow_events`. A fila interna retorna somente tarefas `queued` com aprovação registrada. A execução de agentes continua desativada nesta etapa: nenhuma aprovação executa código ou autoriza merge automaticamente.
 - Antes de permitir escrita a workers, configure e verifique as proteções de branches no GitHub. Nenhum agente deve escrever diretamente em `main` ou `develop`.

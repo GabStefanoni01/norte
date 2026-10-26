@@ -314,6 +314,74 @@ app.post('/api/tasks/:id/transition', requireToken, async (req, res, next) => {
   }
 });
 
+
+app.post('/api/tasks/:id/approve-execution', requireToken, async (req, res, next) => {
+  const body = req.body || {};
+  const valid = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.trim().length <= max;
+  if (!valid(body.approvedBy, 120) || !valid(body.reason, 2000) || body.reason.trim().length < 10) {
+    return res.status(400).json({ error: 'invalid_approval_payload' });
+  }
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const found = await client.query(
+      'SELECT id, title, status, analysis_plan FROM engineering_improvements WHERE id = $1 FOR UPDATE',
+      [req.params.id],
+    );
+    if (!found.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'task_not_found' });
+    }
+    const task = found.rows[0];
+    if (task.status !== 'awaiting_approval') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'task_not_awaiting_approval' });
+    }
+    const plan = task.analysis_plan;
+    if (!plan || typeof plan !== 'object' || plan.humanApprovalRequired !== true) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'approval_plan_required' });
+    }
+    const planJson = JSON.stringify(plan);
+    const planSha256 = require('node:crypto').createHash('sha256').update(planJson).digest('hex');
+    await client.query(
+      'INSERT INTO engineering_improvement_execution_approvals (task_id, approved_by, reason, plan_snapshot, plan_sha256) VALUES ($1, $2, $3, $4::jsonb, $5)',
+      [task.id, body.approvedBy.trim(), body.reason.trim(), planJson, planSha256],
+    );
+    const updated = await client.query(
+      "UPDATE engineering_improvements SET status = 'queued', execution_approved_at = NOW(), execution_approved_by = $2, execution_approval_reason = $3, approved_plan_sha256 = $4 WHERE id = $1 RETURNING id, title, status, execution_approved_at AS \"executionApprovedAt\", execution_approved_by AS \"executionApprovedBy\", approved_plan_sha256 AS \"approvedPlanSha256\"",
+      [task.id, body.approvedBy.trim(), body.reason.trim(), planSha256],
+    );
+    await client.query(
+      "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, 'awaiting_approval', 'queued', $2, $3)",
+      [task.id, body.reason.trim(), body.approvedBy.trim()],
+    );
+    await client.query('COMMIT');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ task: updated.rows[0], message: 'Aprovação registrada. Nenhum código foi executado.' });
+  } catch (error) {
+    try { if (client) await client.query('ROLLBACK'); } catch {}
+    return next(error);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+app.get('/internal/execution-queue', requireIngestToken, async (req, res, next) => {
+  try {
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 50);
+    const result = await pool.query(
+      'SELECT id, title, summary, category, priority, evidence, repository_name AS "repositoryName", repository_url AS "repositoryUrl", repository_ref AS "repositoryRef", analysis_plan AS "analysisPlan", execution_approved_at AS "executionApprovedAt", execution_approved_by AS "executionApprovedBy", approved_plan_sha256 AS "approvedPlanSha256" FROM engineering_improvements WHERE status = \'queued\' AND execution_approved_at IS NOT NULL AND approved_plan_sha256 IS NOT NULL ORDER BY priority DESC, updated_at ASC LIMIT $1',
+      [limit],
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ tasks: result.rows, count: result.rowCount, executionEnabled: false });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 app.get('/api/tasks', requireToken, async (req, res, next) => {
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);

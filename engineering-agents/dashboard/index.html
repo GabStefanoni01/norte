@@ -99,6 +99,12 @@
     .analysis-plan-list { margin: 0.35rem 0 0.75rem; padding-left: 1.25rem; color: var(--text-secondary); }
     .analysis-plan-list li { margin: 0.25rem 0; }
     .recommendation-rationale { color: var(--muted); font-size: .74rem; line-height: 1.55; margin: 7px 0 0; overflow-wrap: anywhere; }
+    .workflow-panel { margin-top: 14px; padding: 14px; border: 1px solid rgba(118,164,255,.25); border-radius: 12px; background: rgba(118,164,255,.045); }
+    .workflow-title { color: #a9c7ff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 9px; }
+    .workflow-panel label { display: block; margin-top: 8px; }
+    .workflow-panel input, .workflow-panel textarea { width: 100%; min-height: 40px; border: 1px solid rgba(174,190,219,.22); border-radius: 9px; background: rgba(11,17,32,.66); color: var(--text); padding: 9px 10px; }
+    .workflow-panel textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
+    .workflow-panel .btn { margin-top: 10px; }
     .triage-panel { margin-top: 14px; padding: 14px; border: 1px solid rgba(103,214,161,.2); border-radius: 12px; background: rgba(103,214,161,.035); }
     .triage-title { color: #9be7bf; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 9px; }
     .triage-grid { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(180px, 1.2fr); gap: 10px; }
@@ -433,6 +439,39 @@
           }
           content.append(planPanel);
         }
+        if (task.status === 'planned' || task.status === 'awaiting_approval') {
+          const panel = element('section', 'workflow-panel');
+          panel.append(element('div', 'workflow-title', task.status === 'planned' ? 'Solicitar aprovação humana' : 'Aprovar plano de execução'));
+          panel.append(element('p', 'triage-history', task.status === 'planned'
+            ? 'Envie o plano para aprovação. Nenhuma execução será iniciada nesta etapa.'
+            : 'Confira o plano acima antes de aprovar. A aprovação registra o plano exato e apenas o coloca na fila controlada.'));
+          const form = element('form', 'workflow-form');
+          form.dataset.workflowTaskId = String(task.id);
+          form.dataset.workflowAction = task.status === 'planned' ? 'request-approval' : 'approve-execution';
+          const actorLabel = element('label', '', task.status === 'planned' ? 'Responsável pela solicitação' : 'Aprovador');
+          const actor = element('input');
+          actor.name = 'actor';
+          actor.required = true;
+          actor.maxLength = 120;
+          actor.placeholder = 'Seu nome ou identificador';
+          actor.autocomplete = 'name';
+          actorLabel.append(actor);
+          form.append(actorLabel);
+          const reasonLabel = element('label', '', 'Justificativa (mínimo de 10 caracteres)');
+          const reason = element('textarea');
+          reason.name = 'reason';
+          reason.required = true;
+          reason.minLength = 10;
+          reason.maxLength = 2000;
+          reason.placeholder = task.status === 'planned' ? 'Por que o plano está pronto para revisão?' : 'O que foi revisado e por que está aprovado?';
+          reasonLabel.append(reason);
+          form.append(reasonLabel);
+          const submit = element('button', 'btn btn-secondary', task.status === 'planned' ? 'Enviar para aprovação' : 'Aprovar plano e colocar na fila');
+          submit.type = 'submit';
+          form.append(submit);
+          panel.append(form);
+          content.append(panel);
+        }
         if (['discovered', 'triaged', 'rejected'].includes(task.status)) {
           const triagePanel = element('section', 'triage-panel');
           triagePanel.append(element('div', 'triage-title', 'Revisão humana do achado'));
@@ -589,6 +628,49 @@
         root.textContent = error.message || 'Falha ao carregar histórico.';
       } finally {
         button.disabled = false;
+      }
+    });
+
+    byId('tasks').addEventListener('submit', async (event) => {
+      const form = event.target.closest('form.workflow-form[data-workflow-task-id]');
+      if (!form) return;
+      event.preventDefault();
+      const submit = form.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      try {
+        const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+        if (!token) throw new Error('Informe o token de acesso da API.');
+        const taskId = encodeURIComponent(form.dataset.workflowTaskId);
+        const reason = form.elements.reason.value.trim();
+        const actor = form.elements.actor.value.trim();
+        const approval = form.dataset.workflowAction === 'approve-execution';
+        const endpoint = approval ? '/api/tasks/' + taskId + '/approve-execution' : '/api/tasks/' + taskId + '/transition';
+        const payload = approval
+          ? { approvedBy: actor, reason }
+          : { toStatus: 'awaiting_approval', actor, reason };
+        const response = await fetch(apiBase() + endpoint, {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload),
+          cache: 'no-store'
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const messages = {
+            invalid_approval_payload: 'Informe o aprovador e uma justificativa com pelo menos 10 caracteres.',
+            task_not_awaiting_approval: 'A tarefa ainda não está aguardando aprovação.',
+            approval_plan_required: 'Não há um plano válido exigindo aprovação humana.',
+            invalid_transition_payload: 'Preencha o responsável e uma justificativa com pelo menos 10 caracteres.',
+            invalid_status_transition: 'Esta transição de estado não é permitida.'
+          };
+          throw new Error(messages[result.error] || 'Não foi possível atualizar o workflow (HTTP ' + response.status + ').');
+        }
+        showNotice(approval ? 'Aprovação registrada; a tarefa entrou na fila controlada.' : 'Plano enviado para aprovação humana.');
+        await loadTasks();
+      } catch (error) {
+        showNotice(error.message || 'Falha ao atualizar o workflow.', true);
+      } finally {
+        submit.disabled = false;
       }
     });
 

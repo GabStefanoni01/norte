@@ -196,8 +196,9 @@ app.post('/api/tasks/:id/triage', requireToken, async (req, res, next) => {
 
   const nextStatus = body.decision === 'confirmed' ? 'triaged'
     : body.decision === 'false_positive' ? 'rejected' : 'discovered';
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
     const updated = await client.query(
       `UPDATE engineering_improvements
@@ -231,7 +232,7 @@ app.post('/api/tasks/:id/triage', requireToken, async (req, res, next) => {
     try { await client.query('ROLLBACK'); } catch { /* transaction may already be closed */ }
     return next(error);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 

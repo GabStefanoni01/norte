@@ -126,5 +126,5 @@ docker compose down
 
 - A descoberta é baseada em padrões estáticos simples; não há agente de IA, análise semântica profunda ou execução periódica.
 - A API aceita ingestão autenticada e consulta tarefas, mas ainda não implementa todas as transições do workflow.
-- O dashboard monitora e filtra tarefas; não executa agentes nem autoriza merge.
+- O dashboard monitora e filtra tarefas e permite registrar triagem humana autenticada (achado confirmado, falso positivo ou necessidade de contexto), sempre com justificativa e revisor identificados. O histórico é persistido em `engineering_improvement_triage_events`. A triagem não executa agentes nem autoriza alterações de código ou merge.
 - Antes de permitir escrita a workers, configure e verifique as proteções de branches no GitHub. Nenhum agente deve escrever diretamente em `main` ou `develop`.

@@ -99,6 +99,14 @@
     .analysis-plan-list { margin: 0.35rem 0 0.75rem; padding-left: 1.25rem; color: var(--text-secondary); }
     .analysis-plan-list li { margin: 0.25rem 0; }
     .recommendation-rationale { color: var(--muted); font-size: .74rem; line-height: 1.55; margin: 7px 0 0; overflow-wrap: anywhere; }
+    .triage-panel { margin-top: 14px; padding: 14px; border: 1px solid rgba(103,214,161,.2); border-radius: 12px; background: rgba(103,214,161,.035); }
+    .triage-title { color: #9be7bf; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 9px; }
+    .triage-grid { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(180px, 1.2fr); gap: 10px; }
+    .triage-panel label { margin-top: 8px; }
+    .triage-panel select, .triage-panel input, .triage-panel textarea { width: 100%; min-height: 40px; border: 1px solid rgba(174,190,219,.22); border-radius: 9px; background: rgba(11,17,32,.66); color: var(--text); padding: 9px 10px; }
+    .triage-panel textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+    .triage-form .btn { margin-top: 10px; }
+    .triage-history { color: var(--muted); font-size: .75rem; line-height: 1.5; margin: 8px 0 0; }
     .source-list { display: grid; gap: 7px; margin-top: 12px; }
     .source-item { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
     .source-item code { color: #dce5f5; font: inherit; overflow-wrap: anywhere; }
@@ -148,6 +156,7 @@
       .filters select, .filters .btn { width: 100%; }
       .task { grid-template-columns: 1fr; gap: 12px; }
       .task-side { align-items: start; flex-direction: row; flex-wrap: wrap; justify-content: space-between; min-width: 0; }
+      .triage-grid { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
   </style>
@@ -424,6 +433,59 @@
           }
           content.append(planPanel);
         }
+        if (['discovered', 'triaged', 'rejected'].includes(task.status)) {
+          const triagePanel = element('section', 'triage-panel');
+          triagePanel.append(element('div', 'triage-title', 'Revisão humana do achado'));
+          if (task.triageDecision && task.triageReason) {
+            const decisionLabel = task.triageDecision === 'confirmed' ? 'Achado confirmado'
+              : task.triageDecision === 'false_positive' ? 'Falso positivo' : 'Precisa de contexto';
+            triagePanel.append(element('p', 'triage-history', 'Última decisão: ' + decisionLabel + ' · ' + (task.triagedBy || 'Revisor não identificado') + ' — ' + task.triageReason));
+          }
+          const form = element('form', 'triage-form');
+          form.dataset.triageTaskId = String(task.id);
+          const grid = element('div', 'triage-grid');
+          const decisionWrap = element('div');
+          const decisionLabelNode = element('label', '', 'Decisão');
+          const decision = element('select');
+          decision.name = 'decision';
+          decision.setAttribute('aria-label', 'Decisão da triagem');
+          for (const [value, label] of [
+            ['needs_context', 'Precisa de mais contexto'],
+            ['confirmed', 'Confirmar achado'],
+            ['false_positive', 'Marcar como falso positivo']
+          ]) {
+            const option = element('option', '', label);
+            option.value = value;
+            decision.append(option);
+          }
+          decision.value = task.triageDecision || 'needs_context';
+          decisionWrap.append(decisionLabelNode, decision);
+          const reviewerWrap = element('div');
+          reviewerWrap.append(element('label', '', 'Revisor'));
+          const reviewer = element('input');
+          reviewer.name = 'reviewer';
+          reviewer.type = 'text';
+          reviewer.maxLength = 120;
+          reviewer.required = true;
+          reviewer.placeholder = 'Seu nome ou identificador';
+          reviewer.autocomplete = 'name';
+          reviewerWrap.append(reviewer);
+          grid.append(decisionWrap, reviewerWrap);
+          form.append(grid);
+          form.append(element('label', '', 'Justificativa (mínimo de 10 caracteres)'));
+          const reason = element('textarea');
+          reason.name = 'reason';
+          reason.required = true;
+          reason.minLength = 10;
+          reason.maxLength = 2000;
+          reason.placeholder = 'Explique o contexto, evidência ou motivo da decisão.';
+          form.append(reason);
+          const submit = element('button', 'btn btn-secondary', 'Registrar triagem');
+          submit.type = 'submit';
+          form.append(submit);
+          triagePanel.append(form);
+          content.append(triagePanel);
+        }
         const meta = element('div', 'task-meta');
         meta.append(element('span', 'pill status status-' + String(task.status || 'unknown'), statusLabels[task.status] || task.status || 'Sem status'));
         meta.append(element('span', 'pill', categoryLabels[task.category] || task.category || 'Sem categoria'));
@@ -487,6 +549,44 @@
         refreshButton.disabled = false;
       }
     }
+
+    byId('tasks').addEventListener('submit', async (event) => {
+      const form = event.target.closest('form[data-triage-task-id]');
+      if (!form) return;
+      event.preventDefault();
+      const submit = form.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      try {
+        const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+        if (!token) throw new Error('Informe o token de leitura da API.');
+        const payload = {
+          decision: form.elements.decision.value,
+          reason: form.elements.reason.value.trim(),
+          reviewer: form.elements.reviewer.value.trim()
+        };
+        const response = await fetch(apiBase() + '/api/tasks/' + encodeURIComponent(form.dataset.triageTaskId) + '/triage', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload),
+          cache: 'no-store'
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const messages = {
+            invalid_triage_payload: 'Informe uma decisão e uma justificativa com pelo menos 10 caracteres.',
+            task_not_triageable: 'Esta tarefa não está disponível para triagem neste estado.',
+            task_not_found: 'A tarefa não foi encontrada.'
+          };
+          throw new Error(messages[result.error] || 'Não foi possível registrar a triagem (HTTP ' + response.status + ').');
+        }
+        showNotice('Triagem registrada. O histórico foi salvo.');
+        await loadTasks();
+      } catch (error) {
+        showNotice(error.message || 'Falha ao registrar a triagem.', true);
+      } finally {
+        submit.disabled = false;
+      }
+    });
 
     byId('connect').addEventListener('click', loadTasks);
     byId('refresh').addEventListener('click', loadTasks);

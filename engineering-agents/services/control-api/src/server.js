@@ -157,7 +157,8 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
          recommended_action = EXCLUDED.recommended_action,
          priority_rationale = EXCLUDED.priority_rationale,
          analysis_plan = EXCLUDED.analysis_plan
-       WHERE (engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
+       WHERE engineering_improvements.execution_approved_at IS NULL
+         AND ((engineering_improvements.repository_name IS NULL AND EXCLUDED.repository_name IS NOT NULL)
           OR (engineering_improvements.repository_url IS NULL AND EXCLUDED.repository_url IS NOT NULL)
           OR (engineering_improvements.repository_ref IS NULL AND EXCLUDED.repository_ref IS NOT NULL)
           OR (engineering_improvements.finding_type IS NULL AND EXCLUDED.finding_type IS NOT NULL)
@@ -168,7 +169,7 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
           OR engineering_improvements.risk IS DISTINCT FROM EXCLUDED.risk
           OR engineering_improvements.recommended_action IS DISTINCT FROM EXCLUDED.recommended_action
           OR engineering_improvements.priority_rationale IS DISTINCT FROM EXCLUDED.priority_rationale
-          OR engineering_improvements.analysis_plan IS DISTINCT FROM EXCLUDED.analysis_plan
+          OR engineering_improvements.analysis_plan IS DISTINCT FROM EXCLUDED.analysis_plan)
        RETURNING id, title, category, status, priority, created_at AS "createdAt", (xmax = 0) AS inserted`,
       [body.id, body.title.trim(), body.summary.trim(), body.category, priority, impact, confidence, effort, risk,
         JSON.stringify(evidence), repositoryName?.trim() || null, repositoryUrl, repositoryRef, findingType, recommendedAction, priorityRationale, analysisPlan ? JSON.stringify(analysisPlan) : null],
@@ -393,7 +394,7 @@ app.get('/api/tasks', requireToken, async (req, res, next) => {
               priority_rationale AS "priorityRationale", analysis_plan AS "analysisPlan", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
-              blocked_reason AS "blockedReason", triage_decision AS "triageDecision", triage_reason AS "triageReason", triaged_by AS "triagedBy", triaged_at AS "triagedAt", created_at AS "createdAt", updated_at AS "updatedAt"
+              blocked_reason AS "blockedReason", triage_decision AS "triageDecision", triage_reason AS "triageReason", triaged_by AS "triagedBy", triaged_at AS "triagedAt", execution_approved_at AS "executionApprovedAt", execution_approved_by AS "executionApprovedBy", execution_approval_reason AS "executionApprovalReason", approved_plan_sha256 AS "approvedPlanSha256", created_at AS "createdAt", updated_at AS "updatedAt"
          FROM engineering_improvements
         WHERE ($1::text IS NULL OR status = $1)
           AND ($2::text IS NULL OR category = $2)

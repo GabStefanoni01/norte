@@ -201,7 +201,7 @@
       <div class="section-heading">
         <div>
           <h2 id="connectionTitle">Conectar à Control API</h2>
-          <p>Use o endereço local durante o desenvolvimento e seu token de leitura.</p>
+          <p>Use o endereço local durante o desenvolvimento e seu token de acesso.</p>
         </div>
       </div>
       <div class="connection-grid">
@@ -484,6 +484,13 @@
           submit.type = 'submit';
           form.append(submit);
           triagePanel.append(form);
+          const historyButton = element('button', 'btn btn-secondary', 'Carregar histórico de triagem');
+          historyButton.type = 'button';
+          historyButton.dataset.triageHistoryTaskId = String(task.id);
+          triagePanel.append(historyButton);
+          const historyRoot = element('div', 'triage-history');
+          historyRoot.dataset.triageHistoryFor = String(task.id);
+          triagePanel.append(historyRoot);
           content.append(triagePanel);
         }
         const meta = element('div', 'task-meta');
@@ -549,6 +556,41 @@
         refreshButton.disabled = false;
       }
     }
+
+    byId('tasks').addEventListener('click', async (event) => {
+      const button = event.target.closest('button[data-triage-history-task-id]');
+      if (!button) return;
+      const taskId = button.dataset.triageHistoryTaskId;
+      const root = byId('tasks').querySelector('[data-triage-history-for="' + CSS.escape(taskId) + '"]');
+      if (!root) return;
+      button.disabled = true;
+      root.textContent = 'Carregando histórico…';
+      try {
+        const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+        if (!token) throw new Error('Informe o token de acesso da API.');
+        const response = await fetch(apiBase() + '/api/tasks/' + encodeURIComponent(taskId) + '/triage-history', {
+          headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+          cache: 'no-store'
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error('Não foi possível carregar o histórico (HTTP ' + response.status + ').');
+        root.replaceChildren();
+        if (!Array.isArray(payload.events) || payload.events.length === 0) {
+          root.textContent = 'Nenhuma decisão de triagem registrada ainda.';
+        } else {
+          for (const item of payload.events) {
+            const decision = item.decision === 'confirmed' ? 'Achado confirmado'
+              : item.decision === 'false_positive' ? 'Falso positivo' : 'Precisa de contexto';
+            const date = item.createdAt ? new Date(item.createdAt).toLocaleString('pt-BR') : 'Data indisponível';
+            root.append(element('p', 'triage-history', date + ' · ' + decision + ' · ' + (item.reviewer || 'Revisor não informado') + ': ' + item.reason));
+          }
+        }
+      } catch (error) {
+        root.textContent = error.message || 'Falha ao carregar histórico.';
+      } finally {
+        button.disabled = false;
+      }
+    });
 
     byId('tasks').addEventListener('submit', async (event) => {
       const form = event.target.closest('form[data-triage-task-id]');

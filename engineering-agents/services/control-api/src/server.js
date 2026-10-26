@@ -39,7 +39,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   }
   if (req.method === 'OPTIONS') return res.sendStatus(origin && origin === allowedOrigin ? 204 : 403);
   next();
@@ -181,6 +181,79 @@ app.post('/internal/tasks', requireIngestToken, async (req, res, next) => {
   }
 });
 
+
+app.post('/api/tasks/:id/triage', requireToken, async (req, res, next) => {
+  const body = req.body || {};
+  const decisions = new Set(['confirmed', 'false_positive', 'needs_context']);
+  const validText = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max;
+  if (!decisions.has(body.decision) || !validText(body.reason, 2000) || body.reason.trim().length < 10) {
+    return res.status(400).json({ error: 'invalid_triage_payload', message: 'Informe uma decisão válida e uma justificativa de 10 a 2000 caracteres.' });
+  }
+  const reviewer = body.reviewer == null ? '' : body.reviewer;
+  if (!validText(reviewer, 120)) {
+    return res.status(400).json({ error: 'invalid_reviewer' });
+  }
+
+  const nextStatus = body.decision === 'confirmed' ? 'triaged'
+    : body.decision === 'false_positive' ? 'rejected' : 'discovered';
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const updated = await client.query(
+      `UPDATE engineering_improvements
+          SET triage_decision = $2,
+              triage_reason = $3,
+              triaged_by = $4,
+              triaged_at = NOW(),
+              status = $5
+        WHERE id = $1
+          AND status IN ('discovered', 'triaged', 'rejected')
+        RETURNING id, title, status, triage_decision AS "triageDecision",
+                  triage_reason AS "triageReason", triaged_by AS "triagedBy",
+                  triaged_at AS "triagedAt"`,
+      [req.params.id, body.decision, body.reason.trim(), reviewer.trim(), nextStatus],
+    );
+    if (!updated.rowCount) {
+      await client.query('ROLLBACK');
+      const exists = await pool.query('SELECT 1 FROM engineering_improvements WHERE id = $1', [req.params.id]);
+      if (!exists.rowCount) return res.status(404).json({ error: 'task_not_found' });
+      return res.status(409).json({ error: 'task_not_triageable', message: 'Somente tarefas em descoberta, triagem ou rejeitadas podem ser reavaliadas.' });
+    }
+    await client.query(
+      `INSERT INTO engineering_improvement_triage_events (task_id, decision, reason, reviewer)
+       VALUES ($1, $2, $3, $4)`,
+      [req.params.id, body.decision, body.reason.trim(), reviewer.trim()],
+    );
+    await client.query('COMMIT');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ task: updated.rows[0] });
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch { /* transaction may already be closed */ }
+    return next(error);
+  } finally {
+    client.release();
+  }
+});
+
+app.get('/api/tasks/:id/triage-history', requireToken, async (req, res, next) => {
+  try {
+    const exists = await pool.query('SELECT 1 FROM engineering_improvements WHERE id = $1', [req.params.id]);
+    if (!exists.rowCount) return res.status(404).json({ error: 'task_not_found' });
+    const result = await pool.query(
+      `SELECT decision, reason, reviewer, created_at AS "createdAt"
+         FROM engineering_improvement_triage_events
+        WHERE task_id = $1
+        ORDER BY created_at DESC
+        LIMIT 50`,
+      [req.params.id],
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ events: result.rows });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 app.get('/api/tasks', requireToken, async (req, res, next) => {
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
@@ -192,7 +265,7 @@ app.get('/api/tasks', requireToken, async (req, res, next) => {
               priority_rationale AS "priorityRationale", analysis_plan AS "analysisPlan", repository_name AS "repositoryName",
               repository_url AS "repositoryUrl", repository_ref AS "repositoryRef",
               branch_name AS "branchName", pull_request_url AS "pullRequestUrl",
-              blocked_reason AS "blockedReason", created_at AS "createdAt", updated_at AS "updatedAt"
+              blocked_reason AS "blockedReason", triage_decision AS "triageDecision", triage_reason AS "triageReason", triaged_by AS "triagedBy", triaged_at AS "triagedAt", created_at AS "createdAt", updated_at AS "updatedAt"
          FROM engineering_improvements
         WHERE ($1::text IS NULL OR status = $1)
           AND ($2::text IS NULL OR category = $2)

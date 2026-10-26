@@ -255,6 +255,65 @@ app.get('/api/tasks/:id/triage-history', requireToken, async (req, res, next) =>
   }
 });
 
+
+const allowedTransitions = {
+  discovered: ['triaged', 'rejected'],
+  triaged: ['analyzing', 'queued', 'blocked', 'rejected'],
+  queued: ['analyzing', 'blocked', 'cancelled'],
+  analyzing: ['planned', 'blocked', 'failed'],
+  planned: ['awaiting_approval', 'blocked', 'rejected'],
+  awaiting_approval: ['rejected'],
+  implementing: ['reviewing', 'blocked', 'failed'],
+  reviewing: ['validating', 'implementing', 'rejected'],
+  validating: ['completed', 'implementing', 'failed'],
+  blocked: ['triaged', 'queued', 'cancelled'],
+  failed: ['queued', 'cancelled'],
+  rejected: ['discovered'],
+  cancelled: [],
+  completed: [],
+};
+
+app.post('/api/tasks/:id/transition', requireToken, async (req, res, next) => {
+  const body = req.body || {};
+  const valid = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.trim().length <= max;
+  if (!valid(body.toStatus, 40) || !valid(body.reason, 2000) || body.reason.trim().length < 10 || !valid(body.actor, 120)) {
+    return res.status(400).json({ error: 'invalid_transition_payload' });
+  }
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const current = await client.query('SELECT id, status, analysis_plan FROM engineering_improvements WHERE id = $1 FOR UPDATE', [req.params.id]);
+    if (!current.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'task_not_found' });
+    }
+    const from = current.rows[0].status;
+    if (!allowedTransitions[from]?.includes(body.toStatus)) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'invalid_status_transition', fromStatus: from, toStatus: body.toStatus });
+    }
+    if (body.toStatus === 'awaiting_approval' &&
+        (!current.rows[0].analysis_plan || current.rows[0].analysis_plan.humanApprovalRequired !== true)) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'approval_plan_required' });
+    }
+    const updated = await client.query('UPDATE engineering_improvements SET status = $2 WHERE id = $1 RETURNING id, title, status', [req.params.id, body.toStatus]);
+    await client.query(
+      'INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, $2, $3, $4, $5)',
+      [req.params.id, from, body.toStatus, body.reason.trim(), body.actor.trim()],
+    );
+    await client.query('COMMIT');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ task: updated.rows[0] });
+  } catch (error) {
+    try { if (client) await client.query('ROLLBACK'); } catch {}
+    return next(error);
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.get('/api/tasks', requireToken, async (req, res, next) => {
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);

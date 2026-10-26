@@ -29,6 +29,8 @@ test('dashboard displays repository provenance and source locations', () => {
   assert.match(html, /Aprovação humana obrigatória/);
   assert.match(html, /Revisão humana do achado/);
   assert.match(html, /Registrar triagem/);
+  assert.match(html, /Carregar histórico de triagem/);
+  assert.match(html, /triage-history-task-id/);
   assert.match(html, /data-triage-task-id/);
   assert.match(html, /method: 'POST'/);
   assert.match(html, /Próxima ação sugerida/);

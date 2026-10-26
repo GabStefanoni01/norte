@@ -80,6 +80,15 @@ O scanner é **somente leitura**: não edita arquivos, não instala dependência
 
 Por padrão, a raiz analisada é o clone local do repositório Norte onde esta pasta está. Para apontar para outro checkout, defina `DISCOVERY_REPO_PATH` no `.env` com o caminho absoluto.
 
+## Revisar um achado no dashboard
+
+Na fila, achados nos estados **Descoberta**, **Triagem** ou **Rejeitada** exibem o formulário de triagem. Escolha uma decisão:
+- `confirmed`: o achado foi confirmado e a tarefa passa para `triaged`.
+- `false_positive`: o achado foi considerado falso positivo e passa para `rejected`.
+- `needs_context`: faltam informações; a tarefa permanece em `discovered`.
+
+Toda decisão exige justificativa com pelo menos 10 caracteres e um nome/identificador informado pelo revisor. A API autentica a solicitação com `AGENTS_API_TOKEN`; o campo de revisor é um registro declarado pelo usuário, não uma identidade verificada. As decisões ficam registradas em `engineering_improvement_triage_events` e podem ser consultadas pelo botão **Carregar histórico de triagem**. Essa ação apenas atualiza o estado de triagem; não executa código, cria branches nem autoriza mudanças automáticas.
+
 ## Inserir uma tarefa manual de teste
 
 O endpoint de ingestão é reservado a serviços internos e usa um segredo diferente do token de leitura. Exemplo com PowerShell, a partir da pasta `engineering-agents` (substitua o token pelo valor do seu `.env`):

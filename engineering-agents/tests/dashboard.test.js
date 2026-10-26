@@ -35,6 +35,11 @@ test('dashboard displays repository provenance and source locations', () => {
   assert.match(html, /Enviar para aprovação/);
   assert.match(html, /Aprovar plano e colocar na fila/);
   assert.match(html, /approve-execution/);
+  assert.match(html, /Transição controlada de estado/);
+  assert.match(html, /Registrar transição/);
+  assert.match(html, /Enviar para aprovação/);
+  assert.match(html, /Aprovar plano e colocar na fila/);
+  assert.match(html, /approve-execution/);
   assert.match(html, /triage-history-task-id/);
   assert.match(html, /data-triage-task-id/);
   assert.match(html, /method: 'POST'/);

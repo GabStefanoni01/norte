@@ -471,6 +471,61 @@
           form.append(submit);
           panel.append(form);
           content.append(panel);
+        } else {
+          const nextStates = {
+            discovered: [['triaged', 'Triagem'], ['rejected', 'Rejeitada']],
+            triaged: [['analyzing', 'Analisando'], ['queued', 'Na fila'], ['blocked', 'Bloqueada'], ['rejected', 'Rejeitada']],
+            queued: [['analyzing', 'Analisando'], ['blocked', 'Bloqueada'], ['cancelled', 'Cancelada']],
+            analyzing: [['planned', 'Planejada'], ['blocked', 'Bloqueada'], ['failed', 'Falhou']],
+            implementing: [['reviewing', 'Em revisão'], ['blocked', 'Bloqueada'], ['failed', 'Falhou']],
+            reviewing: [['validating', 'Validando'], ['implementing', 'Implementando'], ['rejected', 'Rejeitada']],
+            validating: [['completed', 'Concluída'], ['implementing', 'Implementando'], ['failed', 'Falhou']],
+            blocked: [['triaged', 'Triagem'], ['queued', 'Na fila'], ['cancelled', 'Cancelada']],
+            failed: [['queued', 'Na fila'], ['cancelled', 'Cancelada']],
+            rejected: [['discovered', 'Descoberta']],
+            cancelled: [], completed: []
+          };
+          const options = nextStates[task.status] || [];
+          if (options.length) {
+            const panel = element('section', 'workflow-panel');
+            panel.append(element('div', 'workflow-title', 'Transição controlada de estado'));
+            const form = element('form', 'workflow-form');
+            form.dataset.workflowTaskId = String(task.id);
+            form.dataset.workflowAction = 'transition';
+            const statusLabel = element('label', '', 'Próximo estado');
+            const target = element('select');
+            target.name = 'toStatus';
+            target.setAttribute('aria-label', 'Próximo estado');
+            for (const [value, label] of options) {
+              const option = element('option', '', label);
+              option.value = value;
+              target.append(option);
+            }
+            statusLabel.append(target);
+            form.append(statusLabel);
+            const actorLabel = element('label', '', 'Responsável');
+            const actor = element('input');
+            actor.name = 'actor';
+            actor.required = true;
+            actor.maxLength = 120;
+            actor.placeholder = 'Seu nome ou identificador';
+            actorLabel.append(actor);
+            form.append(actorLabel);
+            const reasonLabel = element('label', '', 'Justificativa (mínimo de 10 caracteres)');
+            const reason = element('textarea');
+            reason.name = 'reason';
+            reason.required = true;
+            reason.minLength = 10;
+            reason.maxLength = 2000;
+            reason.placeholder = 'Explique por que esta transição é necessária.';
+            reasonLabel.append(reason);
+            form.append(reasonLabel);
+            const submit = element('button', 'btn btn-secondary', 'Registrar transição');
+            submit.type = 'submit';
+            form.append(submit);
+            panel.append(form);
+            content.append(panel);
+          }
         }
         if (['discovered', 'triaged', 'rejected'].includes(task.status)) {
           const triagePanel = element('section', 'triage-panel');
@@ -643,11 +698,12 @@
         const taskId = encodeURIComponent(form.dataset.workflowTaskId);
         const reason = form.elements.reason.value.trim();
         const actor = form.elements.actor.value.trim();
-        const approval = form.dataset.workflowAction === 'approve-execution';
+        const action = form.dataset.workflowAction;
+        const approval = action === 'approve-execution';
         const endpoint = approval ? '/api/tasks/' + taskId + '/approve-execution' : '/api/tasks/' + taskId + '/transition';
         const payload = approval
           ? { approvedBy: actor, reason }
-          : { toStatus: 'awaiting_approval', actor, reason };
+          : { toStatus: action === 'transition' ? form.elements.toStatus.value : 'awaiting_approval', actor, reason };
         const response = await fetch(apiBase() + endpoint, {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -665,7 +721,7 @@
           };
           throw new Error(messages[result.error] || 'Não foi possível atualizar o workflow (HTTP ' + response.status + ').');
         }
-        showNotice(approval ? 'Aprovação registrada; a tarefa entrou na fila controlada.' : 'Plano enviado para aprovação humana.');
+        showNotice(approval ? 'Aprovação registrada; a tarefa entrou na fila controlada.' : form.dataset.workflowAction === 'transition' ? 'Transição de estado registrada.' : 'Plano enviado para aprovação humana.');
         await loadTasks();
       } catch (error) {
         showNotice(error.message || 'Falha ao atualizar o workflow.', true);

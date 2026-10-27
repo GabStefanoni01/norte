@@ -1,6 +1,6 @@
 # GitHub Actions e integração contínua
 
-A automação em `.github/workflows/` cobre testes, build, testes E2E e verificações de segurança. Os workflows abaixo complementam uns aos outros: CI valida comportamento e compilação; auditoria verifica dependências; CodeQL procura padrões de código potencialmente vulneráveis.
+A automação em `.github/workflows/` cobre testes, build, testes E2E e verificações de segurança. Os workflows se complementam: CI valida comportamento e compilação; auditoria verifica dependências; CodeQL procura padrões de código potencialmente vulneráveis.
 
 ## CI — `ci.yml`
 
@@ -16,19 +16,19 @@ O workflow utiliza permissões de leitura para o conteúdo do repositório e con
 
 ## Auditoria de dependências — `dependency-audit.yml`
 
-Executa `npm audit --audit-level=high) para backend e frontend em pushes, Pull Requests, agenda semanal e execução manual. A auditoria detecta vulnerabilidades conhecidas nas dependências, mas os resultados devem ser avaliados antes de atualizar pacotes.
+Executa `npm audit --audit-level=high` para backend e frontend em pushes, Pull Requests, agenda semanal e execução manual. A auditoria detecta vulnerabilidades conhecidas nas dependências, mas os resultados devem ser avaliados antes de atualizar pacotes.
 
 ## CodeQL — `codeql.yml`
 
 Executa análise estática de segurança sobre JavaScript e TypeScript usando o CodeQL com o conjunto de consultas `security-extended`.
 
 **Quando executa:**
-- Push para `main) ou `develop).
-- Pull Request direcionado a `main) ou `develop).
+- Push para `main` ou `develop`.
+- Pull Request direcionado a `main` ou `develop`.
 - Agenda semanal.
 - Execução manual pela aba **Actions**.
 
-**Permissões:** o workflow mantém `contents: read) globalmente e concede ao job de análise apenas as permissões necessárias para publicar resultados de segurança (`security-events: write) e ler metadados das execuções (`actions: read).
+**Permissões:** o workflow mantém `contents: read` globalmente e concede ao job de análise apenas as permissões necessárias para publicar resultados de segurança (`security-events: write`) e ler metadados das execuções (`actions: read`).
 
 **Como consultar os resultados:**
 1. Abra a aba **Security** do repositório e procure **Code scanning**, se o recurso estiver habilitado e disponível.

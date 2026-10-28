@@ -57,6 +57,61 @@ async function fetchQueue(apiUrl, ingestToken) {
   return response.json();
 }
 
+async function claimAndRelease(apiUrl, ingestToken) {
+  const workerId = process.env.AGENTS_WORKER_ID || 'local-dry-run';
+  if (!/^[A-Za-z0-9._:-]{1,120}$/.test(workerId)) {
+    throw new Error('AGENTS_WORKER_ID contains unsupported characters');
+  }
+
+  const claimResponse = await fetch(`${apiUrl}/internal/execution-queue/claim`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${ingestToken}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ workerId }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+  if (!claimResponse.ok) throw new Error(`Queue claim failed with HTTP ${claimResponse.status}`);
+  const claim = await claimResponse.json();
+  if (claim.executionEnabled !== false) {
+    throw new Error('Claim response did not explicitly keep execution disabled');
+  }
+  if (!claim.task) {
+    return { mode: 'claim-dry-run', executionEnabled: false, fetched: 0, eligible: 0, tasks: [], leaseReleased: true };
+  }
+  if (!claim.lease || typeof claim.lease.token !== 'string' || !/^[a-f0-9]{64}$/.test(claim.lease.token)) {
+    throw new Error('Claim response did not contain a valid lease token');
+  }
+
+  let report;
+  let releaseError;
+  try {
+    report = buildReport([claim.task]);
+  } finally {
+    try {
+      const releaseResponse = await fetch(`${apiUrl}/internal/execution-queue/${encodeURIComponent(claim.task.id)}/release`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${ingestToken}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workerId, leaseToken: claim.lease.token }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!releaseResponse.ok) throw new Error(`Lease release failed with HTTP ${releaseResponse.status}`);
+    } catch (error) {
+      releaseError = error;
+    }
+  }
+  if (releaseError) {
+    throw new Error(`Task was claimed but the lease could not be released; it will expire automatically: ${releaseError.message}`);
+  }
+  return { ...report, mode: 'claim-dry-run', leaseReleased: true };
+}
+
 async function main() {
   const apiUrl = (process.env.CONTROL_API_URL || DEFAULT_API_URL).replace(/\/$/, '');
   const ingestToken = process.env.AGENTS_INGEST_TOKEN;
@@ -64,9 +119,9 @@ async function main() {
     throw new Error('AGENTS_INGEST_TOKEN must be configured with at least 32 characters');
   }
 
-  const payload = await fetchQueue(apiUrl, ingestToken);
-  const tasks = validateQueuePayload(payload);
-  const report = buildReport(tasks);
+  const report = process.argv.includes('--claim-dry-run')
+    ? await claimAndRelease(apiUrl, ingestToken)
+    : buildReport(validateQueuePayload(await fetchQueue(apiUrl, ingestToken)));
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 }
 
@@ -77,4 +132,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { isEligibleTask, validateQueuePayload, buildReport };
+module.exports = { isEligibleTask, validateQueuePayload, buildReport, claimAndRelease };

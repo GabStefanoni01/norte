@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { isEligibleTask, validateQueuePayload, buildReport, claimAndRelease } = require('../worker/src/worker.js');
 const { buildWorkspacePlan } = require('../worker/src/workspace-manager.js');
+const { createApprovedTaskWorkspace } = require('../worker/src/workspace-create.js');
 const path = require('node:path');
 
 const approvedTask = {
@@ -139,4 +140,37 @@ test('workspace planner rejects unsafe refs, task IDs, and nested workspace root
     ...base,
     workspaceRoot: path.join(base.repositoryPath, 'workspaces'),
   }), /workspace_root_must_be_separate_from_repository/);
+});
+
+test('workspace creator claims the requested task and releases its lease when base ref is not pinned', async (t) => {
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    calls.push({ url: String(url), options });
+    if (String(url).endsWith('/internal/execution-queue/claim')) {
+      return new Response(JSON.stringify({
+        task: { ...approvedTask, repositoryRef: null },
+        lease: { owner: 'local-workspace-creator', token: 'c'.repeat(64), expiresAt: '2026-10-28T16:00:00.000Z' },
+        executionEnabled: false,
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ released: true, executionEnabled: false }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    });
+  });
+
+  await assert.rejects(createApprovedTaskWorkspace({
+    apiUrl: 'http://localhost:4310',
+    ingestToken: 'x'.repeat(64),
+    workerId: 'test-worker',
+    taskId: approvedTask.id,
+    baseRef: 'feat/engineering-agents-platform',
+    repositoryPath: path.resolve(process.cwd(), 'norte-repo'),
+    workspaceRoot: path.resolve(process.cwd(), 'norte-agent-workspaces'),
+    allowUnpinnedBaseRef: false,
+  }), /task_has_no_pinned_repository_ref/);
+
+  assert.equal(calls.length, 2);
+  assert.equal(JSON.parse(calls[0].options.body).taskId, approvedTask.id);
+  assert.match(calls[1].url, new RegExp(`/internal/execution-queue/${approvedTask.id}/release$`));
+  assert.equal(JSON.parse(calls[1].options.body).leaseToken, 'c'.repeat(64));
 });

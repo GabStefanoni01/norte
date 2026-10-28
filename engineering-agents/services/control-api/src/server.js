@@ -391,8 +391,8 @@ app.post('/internal/execution-queue/claim', requireIngestToken, async (req, res,
             AND approved_plan_sha256 IS NOT NULL
             AND (worker_lease_expires_at IS NULL OR worker_lease_expires_at <= NOW())
           ORDER BY priority DESC, updated_at ASC
-          FOR UPDATE SKIP LOCKED
           LIMIT 1
+          FOR UPDATE SKIP LOCKED
        )
        UPDATE engineering_improvements AS task
           SET worker_lease_owner = $1,

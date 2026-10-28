@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('node:path');
-const { assertWritableBranch } = require('../shared/branch-policy.js');
+const { assertWritableBranch } = require('../../shared/branch-policy.js');
 
 const SAFE_TASK_ID = /^[A-Za-z0-9._-]{1,100}$/;
 const SAFE_REF = /^[A-Za-z0-9._/-]{1,255}$/;

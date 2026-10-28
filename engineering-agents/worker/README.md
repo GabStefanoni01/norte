@@ -47,3 +47,19 @@ npm run worker:claim-dry-run
 O comando faz uma reserva atômica temporária de uma tarefa aprovada e libera a reserva logo em seguida. Isso valida a coordenação entre workers sem iniciar implementação, executar comandos do repositório ou modificar arquivos. A lease expira em cinco minutos se o processo falhar antes de liberá-la. O token da lease é mantido apenas em memória e não é impresso no relatório.
 
 A rota de claim usa `FOR UPDATE SKIP LOCKED`, ignora reservas ainda válidas e incrementa `worker_attempts`. O endpoint de fila de leitura também oculta tarefas com lease ativa. A lease é apenas uma trava de coordenação; não autoriza execução. A execução continua desativada e ainda será necessário implementar workspace isolado, allowlist de comandos, coleta de diff, testes, auditoria e revisão humana.
+
+## Planejar um workspace isolado (somente leitura)
+
+Antes de criar qualquer worktree, valide o plano localmente. O comando abaixo **não executa Git nem cria pastas/branches**; ele só imprime os argumentos que uma etapa futura poderá usar:
+
+```powershell
+$env:AGENTS_WORKSPACE_TASK_ID = "disc-efc1fec8b7661f32b9625919"
+$env:AGENTS_WORKSPACE_BASE_REF = "feat/engineering-agents-platform"
+$env:AGENTS_REPOSITORY_PATH = "C:\Users\Asus\Documents\norte"
+$env:AGENTS_WORKSPACE_ROOT = "C:\Users\Asus\Documents\norte-agent-workspaces"
+npm run worker:workspace-plan
+```
+
+O diretório de workspaces deve ficar fora da raiz do repositório e não pode conter a raiz do repositório. O planejador valida o ID da tarefa, a ref base e a branch gerada `agents/improvement-<taskId>`, usando a política de branch já existente. A saída inclui a lista de argumentos Git sem usar shell. Nenhuma pasta, branch ou arquivo é criado nesta etapa.
+
+Este planejador ainda não confirma, por conta própria, a aprovação diretamente no banco e não deve ser tratado como executor. A próxima etapa, depois de testes locais, será ligar a criação de worktree à tarefa aprovada via API e só então implementar limites de edição, comandos de teste permitidos, diff e revisão humana. Execução de código permanece desativada.

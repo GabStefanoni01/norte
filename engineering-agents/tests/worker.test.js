@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isEligibleTask, validateQueuePayload, buildReport } = require('../worker/src/worker.js');
+const { isEligibleTask, validateQueuePayload, buildReport, claimAndRelease } = require('../worker/src/worker.js');
 
 const approvedTask = {
   id: 'test-task-001',
@@ -65,4 +65,45 @@ test('worker remains read-only and does not invoke a shell, git, or filesystem w
   const path = require('node:path');
   const source = fs.readFileSync(path.join(__dirname, '..', 'worker', 'src', 'worker.js'), 'utf8');
   assert.doesNotMatch(source, /child_process|execSync|spawnSync|\bspawn\(|\bexec\(|git clone|writeFileSync|createWriteStream/);
+});
+
+test('claim dry-run releases its lease and never enables execution', async (t) => {
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    calls.push({ url, options });
+    if (String(url).endsWith('/internal/execution-queue/claim')) {
+      return new Response(JSON.stringify({
+        task: approvedTask,
+        lease: { owner: 'local-dry-run', token: 'b'.repeat(64), expiresAt: '2026-10-28T16:00:00.000Z' },
+        executionEnabled: false,
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ released: true, executionEnabled: false }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  });
+
+  const report = await claimAndRelease('http://localhost:4310', 'x'.repeat(64));
+  assert.equal(report.mode, 'claim-dry-run');
+  assert.equal(report.executionEnabled, false);
+  assert.equal(report.eligible, 1);
+  assert.equal(report.leaseReleased, true);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /\/claim$/);
+  assert.match(calls[1].url, /test-task-001\/release$/);
+  assert.equal(JSON.parse(calls[1].options.body).leaseToken, 'b'.repeat(64));
+});
+
+test('claim dry-run fails closed if claim response enables execution', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({
+    task: approvedTask,
+    lease: { owner: 'local-dry-run', token: 'b'.repeat(64) },
+    executionEnabled: true,
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+
+  await assert.rejects(
+    claimAndRelease('http://localhost:4310', 'x'.repeat(64)),
+    /explicitly keep execution disabled/,
+  );
 });

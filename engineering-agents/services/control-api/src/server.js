@@ -372,8 +372,12 @@ app.post('/api/tasks/:id/approve-execution', requireToken, async (req, res, next
 app.post('/internal/execution-queue/claim', requireIngestToken, async (req, res, next) => {
   const body = req.body || {};
   const workerId = body.workerId;
+  const requestedTaskId = body.taskId == null ? null : body.taskId;
   if (typeof workerId !== 'string' || !/^[A-Za-z0-9._:-]{1,120}$/.test(workerId)) {
     return res.status(400).json({ error: 'invalid_worker_id' });
+  }
+  if (requestedTaskId !== null && (typeof requestedTaskId !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(requestedTaskId))) {
+    return res.status(400).json({ error: 'invalid_task_id' });
   }
 
   const leaseToken = require('node:crypto').randomBytes(32).toString('hex');
@@ -389,6 +393,7 @@ app.post('/internal/execution-queue/claim', requireIngestToken, async (req, res,
           WHERE status = 'queued'
             AND execution_approved_at IS NOT NULL
             AND approved_plan_sha256 IS NOT NULL
+            AND ($4::text IS NULL OR id = $4)
             AND (worker_lease_expires_at IS NULL OR worker_lease_expires_at <= NOW())
           ORDER BY priority DESC, updated_at ASC
           LIMIT 1
@@ -409,7 +414,7 @@ app.post('/internal/execution-queue/claim', requireIngestToken, async (req, res,
                  task.approved_plan_sha256 AS "approvedPlanSha256",
                  task.worker_lease_expires_at AS "leaseExpiresAt",
                  task.worker_attempts AS "workerAttempts"`,
-      [workerId, leaseToken, leaseSeconds],
+      [workerId, leaseToken, leaseSeconds, requestedTaskId],
     );
     await client.query('COMMIT');
     res.setHeader('Cache-Control', 'no-store');

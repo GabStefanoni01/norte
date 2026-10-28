@@ -369,6 +369,96 @@ app.post('/api/tasks/:id/approve-execution', requireToken, async (req, res, next
   }
 });
 
+app.post('/internal/execution-queue/claim', requireIngestToken, async (req, res, next) => {
+  const body = req.body || {};
+  const workerId = body.workerId;
+  if (typeof workerId !== 'string' || !/^[A-Za-z0-9._:-]{1,120}$/.test(workerId)) {
+    return res.status(400).json({ error: 'invalid_worker_id' });
+  }
+
+  const leaseToken = require('node:crypto').randomBytes(32).toString('hex');
+  const leaseSeconds = 300;
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const claimed = await client.query(
+      `WITH candidate AS (
+         SELECT id
+           FROM engineering_improvements
+          WHERE status = 'queued'
+            AND execution_approved_at IS NOT NULL
+            AND approved_plan_sha256 IS NOT NULL
+            AND (worker_lease_expires_at IS NULL OR worker_lease_expires_at <= NOW())
+          ORDER BY priority DESC, updated_at ASC
+          FOR UPDATE SKIP LOCKED
+          LIMIT 1
+       )
+       UPDATE engineering_improvements AS task
+          SET worker_lease_owner = $1,
+              worker_lease_token = $2,
+              worker_lease_expires_at = NOW() + ($3 * INTERVAL '1 second'),
+              worker_attempts = worker_attempts + 1
+         FROM candidate
+        WHERE task.id = candidate.id
+       RETURNING task.id, task.title, task.summary, task.category, task.priority,
+                 task.repository_name AS "repositoryName", task.repository_url AS "repositoryUrl",
+                 task.repository_ref AS "repositoryRef", task.analysis_plan AS "analysisPlan",
+                 task.execution_approved_at AS "executionApprovedAt",
+                 task.execution_approved_by AS "executionApprovedBy",
+                 task.approved_plan_sha256 AS "approvedPlanSha256",
+                 task.worker_lease_expires_at AS "leaseExpiresAt",
+                 task.worker_attempts AS "workerAttempts"`,
+      [workerId, leaseToken, leaseSeconds],
+    );
+    await client.query('COMMIT');
+    res.setHeader('Cache-Control', 'no-store');
+    if (!claimed.rowCount) {
+      return res.json({ task: null, executionEnabled: false, message: 'No eligible unleased task found.' });
+    }
+    return res.json({
+      task: claimed.rows[0],
+      lease: { owner: workerId, token: leaseToken, expiresAt: claimed.rows[0].leaseExpiresAt },
+      executionEnabled: false,
+      message: 'Task claimed for coordination only. No code was executed.',
+    });
+  } catch (error) {
+    try { if (client) await client.query('ROLLBACK'); } catch {}
+    return next(error);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+app.post('/internal/execution-queue/:id/release', requireIngestToken, async (req, res, next) => {
+  const body = req.body || {};
+  const validWorkerId = typeof body.workerId === 'string' && /^[A-Za-z0-9._:-]{1,120}$/.test(body.workerId);
+  const validLeaseToken = typeof body.leaseToken === 'string' && /^[a-f0-9]{64}$/.test(body.leaseToken);
+  if (!validWorkerId || !validLeaseToken) {
+    return res.status(400).json({ error: 'invalid_lease_payload' });
+  }
+  try {
+    const released = await pool.query(
+      `UPDATE engineering_improvements
+          SET worker_lease_owner = NULL,
+              worker_lease_token = NULL,
+              worker_lease_expires_at = NULL
+        WHERE id = $1
+          AND status = 'queued'
+          AND worker_lease_owner = $2
+          AND worker_lease_token = $3
+          AND worker_lease_expires_at > NOW()
+       RETURNING id`,
+      [req.params.id, body.workerId, body.leaseToken],
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    if (!released.rowCount) return res.status(409).json({ error: 'lease_not_found_or_expired' });
+    return res.json({ released: true, executionEnabled: false, message: 'Lease released; no code was executed.' });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 app.get('/internal/execution-queue', requireIngestToken, async (req, res, next) => {
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 50);

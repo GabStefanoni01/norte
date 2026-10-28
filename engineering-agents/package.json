@@ -8,7 +8,8 @@
     "check": "node --check shared/branch-policy.js && node --check services/control-api/src/server.js && node --check services/control-api/src/migrate.js && node --check services/discovery-service/src/discover.js && node --check worker/src/worker.js",
     "migrate": "npm --prefix services/control-api run migrate",
     "discover": "npm --prefix services/discovery-service run discover",
-    "worker:dry-run": "node worker/src/worker.js"
+    "worker:dry-run": "node --env-file=.env worker/src/worker.js",
+    "worker:claim-dry-run": "node --env-file=.env worker/src/worker.js --claim-dry-run"
   },
   "engines": { "node": ">=20.6.0" }
 }

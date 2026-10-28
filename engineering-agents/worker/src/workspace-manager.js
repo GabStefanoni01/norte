@@ -4,7 +4,7 @@ const path = require('node:path');
 const { assertWritableBranch } = require('../shared/branch-policy.js');
 
 const SAFE_TASK_ID = /^[A-Za-z0-9._-]{1,100}$/;
-const SAFE_REF = /^(?!-)(?!.*\.\.)(?!.*[\\s~^:?*\[\\\\])(?!.*\.lock$)[A-Za-z0-9._/-]{1,255}$/;
+const SAFE_REF = /^[A-Za-z0-9._/-]{1,255}$/;
 
 function isAbsolutePath(value) {
   return typeof value === 'string' && value.length > 0 && path.isAbsolute(value);
@@ -19,7 +19,7 @@ function buildWorkspacePlan({ taskId, baseRef, repositoryPath, workspaceRoot } =
   if (typeof taskId !== 'string' || !SAFE_TASK_ID.test(taskId)) {
     throw new Error('invalid_task_id');
   }
-  if (typeof baseRef !== 'string' || !SAFE_REF.test(baseRef) || baseRef.startsWith('/') || baseRef.endsWith('/')) {
+  if (typeof baseRef !== 'string' || !SAFE_REF.test(baseRef) || baseRef.startsWith('/') || baseRef.endsWith('/') || baseRef.includes('..') || baseRef.includes('//') || baseRef.split('/').some((part) => !part || part === '.' || part.endsWith('.lock'))) {
     throw new Error('invalid_base_ref');
   }
   if (!isAbsolutePath(repositoryPath) || !isAbsolutePath(workspaceRoot)) {

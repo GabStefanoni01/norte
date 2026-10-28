@@ -34,3 +34,16 @@ Os testes usam payloads locais de exemplo; não criam tarefas no Neon nem precis
 - Aprovação humana é registrada como um identificador declarado; a identidade do aprovador não é verificada.
 - Hash válido não prova, por si só, que o plano recebido corresponde ao snapshot do banco; a API é responsável por registrar o snapshot aprovado.
 - Próxima etapa antes de qualquer execução: claim/lease idempotente, workspace isolado, allowlist estrita de comandos, limites de recursos, coleta de diff/logs e revisão humana. Nunca habilitar execução arbitrária ou merge automático.
+
+## Validar o mecanismo de claim/lease sem executar código
+
+Depois de aplicar as migrações e iniciar a API, execute:
+
+```powershell
+npm run migrate
+npm run worker:claim-dry-run
+```
+
+O comando faz uma reserva atômica temporária de uma tarefa aprovada e libera a reserva logo em seguida. Isso valida a coordenação entre workers sem iniciar implementação, executar comandos do repositório ou modificar arquivos. A lease expira em cinco minutos se o processo falhar antes de liberá-la. O token da lease é mantido apenas em memória e não é impresso no relatório.
+
+A rota de claim usa `FOR UPDATE SKIP LOCKED`, ignora reservas ainda válidas e incrementa `worker_attempts`. O endpoint de fila de leitura também oculta tarefas com lease ativa. A lease é apenas uma trava de coordenação; não autoriza execução. A execução continua desativada e ainda será necessário implementar workspace isolado, allowlist de comandos, coleta de diff, testes, auditoria e revisão humana.

@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { isEligibleTask, validateQueuePayload, buildReport, claimAndRelease } = require('../worker/src/worker.js');
-const { buildWorkspacePlan } = require('../worker/src/workspace-manager.js');
+const { buildWorkspacePlan, createWorkspace } = require('../worker/src/workspace-manager.js');
 const { createApprovedTaskWorkspace } = require('../worker/src/workspace-create.js');
 const path = require('node:path');
 
@@ -173,4 +173,49 @@ test('workspace creator claims the requested task and releases its lease when ba
   assert.equal(JSON.parse(calls[0].options.body).taskId, approvedTask.id);
   assert.match(calls[1].url, new RegExp(`/internal/execution-queue/${approvedTask.id}/release$`));
   assert.equal(JSON.parse(calls[1].options.body).leaseToken, 'c'.repeat(64));
+});
+
+test('creates a real isolated git worktree and handles repeat requests idempotently', (t) => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const { spawnSync } = require('node:child_process');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'norte-workspace-test-'));
+  t.after(() => fs.rmSync(tempRoot, { recursive: true, force: true }));
+
+  const repositoryPath = path.join(tempRoot, 'repository');
+  const workspaceRoot = path.join(tempRoot, 'workspaces');
+  fs.mkdirSync(repositoryPath, { recursive: true });
+
+  const git = (args) => {
+    const result = spawnSync('git', ['-C', repositoryPath, ...args], {
+      encoding: 'utf8', shell: false, timeout: 15000, windowsHide: true,
+    });
+    assert.equal(result.status, 0, `git ${args.join(' ')} failed: ${result.stderr || result.error?.message}`);
+    return String(result.stdout || '').trim();
+  };
+
+  git(['init', '-b', 'base']);
+  git(['config', 'user.name', 'Norte Test']);
+  git(['config', 'user.email', 'norte-test@example.invalid']);
+  fs.writeFileSync(path.join(repositoryPath, 'README.md'), 'test fixture\n');
+  git(['add', 'README.md']);
+  git(['commit', '-m', 'test fixture']);
+
+  const input = {
+    taskId: 'integration-test-01',
+    baseRef: 'base',
+    repositoryPath,
+    workspaceRoot,
+  };
+  const first = createWorkspace(input);
+  assert.equal(first.mode, 'workspace-created');
+  assert.equal(first.executionEnabled, false);
+  assert.equal(first.alreadyExisted, false);
+  assert.equal(fs.existsSync(path.join(first.workspacePath, 'README.md')), true);
+  assert.equal(git(['branch', '--show-current']), 'base');
+
+  const second = createWorkspace(input);
+  assert.equal(second.alreadyExisted, true);
+  assert.equal(second.executionEnabled, false);
+  assert.equal(second.branchName, 'agents/improvement-integration-test-01');
 });

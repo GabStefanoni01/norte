@@ -5,11 +5,12 @@
   "description": "Independent engineering agents platform",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check shared/branch-policy.js && node --check services/control-api/src/server.js && node --check services/control-api/src/migrate.js && node --check services/discovery-service/src/discover.js && node --check worker/src/worker.js",
+    "check": "node --check shared/branch-policy.js && node --check services/control-api/src/server.js && node --check services/control-api/src/migrate.js && node --check services/discovery-service/src/discover.js && node --check worker/src/worker.js && node --check worker/src/workspace-manager.js && node --check worker/src/workspace-plan.js",
     "migrate": "npm --prefix services/control-api run migrate",
     "discover": "npm --prefix services/discovery-service run discover",
     "worker:dry-run": "node --env-file=.env worker/src/worker.js",
-    "worker:claim-dry-run": "node --env-file=.env worker/src/worker.js --claim-dry-run"
+    "worker:claim-dry-run": "node --env-file=.env worker/src/worker.js --claim-dry-run",
+    "worker:workspace-plan": "node --env-file=.env worker/src/workspace-plan.js"
   },
   "engines": { "node": ">=20.6.0" }
 }

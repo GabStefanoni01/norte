@@ -63,3 +63,27 @@ npm run worker:workspace-plan
 O diretório de workspaces deve ficar fora da raiz do repositório e não pode conter a raiz do repositório. O planejador valida o ID da tarefa, a ref base e a branch gerada `agents/improvement-<taskId>`, usando a política de branch já existente. A saída inclui a lista de argumentos Git sem usar shell. Nenhuma pasta, branch ou arquivo é criado nesta etapa.
 
 Este planejador ainda não confirma, por conta própria, a aprovação diretamente no banco e não deve ser tratado como executor. A próxima etapa, depois de testes locais, será ligar a criação de worktree à tarefa aprovada via API e só então implementar limites de edição, comandos de teste permitidos, diff e revisão humana. Execução de código permanece desativada.
+
+## Criar um workspace para uma tarefa aprovada (sem executar código)
+
+Esta etapa cria um Git worktree local apenas depois de reservar uma tarefa específica na API. A tarefa precisa estar na fila aprovada e ter metadados de aprovação válidos. O comando verifica que a ref base corresponde à ref registrada na tarefa. Se a tarefa não tiver uma ref registrada, ele falha por padrão.
+
+Configure as variáveis na sessão PowerShell, a partir de `engineering-agents`:
+
+```powershell
+$env:AGENTS_WORKSPACE_TASK_ID = "ID_DA_TAREFA_APROVADA"
+$env:AGENTS_WORKSPACE_BASE_REF = "ref-registrada-na-tarefa"
+$env:AGENTS_REPOSITORY_PATH = "C:\Users\Asus\Documents\norte"
+$env:AGENTS_WORKSPACE_ROOT = "C:\Users\Asus\Documents\norte-agent-workspaces"
+npm run worker:workspace-create
+```
+
+Se a tarefa ainda não tiver uma ref fixada, não habilite a exceção sem confirmar manualmente que a ref base é a correta. Depois da verificação humana, a exceção explícita é:
+
+```powershell
+$env:AGENTS_WORKSPACE_ALLOW_UNPINNED_BASE_REF = "true"
+```
+
+O comando usa argumentos Git sem shell, valida o diretório raiz do repositório, confirma que a ref existe e cria somente a branch da tarefa. Ele não executa scripts do projeto, não edita arquivos-fonte, não cria PR e não faz merge. A lease é liberada ao final; se a liberação falhar, a mensagem informará que a lease expirará automaticamente. Se o workspace já existir e corresponder à branch esperada, a operação é idempotente.
+
+Antes de usar pela primeira vez, execute `npm run check` e `npm test`. A execução de código permanece desativada.

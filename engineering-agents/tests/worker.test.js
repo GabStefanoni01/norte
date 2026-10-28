@@ -3,6 +3,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { isEligibleTask, validateQueuePayload, buildReport, claimAndRelease } = require('../worker/src/worker.js');
+const { buildWorkspacePlan } = require('../worker/src/workspace-manager.js');
+const path = require('node:path');
 
 const approvedTask = {
   id: 'test-task-001',
@@ -106,4 +108,35 @@ test('claim dry-run fails closed if claim response enables execution', async (t)
     claimAndRelease('http://localhost:4310', 'x'.repeat(64)),
     /explicitly keep execution disabled/,
   );
+});
+
+test('workspace planner creates a safe git worktree plan without side effects', () => {
+  const plan = buildWorkspacePlan({
+    taskId: 'disc-efc1fec8b7661f32b9625919',
+    baseRef: 'feat/engineering-agents-platform',
+    repositoryPath: path.resolve(process.cwd(), 'norte-repo'),
+    workspaceRoot: path.resolve(process.cwd(), 'norte-agent-workspaces'),
+  });
+  assert.equal(plan.mode, 'workspace-plan');
+  assert.equal(plan.executionEnabled, false);
+  assert.equal(plan.sideEffects, false);
+  assert.equal(plan.branchName, 'agents/improvement-disc-efc1fec8b7661f32b9625919');
+  assert.deepEqual(plan.args.slice(2, 5), ['worktree', 'add', '-b']);
+  assert.match(plan.nextAction, /no workspace created/);
+});
+
+test('workspace planner rejects unsafe refs, task IDs, and nested workspace roots', () => {
+  const base = {
+    taskId: 'safe-task-1',
+    baseRef: 'feat/engineering-agents-platform',
+    repositoryPath: path.resolve(process.cwd(), 'norte-repo'),
+    workspaceRoot: path.resolve(process.cwd(), 'norte-agent-workspaces'),
+  };
+  assert.throws(() => buildWorkspacePlan({ ...base, taskId: '../escape' }), /invalid_task_id/);
+  assert.throws(() => buildWorkspacePlan({ ...base, baseRef: '../main' }), /invalid_base_ref/);
+  assert.throws(() => buildWorkspacePlan({ ...base, baseRef: 'feat//bad' }), /invalid_base_ref/);
+  assert.throws(() => buildWorkspacePlan({
+    ...base,
+    workspaceRoot: path.join(base.repositoryPath, 'workspaces'),
+  }), /workspace_root_must_be_separate_from_repository/);
 });

@@ -463,7 +463,7 @@ app.get('/internal/execution-queue', requireIngestToken, async (req, res, next) 
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 50);
     const result = await pool.query(
-      'SELECT id, title, summary, category, priority, evidence, repository_name AS "repositoryName", repository_url AS "repositoryUrl", repository_ref AS "repositoryRef", analysis_plan AS "analysisPlan", execution_approved_at AS "executionApprovedAt", execution_approved_by AS "executionApprovedBy", approved_plan_sha256 AS "approvedPlanSha256" FROM engineering_improvements WHERE status = \'queued\' AND execution_approved_at IS NOT NULL AND approved_plan_sha256 IS NOT NULL ORDER BY priority DESC, updated_at ASC LIMIT $1',
+      'SELECT id, title, summary, category, priority, evidence, repository_name AS "repositoryName", repository_url AS "repositoryUrl", repository_ref AS "repositoryRef", analysis_plan AS "analysisPlan", execution_approved_at AS "executionApprovedAt", execution_approved_by AS "executionApprovedBy", approved_plan_sha256 AS "approvedPlanSha256" FROM engineering_improvements WHERE status = \'queued\' AND execution_approved_at IS NOT NULL AND approved_plan_sha256 IS NOT NULL AND (worker_lease_expires_at IS NULL OR worker_lease_expires_at <= NOW()) ORDER BY priority DESC, updated_at ASC LIMIT $1',
       [limit],
     );
     res.setHeader('Cache-Control', 'no-store');

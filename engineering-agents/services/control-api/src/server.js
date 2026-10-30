@@ -524,6 +524,126 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
   }
 });
 
+
+app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, next) => {
+  const taskId = req.params.id;
+  if (typeof taskId !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(taskId)) {
+    return res.status(400).json({ error: 'invalid_task_id' });
+  }
+
+  const orchestratorUrl = (process.env.ORCHESTRATOR_URL || 'http://127.0.0.1:4320').replace(/\/$/, '');
+  const orchestratorToken = process.env.AGENTS_ORCHESTRATOR_TOKEN;
+  if (!orchestratorToken || orchestratorToken.length < 32) {
+    return res.status(503).json({ error: 'orchestrator_not_configured' });
+  }
+
+  let client;
+  try {
+    const found = await pool.query(
+      'SELECT id, title, summary, category, evidence, status FROM engineering_improvements WHERE id = $1 LIMIT 1',
+      [taskId],
+    );
+    if (!found.rowCount) return res.status(404).json({ error: 'task_not_found' });
+    const task = found.rows[0];
+    if (!['triaged', 'queued'].includes(task.status)) {
+      return res.status(409).json({ error: 'task_not_analyzable', status: task.status });
+    }
+
+    let orchestratorResponse;
+    try {
+      orchestratorResponse = await fetch(orchestratorUrl + '/v1/analyze', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + orchestratorToken,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: task.id,
+          title: task.title,
+          summary: task.summary,
+          category: task.category,
+          evidence: task.evidence || [],
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch {
+      return res.status(502).json({ error: 'orchestrator_unavailable' });
+    }
+
+    if (!orchestratorResponse.ok) {
+      return res.status(502).json({ error: 'orchestrator_request_failed', upstreamStatus: orchestratorResponse.status });
+    }
+
+    const analysis = await orchestratorResponse.json();
+    if (
+      analysis.task_id !== task.id ||
+      analysis.human_approval_required !== true ||
+      analysis.execution_enabled !== false ||
+      !analysis.plan ||
+      analysis.plan.humanApprovalRequired !== true ||
+      analysis.plan.executionEnabled !== false
+    ) {
+      return res.status(502).json({ error: 'invalid_orchestrator_response' });
+    }
+
+    const persistedPlan = {
+      ...analysis.plan,
+      finding: analysis.finding,
+      architecture: analysis.architecture,
+      agentTrace: analysis.agent_trace,
+      executionEnabled: false,
+    };
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const current = await client.query(
+      'SELECT status FROM engineering_improvements WHERE id = $1 FOR UPDATE',
+      [taskId],
+    );
+    if (!current.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'task_not_found' });
+    }
+    const fromStatus = current.rows[0].status;
+    if (!['triaged', 'queued'].includes(fromStatus)) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'task_state_changed_during_analysis', status: fromStatus });
+    }
+
+    await client.query(
+      "UPDATE engineering_improvements SET status = 'analyzing' WHERE id = $1",
+      [taskId],
+    );
+    await client.query(
+      "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, $2, 'analyzing', $3, 'langgraph-orchestrator')",
+      [taskId, fromStatus, 'Analysis started by the authenticated LangGraph orchestrator.'],
+    );
+    const updated = await client.query(
+      "UPDATE engineering_improvements SET status = 'planned', analysis_plan = $2::jsonb WHERE id = $1 RETURNING id, title, status, analysis_plan AS \"analysisPlan\"",
+      [taskId, JSON.stringify(persistedPlan)],
+    );
+    await client.query(
+      "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, 'analyzing', 'planned', $2, 'langgraph-orchestrator')",
+      [taskId, 'LangGraph returned a reviewable plan; execution remains disabled.'],
+    );
+    await client.query('COMMIT');
+
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({
+      task: updated.rows[0],
+      agentTrace: analysis.agent_trace,
+      humanApprovalRequired: true,
+      executionEnabled: false,
+    });
+  } catch (error) {
+    try { if (client) await client.query('ROLLBACK'); } catch {}
+    return next(error);
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.use((error, _req, res, _next) => {
   // Do not leak SQL, credentials, or internal exception details to clients.
   console.error(JSON.stringify({ event: 'request_failed', name: error?.name || 'Error' }));

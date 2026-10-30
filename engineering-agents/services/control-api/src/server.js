@@ -525,7 +525,7 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
 });
 
 
-app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, next) => {
+const analyzeTaskHandler = async (req, res, next) => {
   const taskId = req.params.id;
   if (typeof taskId !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(taskId)) {
     return res.status(400).json({ error: 'invalid_task_id' });
@@ -645,7 +645,11 @@ app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, nex
   } finally {
     if (client) client.release();
   }
-});
+};
+
+// Dashboard requests use the regular API token; internal ingestion keeps its separate token.
+app.post('/api/tasks/:id/analyze', requireToken, analyzeTaskHandler);
+app.post('/internal/tasks/:id/analyze', requireIngestToken, analyzeTaskHandler);
 
 app.use((error, _req, res, _next) => {
   // Do not leak SQL, credentials, or internal exception details to clients.

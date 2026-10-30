@@ -25,4 +25,7 @@ class ImprovementTask(BaseModel):
     evidence: list[EvidenceItem] = Field(default_factory=list, max_length=50)
 
     def to_graph_input(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+        return self.model_dump(
+        mode="json",
+        exclude_none=True,
+    )

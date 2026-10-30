@@ -437,7 +437,36 @@
           if (plan.humanApprovalRequired === true) {
             planPanel.append(element('p', 'recommendation-rationale', 'Aprovação humana obrigatória antes de qualquer alteração.'));
           }
+          if (plan.finding && typeof plan.finding === 'object') {
+            planPanel.append(element('p', 'recommendation-rationale', 'Achado: ' + (plan.finding.summary || plan.finding.title || 'Análise registrada.')));
+          }
+          if (plan.architecture && typeof plan.architecture === 'object') {
+            planPanel.append(element('p', 'recommendation-rationale', 'Arquitetura: ' + (plan.architecture.recommendation || plan.architecture.summary || plan.architecture.notes || 'Avaliação arquitetural registrada.')));
+          }
+          if (Array.isArray(plan.agentTrace) && plan.agentTrace.length) {
+            planPanel.append(element('div', 'recommendation-title', 'Etapas dos agentes'));
+            const traceList = element('ul', 'analysis-plan-list');
+            for (const trace of plan.agentTrace.slice(0, 6)) {
+              if (trace && typeof trace === 'object') {
+                const agent = trace.agent || trace.name || 'Agente';
+                const detail = trace.summary || trace.output || trace.status || 'Etapa concluída';
+                traceList.append(element('li', '', agent + ': ' + detail));
+              }
+            }
+            planPanel.append(traceList);
+          }
+          planPanel.append(element('p', 'recommendation-rationale', 'Execução de código desabilitada. Esta análise não alterou arquivos.'));
           content.append(planPanel);
+        }
+        if (task.status === 'triaged' && !task.analysisPlan) {
+          const analysisPanel = element('section', 'workflow-panel');
+          analysisPanel.append(element('div', 'workflow-title', 'Análise multiagente'));
+          analysisPanel.append(element('p', 'triage-history', 'Execute Scout, Architect e Planner para avaliar o achado e gerar um plano. Nenhum código será modificado.'));
+          const analyzeButton = element('button', 'btn btn-primary', 'Analisar com LangGraph');
+          analyzeButton.type = 'button';
+          analyzeButton.dataset.analyzeTaskId = String(task.id);
+          analysisPanel.append(analyzeButton);
+          content.append(analysisPanel);
         }
         if (task.status === 'planned' || task.status === 'awaiting_approval') {
           const panel = element('section', 'workflow-panel');
@@ -652,6 +681,39 @@
     }
 
     byId('tasks').addEventListener('click', async (event) => {
+      const analyzeButton = event.target.closest('button[data-analyze-task-id]');
+      if (analyzeButton) {
+        const taskId = analyzeButton.dataset.analyzeTaskId;
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = 'Analisando…';
+        try {
+          const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+          if (!token) throw new Error('Informe o token de acesso da API.');
+          const response = await fetch(apiBase() + '/api/tasks/' + encodeURIComponent(taskId) + '/analyze', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+            cache: 'no-store'
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const messages = {
+              task_not_analyzable: 'A melhoria precisa estar em Triagem e ainda não pode ter aprovação de execução.',
+              orchestrator_not_configured: 'O token do LangGraph não está configurado no Control API.',
+              orchestrator_unavailable: 'O serviço LangGraph não está disponível. Confira se está rodando na porta 4320.',
+              orchestrator_request_failed: 'O LangGraph recusou a análise.',
+              invalid_orchestrator_response: 'O LangGraph retornou uma resposta fora do formato esperado.'
+            };
+            throw new Error(messages[result.error] || 'Não foi possível analisar a melhoria (HTTP ' + response.status + ').');
+          }
+          showNotice('Análise LangGraph concluída. Plano salvo; nenhuma alteração de código foi executada.');
+          await loadTasks();
+        } catch (error) {
+          showNotice(error.message || 'Falha ao executar a análise LangGraph.', true);
+          analyzeButton.disabled = false;
+          analyzeButton.textContent = 'Tentar análise novamente';
+        }
+        return;
+      }
       const button = event.target.closest('button[data-triage-history-task-id]');
       if (!button) return;
       const taskId = button.dataset.triageHistoryTaskId;

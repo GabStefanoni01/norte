@@ -14,7 +14,7 @@ LangGraph-based orchestration service. The first milestone implements a safe, de
 - Control API remains the authority for task state, approval, leases, and audit events.
 - Builder and Reviewer are intentionally not enabled in this milestone.
 
-The graph currently consumes a task payload shaped from the Control API task contract. Integration transport, authenticated service-to-service requests, and PostgreSQL checkpoint persistence will be added in subsequent milestones.
+The graph consumes a task payload shaped from the Control API task contract. The FastAPI service exposes an authenticated `/v1/analyze` endpoint; the Control API calls it and persists the returned reviewable plan. PostgreSQL checkpoint persistence remains a later milestone.
 
 ## Requirements
 
@@ -62,3 +62,16 @@ The output includes a structured plan and explicitly reports `execution_enabled:
 3. Add a PostgreSQL checkpointer using a dedicated least-privilege database role/schema.
 4. Add a human-approval interrupt that resumes only after Control API independently validates the approved plan hash and execution lease.
 5. Implement Builder and Reviewer only after workspace-scoped capabilities and security tests are in place.
+
+
+## Run the authenticated HTTP service
+
+The service loads `engineering-agents/.env` automatically. Configure `AGENTS_ORCHESTRATOR_TOKEN` there with a random secret of at least 32 characters; the Control API uses the same value.
+
+From the `engineering-agents` directory:
+
+```powershell
+npm run orchestrator:serve
+```
+
+The service listens on `127.0.0.1:4320`. Its health endpoint is `GET /health`; authenticated analysis is `POST /v1/analyze`. It never reads repository files or executes changes.

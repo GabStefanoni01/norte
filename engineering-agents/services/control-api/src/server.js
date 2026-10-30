@@ -540,12 +540,12 @@ app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, nex
   let client;
   try {
     const found = await pool.query(
-      'SELECT id, title, summary, category, evidence, status FROM engineering_improvements WHERE id = $1 LIMIT 1',
+      'SELECT id, title, summary, category, evidence, status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 LIMIT 1',
       [taskId],
     );
     if (!found.rowCount) return res.status(404).json({ error: 'task_not_found' });
     const task = found.rows[0];
-    if (!['triaged', 'queued'].includes(task.status)) {
+    if (task.status !== 'triaged' || task.executionApprovedAt) {
       return res.status(409).json({ error: 'task_not_analyzable', status: task.status });
     }
 
@@ -580,6 +580,9 @@ app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, nex
       analysis.task_id !== task.id ||
       analysis.human_approval_required !== true ||
       analysis.execution_enabled !== false ||
+      !analysis.finding ||
+      !analysis.architecture ||
+      !Array.isArray(analysis.agent_trace) ||
       !analysis.plan ||
       analysis.plan.humanApprovalRequired !== true ||
       analysis.plan.executionEnabled !== false
@@ -598,7 +601,7 @@ app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, nex
     client = await pool.connect();
     await client.query('BEGIN');
     const current = await client.query(
-      'SELECT status FROM engineering_improvements WHERE id = $1 FOR UPDATE',
+      'SELECT status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 FOR UPDATE',
       [taskId],
     );
     if (!current.rowCount) {
@@ -606,7 +609,7 @@ app.post('/internal/tasks/:id/analyze', requireIngestToken, async (req, res, nex
       return res.status(404).json({ error: 'task_not_found' });
     }
     const fromStatus = current.rows[0].status;
-    if (!['triaged', 'queued'].includes(fromStatus)) {
+    if (fromStatus !== 'triaged' || current.rows[0].executionApprovedAt) {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: 'task_state_changed_during_analysis', status: fromStatus });
     }

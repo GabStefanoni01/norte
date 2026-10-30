@@ -1,12 +1,17 @@
 import os
 import secrets
+from pathlib import Path
 from typing import Annotated
+
+from dotenv import load_dotenv
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import ValidationError
 
 from app.main import run_task
 from app.schemas import ImprovementTask
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 app = FastAPI(
     title="Norte Engineering Agents Orchestrator",

@@ -13,7 +13,8 @@
     "worker:workspace-plan": "node --env-file=.env worker/src/workspace-plan.js",
     "worker:workspace-create": "node --env-file=.env worker/src/workspace-create.js",
     "orchestrator:check": "python -m compileall -q orchestrator/app",
-    "orchestrator:test": "python -m pytest orchestrator/tests"
+    "orchestrator:test": "python -m pytest orchestrator/tests",
+    "orchestrator:serve": "cd orchestrator && python -m uvicorn app.api:app --host 127.0.0.1 --port 4320"
   },
   "engines": {
     "node": ">=20.6.0"

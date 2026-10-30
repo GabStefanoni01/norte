@@ -11,7 +11,9 @@
     "worker:dry-run": "node --env-file=.env worker/src/worker.js",
     "worker:claim-dry-run": "node --env-file=.env worker/src/worker.js --claim-dry-run",
     "worker:workspace-plan": "node --env-file=.env worker/src/workspace-plan.js",
-    "worker:workspace-create": "node --env-file=.env worker/src/workspace-create.js"
+    "worker:workspace-create": "node --env-file=.env worker/src/workspace-create.js",
+    "orchestrator:check": "python -m compileall -q orchestrator/app",
+    "orchestrator:test": "python -m pytest orchestrator/tests"
   },
   "engines": {
     "node": ">=20.6.0"

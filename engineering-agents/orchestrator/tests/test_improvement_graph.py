@@ -27,6 +27,9 @@ def test_graph_runs_agents_in_expected_order_and_stays_non_executing():
     assert result["plan"]["executionEnabled"] is False
     assert result["execution_enabled"] is False
     assert result["plan"]["files_to_modify"] == []
+    assert result["plan"]["steps"][0].startswith("Inspecionar")
+    assert result["plan"]["validation"][0].startswith("Adicionar")
+    assert "Aprovação humana" in result["architecture"]["constraints"][-1]
 
 
 def test_graph_does_not_invent_evidence():

@@ -603,7 +603,7 @@ const analyzeTaskHandler = async (req, res, next) => {
       }
       task = found.rows[0];
       const eligible = isReanalysis
-        ? task.status === 'planned' && !!task.analysisPlan
+        ? ['planned', 'triaged'].includes(task.status) && !!task.analysisPlan
         : task.status === 'triaged' && !task.analysisPlan;
       if (!eligible || task.executionApprovedAt) {
         await client.query('ROLLBACK');

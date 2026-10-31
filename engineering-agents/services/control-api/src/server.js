@@ -262,7 +262,7 @@ const allowedTransitions = {
   triaged: ['analyzing', 'queued', 'blocked', 'rejected'],
   queued: ['analyzing', 'blocked', 'cancelled'],
   analyzing: ['planned', 'blocked', 'failed'],
-  planned: ['awaiting_approval', 'blocked', 'rejected'],
+  planned: ['analyzing', 'awaiting_approval', 'blocked', 'rejected'],
   awaiting_approval: ['rejected'],
   implementing: ['reviewing', 'blocked', 'failed'],
   reviewing: ['validating', 'implementing', 'rejected'],
@@ -525,8 +525,57 @@ app.get('/api/tasks/:id', requireToken, async (req, res, next) => {
 });
 
 
+app.get('/api/tasks/:id/analysis-versions', requireToken, async (req, res, next) => {
+  const taskId = req.params.id;
+  if (typeof taskId !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(taskId)) {
+    return res.status(400).json({ error: 'invalid_task_id' });
+  }
+  try {
+    const exists = await pool.query('SELECT 1 FROM engineering_improvements WHERE id = $1', [taskId]);
+    if (!exists.rowCount) return res.status(404).json({ error: 'task_not_found' });
+    const result = await pool.query(
+      `SELECT version, analysis_plan AS "analysisPlan", agent_trace AS "agentTrace",
+              created_by AS "createdBy", created_at AS "createdAt"
+         FROM engineering_improvement_analysis_versions
+        WHERE task_id = $1
+        ORDER BY version DESC
+        LIMIT 50`,
+      [taskId],
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ taskId, versions: result.rows, count: result.rowCount });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+const restoreAnalysisReservation = async (taskId, originalStatus, reason) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const restored = await client.query(
+      'UPDATE engineering_improvements SET status = $2 WHERE id = $1 AND status = \'analyzing\' AND execution_approved_at IS NULL RETURNING id',
+      [taskId, originalStatus],
+    );
+    if (restored.rowCount) {
+      await client.query(
+        'INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, \'analyzing\', $2, $3, \'langgraph-orchestrator\')',
+        [taskId, originalStatus, reason.slice(0, 2000)],
+      );
+    }
+    await client.query('COMMIT');
+    return restored.rowCount > 0;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch {}
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 const analyzeTaskHandler = async (req, res, next) => {
   const taskId = req.params.id;
+  const isReanalysis = req.path.endsWith('/reanalyze');
   if (typeof taskId !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/.test(taskId)) {
     return res.status(400).json({ error: 'invalid_task_id' });
   }
@@ -537,16 +586,49 @@ const analyzeTaskHandler = async (req, res, next) => {
     return res.status(503).json({ error: 'orchestrator_not_configured' });
   }
 
-  let client;
+  let originalStatus = null;
+  let reservationActive = false;
   try {
-    const found = await pool.query(
-      'SELECT id, title, summary, category, evidence, status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 LIMIT 1',
-      [taskId],
-    );
-    if (!found.rowCount) return res.status(404).json({ error: 'task_not_found' });
-    const task = found.rows[0];
-    if (task.status !== 'triaged' || task.executionApprovedAt) {
-      return res.status(409).json({ error: 'task_not_analyzable', status: task.status });
+    const client = await pool.connect();
+    let task;
+    try {
+      await client.query('BEGIN');
+      const found = await client.query(
+        'SELECT id, title, summary, category, evidence, status, analysis_plan AS "analysisPlan", execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 FOR UPDATE',
+        [taskId],
+      );
+      if (!found.rowCount) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'task_not_found' });
+      }
+      task = found.rows[0];
+      const eligible = isReanalysis
+        ? task.status === 'planned' && !!task.analysisPlan
+        : task.status === 'triaged' && !task.analysisPlan;
+      if (!eligible || task.executionApprovedAt) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error: isReanalysis ? 'task_not_reanalyzable' : 'task_not_analyzable',
+          status: task.status,
+          hasAnalysisPlan: !!task.analysisPlan,
+        });
+      }
+      originalStatus = task.status;
+      await client.query(
+        "UPDATE engineering_improvements SET status = 'analyzing' WHERE id = $1",
+        [taskId],
+      );
+      await client.query(
+        "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, $2, 'analyzing', $3, 'langgraph-orchestrator')",
+        [taskId, originalStatus, isReanalysis ? 'A new analysis version was requested; previous versions are preserved.' : 'Initial analysis started by the authenticated LangGraph orchestrator.'],
+      );
+      await client.query('COMMIT');
+      reservationActive = true;
+    } catch (error) {
+      try { await client.query('ROLLBACK'); } catch {}
+      throw error;
+    } finally {
+      client.release();
     }
 
     let orchestratorResponse;
@@ -568,14 +650,26 @@ const analyzeTaskHandler = async (req, res, next) => {
         signal: AbortSignal.timeout(15000),
       });
     } catch {
+      await restoreAnalysisReservation(taskId, originalStatus, 'Orchestrator unavailable; task returned to its previous state.');
+      reservationActive = false;
       return res.status(502).json({ error: 'orchestrator_unavailable' });
     }
 
     if (!orchestratorResponse.ok) {
+      await restoreAnalysisReservation(taskId, originalStatus, 'Orchestrator request failed; task returned to its previous state.');
+      reservationActive = false;
       return res.status(502).json({ error: 'orchestrator_request_failed', upstreamStatus: orchestratorResponse.status });
     }
 
-    const analysis = await orchestratorResponse.json();
+    let analysis;
+    try {
+      analysis = await orchestratorResponse.json();
+    } catch {
+      await restoreAnalysisReservation(taskId, originalStatus, 'Orchestrator returned invalid JSON; task returned to its previous state.');
+      reservationActive = false;
+      return res.status(502).json({ error: 'invalid_orchestrator_response' });
+    }
+
     if (
       analysis.task_id !== task.id ||
       analysis.human_approval_required !== true ||
@@ -587,6 +681,8 @@ const analyzeTaskHandler = async (req, res, next) => {
       analysis.plan.humanApprovalRequired !== true ||
       analysis.plan.executionEnabled !== false
     ) {
+      await restoreAnalysisReservation(taskId, originalStatus, 'Orchestrator response failed validation; task returned to its previous state.');
+      reservationActive = false;
       return res.status(502).json({ error: 'invalid_orchestrator_response' });
     }
 
@@ -597,58 +693,71 @@ const analyzeTaskHandler = async (req, res, next) => {
       agentTrace: analysis.agent_trace,
       executionEnabled: false,
     };
-
-    client = await pool.connect();
-    await client.query('BEGIN');
-    const current = await client.query(
-      'SELECT status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 FOR UPDATE',
-      [taskId],
-    );
-    if (!current.rowCount) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'task_not_found' });
+    const planJson = JSON.stringify(persistedPlan);
+    const traceJson = JSON.stringify(analysis.agent_trace);
+    const client = await pool.connect();
+    let updated;
+    let version;
+    try {
+      await client.query('BEGIN');
+      const current = await client.query(
+        'SELECT status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 FOR UPDATE',
+        [taskId],
+      );
+      if (!current.rowCount || current.rows[0].status !== 'analyzing' || current.rows[0].executionApprovedAt) {
+        await client.query('ROLLBACK');
+        reservationActive = false;
+        return res.status(409).json({ error: 'task_state_changed_during_analysis', status: current.rows[0]?.status });
+      }
+      const nextVersion = await client.query(
+        'SELECT COALESCE(MAX(version), 0) + 1 AS version FROM engineering_improvement_analysis_versions WHERE task_id = $1',
+        [taskId],
+      );
+      version = nextVersion.rows[0].version;
+      await client.query(
+        'INSERT INTO engineering_improvement_analysis_versions (task_id, version, analysis_plan, agent_trace, created_by) VALUES ($1, $2, $3::jsonb, $4::jsonb, \'langgraph-orchestrator\')',
+        [taskId, version, planJson, traceJson],
+      );
+      updated = await client.query(
+        "UPDATE engineering_improvements SET status = 'planned', analysis_plan = $2::jsonb WHERE id = $1 RETURNING id, title, status, analysis_plan AS \"analysisPlan\"",
+        [taskId, planJson],
+      );
+      await client.query(
+        "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, 'analyzing', 'planned', $2, 'langgraph-orchestrator')",
+        [taskId, 'LangGraph saved analysis version ' + version + '; previous versions remain available and execution remains disabled.'],
+      );
+      await client.query('COMMIT');
+      reservationActive = false;
+    } catch (error) {
+      try { await client.query('ROLLBACK'); } catch {}
+      throw error;
+    } finally {
+      client.release();
     }
-    const fromStatus = current.rows[0].status;
-    if (fromStatus !== 'triaged' || current.rows[0].executionApprovedAt) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'task_state_changed_during_analysis', status: fromStatus });
-    }
-
-    await client.query(
-      "UPDATE engineering_improvements SET status = 'analyzing' WHERE id = $1",
-      [taskId],
-    );
-    await client.query(
-      "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, $2, 'analyzing', $3, 'langgraph-orchestrator')",
-      [taskId, fromStatus, 'Analysis started by the authenticated LangGraph orchestrator.'],
-    );
-    const updated = await client.query(
-      "UPDATE engineering_improvements SET status = 'planned', analysis_plan = $2::jsonb WHERE id = $1 RETURNING id, title, status, analysis_plan AS \"analysisPlan\"",
-      [taskId, JSON.stringify(persistedPlan)],
-    );
-    await client.query(
-      "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, 'analyzing', 'planned', $2, 'langgraph-orchestrator')",
-      [taskId, 'LangGraph returned a reviewable plan; execution remains disabled.'],
-    );
-    await client.query('COMMIT');
 
     res.setHeader('Cache-Control', 'no-store');
     return res.json({
       task: updated.rows[0],
+      analysisVersion: version,
       agentTrace: analysis.agent_trace,
       humanApprovalRequired: true,
       executionEnabled: false,
     });
   } catch (error) {
-    try { if (client) await client.query('ROLLBACK'); } catch {}
+    if (reservationActive && originalStatus) {
+      try {
+        await restoreAnalysisReservation(taskId, originalStatus, 'Analysis could not be completed due to an internal error; task returned to its previous state.');
+      } catch {
+        // Preserve the original error; operational recovery can inspect the workflow event log.
+      }
+    }
     return next(error);
-  } finally {
-    if (client) client.release();
   }
 };
 
 // Dashboard requests use the regular API token; internal ingestion keeps its separate token.
 app.post('/api/tasks/:id/analyze', requireToken, analyzeTaskHandler);
+app.post('/api/tasks/:id/reanalyze', requireToken, analyzeTaskHandler);
 app.post('/internal/tasks/:id/analyze', requireIngestToken, analyzeTaskHandler);
 
 app.use((error, _req, res, _next) => {

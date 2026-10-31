@@ -4,7 +4,7 @@ from app.graphs.state import ImprovementState
 
 
 def scout_node(state: ImprovementState) -> dict[str, Any]:
-    """Normalize the supplied finding; do not inspect or modify repository files."""
+    """Normalize the supplied finding in Brazilian Portuguese."""
     task = state["task"]
     evidence = task.get("evidence", [])
     finding = {
@@ -13,10 +13,10 @@ def scout_node(state: ImprovementState) -> dict[str, Any]:
         "summary": task["summary"],
         "category": task["category"],
         "evidence": evidence,
-        "source": "control-api-task-payload",
+        "source": "payload-da-control-api",
         "limitations": [
-            "This first version only reasons over evidence supplied by Control API.",
-            "No repository files are read or executed.",
+            "Esta versão inicial considera somente as evidências fornecidas pela Control API.",
+            "Nenhum arquivo do repositório é lido ou executado nesta etapa.",
         ],
     }
     return {
@@ -26,24 +26,24 @@ def scout_node(state: ImprovementState) -> dict[str, Any]:
 
 
 def architect_node(state: ImprovementState) -> dict[str, Any]:
-    """Produce a bounded architecture assessment from the normalized finding."""
+    """Produce a bounded architecture assessment in Brazilian Portuguese."""
     finding = state["finding"]
     architecture = {
         "problem_statement": finding["summary"],
         "category": finding["category"],
         "proposed_approach": (
-            "Prepare a narrowly scoped change proposal based on the supplied evidence. "
-            "Do not modify source files during analysis."
+            "Preparar uma proposta de alteração com escopo restrito, baseada nas evidências fornecidas. "
+            "Não modificar arquivos-fonte durante a análise."
         ),
         "constraints": [
-            "Preserve existing application architecture and public contracts.",
-            "Do not access secrets or environment files.",
-            "Do not modify main or develop.",
-            "Require explicit human approval before implementation.",
+            "Preservar a arquitetura existente da aplicação e os contratos públicos.",
+            "Não acessar segredos nem arquivos de ambiente.",
+            "Não modificar as branches main ou develop.",
+            "Exigir aprovação humana explícita antes de qualquer implementação.",
         ],
         "unknowns": [
-            "The repository context has not yet been loaded by a read-only tool.",
-            "The proposed approach must be checked against the current source before implementation.",
+            "O contexto do repositório ainda não foi carregado por uma ferramenta somente de leitura.",
+            "A abordagem proposta deverá ser conferida com o código-fonte atual antes da implementação.",
         ],
     }
     return {
@@ -53,26 +53,26 @@ def architect_node(state: ImprovementState) -> dict[str, Any]:
 
 
 def planner_node(state: ImprovementState) -> dict[str, Any]:
-    """Create a reviewable plan; this node never grants execution permission."""
+    """Create a reviewable plan in Brazilian Portuguese; never grant execution permission."""
     task = state["task"]
     plan = {
         "task_id": task["id"],
         "objective": task["title"],
         "steps": [
-            "Inspect the affected source and its surrounding tests in read-only mode.",
-            "Confirm the proposed change against repository conventions and dependencies.",
-            "Prepare a minimal implementation in an isolated workspace after approval.",
-            "Run only the explicitly approved validation commands.",
+            "Inspecionar o código-fonte afetado e os testes relacionados em modo somente leitura.",
+            "Conferir a alteração proposta com os padrões do repositório e suas dependências.",
+            "Preparar uma implementação mínima em um ambiente de trabalho isolado somente após aprovação.",
+            "Executar apenas os comandos de validação explicitamente aprovados.",
         ],
         "files_to_modify": [],
         "risks": [
-            "The exact files and change scope remain unverified until read-only inspection.",
+            "Os arquivos exatos e o escopo da alteração ainda não foram verificados por uma inspeção somente de leitura.",
         ],
         "validation": [
-            "Add or update focused automated tests.",
-            "Run the relevant existing test suite and static checks.",
+            "Adicionar ou atualizar testes automatizados específicos para a alteração.",
+            "Executar a suíte de testes existente e as verificações estáticas relevantes.",
         ],
-        "rollback": "Discard the isolated worktree if validation fails; do not merge or push.",
+        "rollback": "Descartar a worktree isolada se a validação falhar; não realizar merge nem push.",
         "humanApprovalRequired": True,
         "executionEnabled": False,
     }

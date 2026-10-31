@@ -420,6 +420,8 @@
         if (task.analysisPlan && typeof task.analysisPlan === 'object') {
           const plan = task.analysisPlan;
           const planPanel = element('section', 'recommendation-panel');
+          planPanel.dataset.analysisPlanFor = String(task.id);
+          planPanel.tabIndex = -1;
           planPanel.append(element('div', 'recommendation-title', 'Plano de análise proposto'));
           planPanel.append(element('p', 'recommendation-copy', plan.hypothesis || 'Hipótese ainda não registrada.'));
           const appendPlanList = (title, items) => {
@@ -457,6 +459,16 @@
           }
           planPanel.append(element('p', 'recommendation-rationale', 'Execução de código desabilitada. Esta análise não alterou arquivos.'));
           content.append(planPanel);
+        }
+        if (task.status === 'triaged' && task.analysisPlan && typeof task.analysisPlan === 'object') {
+          const existingAnalysisPanel = element('section', 'workflow-panel');
+          existingAnalysisPanel.append(element('div', 'workflow-title', 'Análise multiagente disponível'));
+          existingAnalysisPanel.append(element('p', 'triage-history', 'Esta melhoria já possui um plano salvo. Você pode consultar a análise sem executá-la novamente.'));
+          const viewAnalysisButton = element('button', 'btn btn-secondary', 'Visualizar análise');
+          viewAnalysisButton.type = 'button';
+          viewAnalysisButton.dataset.viewAnalysisTaskId = String(task.id);
+          existingAnalysisPanel.append(viewAnalysisButton);
+          content.append(existingAnalysisPanel);
         }
         if (task.status === 'triaged' && !task.analysisPlan) {
           const analysisPanel = element('section', 'workflow-panel');
@@ -681,6 +693,16 @@
     }
 
     byId('tasks').addEventListener('click', async (event) => {
+      const viewAnalysisButton = event.target.closest('button[data-view-analysis-task-id]');
+      if (viewAnalysisButton) {
+        const taskId = viewAnalysisButton.dataset.viewAnalysisTaskId;
+        const planPanel = byId('tasks').querySelector('[data-analysis-plan-for="' + CSS.escape(taskId) + '"]');
+        if (planPanel) {
+          planPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          planPanel.focus({ preventScroll: true });
+        }
+        return;
+      }
       const analyzeButton = event.target.closest('button[data-analyze-task-id]');
       if (analyzeButton) {
         const taskId = analyzeButton.dataset.analyzeTaskId;

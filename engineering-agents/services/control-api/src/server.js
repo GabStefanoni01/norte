@@ -695,44 +695,44 @@ const analyzeTaskHandler = async (req, res, next) => {
     };
     const planJson = JSON.stringify(persistedPlan);
     const traceJson = JSON.stringify(analysis.agent_trace);
-    const client = await pool.connect();
+    const persistClient = await pool.connect();
     let updated;
     let version;
     try {
-      await client.query('BEGIN');
-      const current = await client.query(
+      await persistClient.query('BEGIN');
+      const current = await persistClient.query(
         'SELECT status, execution_approved_at AS "executionApprovedAt" FROM engineering_improvements WHERE id = $1 FOR UPDATE',
         [taskId],
       );
       if (!current.rowCount || current.rows[0].status !== 'analyzing' || current.rows[0].executionApprovedAt) {
-        await client.query('ROLLBACK');
+        await persistClient.query('ROLLBACK');
         reservationActive = false;
         return res.status(409).json({ error: 'task_state_changed_during_analysis', status: current.rows[0]?.status });
       }
-      const nextVersion = await client.query(
+      const nextVersion = await persistClient.query(
         'SELECT COALESCE(MAX(version), 0) + 1 AS version FROM engineering_improvement_analysis_versions WHERE task_id = $1',
         [taskId],
       );
       version = nextVersion.rows[0].version;
-      await client.query(
+      await persistClient.query(
         'INSERT INTO engineering_improvement_analysis_versions (task_id, version, analysis_plan, agent_trace, created_by) VALUES ($1, $2, $3::jsonb, $4::jsonb, \'langgraph-orchestrator\')',
         [taskId, version, planJson, traceJson],
       );
-      updated = await client.query(
+      updated = await persistClient.query(
         "UPDATE engineering_improvements SET status = 'planned', analysis_plan = $2::jsonb WHERE id = $1 RETURNING id, title, status, analysis_plan AS \"analysisPlan\"",
         [taskId, planJson],
       );
-      await client.query(
+      await persistClient.query(
         "INSERT INTO engineering_improvement_workflow_events (task_id, from_status, to_status, reason, actor) VALUES ($1, 'analyzing', 'planned', $2, 'langgraph-orchestrator')",
         [taskId, 'LangGraph saved analysis version ' + version + '; previous versions remain available and execution remains disabled.'],
       );
-      await client.query('COMMIT');
+      await persistClient.query('COMMIT');
       reservationActive = false;
     } catch (error) {
-      try { await client.query('ROLLBACK'); } catch {}
+      try { await persistClient.query('ROLLBACK'); } catch {}
       throw error;
     } finally {
-      client.release();
+      persistClient.release();
     }
 
     res.setHeader('Cache-Control', 'no-store');

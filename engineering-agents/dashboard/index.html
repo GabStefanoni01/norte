@@ -99,6 +99,14 @@
     .analysis-plan-list { margin: 0.35rem 0 0.75rem; padding-left: 1.25rem; color: var(--text-secondary); }
     .analysis-plan-list li { margin: 0.25rem 0; }
     .recommendation-rationale { color: var(--muted); font-size: .74rem; line-height: 1.55; margin: 7px 0 0; overflow-wrap: anywhere; }
+    .analysis-history { margin-top: 14px; padding: 14px; border: 1px solid rgba(224,169,68,.2); border-radius: 12px; background: rgba(11,17,32,.32); }
+    .analysis-history-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 10px; }
+    .analysis-history-list { display: grid; gap: 10px; margin-top: 12px; }
+    .analysis-version { padding: 13px; border: 1px solid var(--line); border-radius: 10px; background: rgba(21,33,59,.48); }
+    .analysis-version h4 { margin: 0; font-size: .82rem; color: var(--gold-light); }
+    .analysis-version-meta { margin: 5px 0 9px; color: var(--muted); font-size: .7rem; line-height: 1.5; }
+    .analysis-version p { margin: 7px 0 0; color: #d1d9e8; font-size: .77rem; line-height: 1.55; overflow-wrap: anywhere; }
+    .analysis-version ul { margin: 6px 0 0; padding-left: 1.2rem; color: #d1d9e8; font-size: .76rem; line-height: 1.55; }
     .workflow-panel { margin-top: 14px; padding: 14px; border: 1px solid rgba(118,164,255,.25); border-radius: 12px; background: rgba(118,164,255,.045); }
     .workflow-title { color: #a9c7ff; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 9px; }
     .workflow-panel label { display: block; margin-top: 8px; }
@@ -460,15 +468,27 @@
           planPanel.append(element('p', 'recommendation-rationale', 'Execução de código desabilitada. Esta análise não alterou arquivos.'));
           content.append(planPanel);
         }
-        if (task.status === 'triaged' && task.analysisPlan && typeof task.analysisPlan === 'object') {
-          const existingAnalysisPanel = element('section', 'workflow-panel');
-          existingAnalysisPanel.append(element('div', 'workflow-title', 'Análise multiagente disponível'));
-          existingAnalysisPanel.append(element('p', 'triage-history', 'Esta melhoria já possui um plano salvo. Você pode consultar a análise sem executá-la novamente.'));
-          const viewAnalysisButton = element('button', 'btn btn-secondary', 'Visualizar análise');
-          viewAnalysisButton.type = 'button';
-          viewAnalysisButton.dataset.viewAnalysisTaskId = String(task.id);
-          existingAnalysisPanel.append(viewAnalysisButton);
-          content.append(existingAnalysisPanel);
+        if (task.analysisPlan && typeof task.analysisPlan === 'object') {
+          const historyPanel = element('section', 'analysis-history');
+          historyPanel.append(element('div', 'workflow-title', 'Histórico de análises'));
+          historyPanel.append(element('p', 'triage-history', 'Consulte as versões anteriores sem sobrescrever o histórico. Uma nova análise gera uma versão adicional e continua exigindo aprovação humana para qualquer execução.'));
+          const actions = element('div', 'analysis-history-actions');
+          const historyButton = element('button', 'btn btn-secondary', 'Ver histórico de versões');
+          historyButton.type = 'button';
+          historyButton.dataset.analysisHistoryTaskId = String(task.id);
+          actions.append(historyButton);
+          const executionApproved = Boolean(task.executionApprovedAt || task.execution_approved_at);
+          if (['triaged', 'planned'].includes(task.status) && !executionApproved) {
+            const reanalyzeButton = element('button', 'btn btn-primary', 'Solicitar nova análise');
+            reanalyzeButton.type = 'button';
+            reanalyzeButton.dataset.reanalyzeTaskId = String(task.id);
+            actions.append(reanalyzeButton);
+          }
+          historyPanel.append(actions);
+          const historyRoot = element('div', 'analysis-history-list');
+          historyRoot.dataset.analysisHistoryFor = String(task.id);
+          historyPanel.append(historyRoot);
+          content.append(historyPanel);
         }
         if (task.status === 'triaged' && !task.analysisPlan) {
           const analysisPanel = element('section', 'workflow-panel');
@@ -700,6 +720,108 @@
         if (planPanel) {
           planPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
           planPanel.focus({ preventScroll: true });
+        }
+        return;
+      }
+      const historyButton = event.target.closest('button[data-analysis-history-task-id]');
+      if (historyButton) {
+        const taskId = historyButton.dataset.analysisHistoryTaskId;
+        const root = byId('tasks').querySelector('[data-analysis-history-for="' + CSS.escape(taskId) + '"]');
+        if (!root) return;
+        historyButton.disabled = true;
+        historyButton.textContent = 'Carregando…';
+        root.replaceChildren(element('p', 'triage-history', 'Carregando versões salvas…'));
+        try {
+          const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+          if (!token) throw new Error('Informe o token de acesso da API.');
+          const response = await fetch(apiBase() + '/api/tasks/' + encodeURIComponent(taskId) + '/analysis-versions', {
+            headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+            cache: 'no-store'
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error('Não foi possível carregar o histórico (HTTP ' + response.status + ').');
+          root.replaceChildren();
+          const versions = Array.isArray(payload.versions) ? payload.versions : [];
+          if (!versions.length) {
+            root.append(element('p', 'triage-history', 'Nenhuma versão de análise foi registrada.'));
+          } else {
+            for (const version of versions) {
+              const card = element('article', 'analysis-version');
+              card.append(element('h4', '', 'Versão ' + String(version.version)));
+              const createdAt = version.createdAt ? new Date(version.createdAt).toLocaleString('pt-BR') : 'Data indisponível';
+              card.append(element('div', 'analysis-version-meta', createdAt + ' · ' + (version.createdBy || 'Responsável não informado')));
+              const plan = version.analysisPlan && typeof version.analysisPlan === 'object' ? version.analysisPlan : {};
+              if (plan.hypothesis) card.append(element('p', '', 'Hipótese: ' + plan.hypothesis));
+              if (plan.finding && typeof plan.finding === 'object') {
+                card.append(element('p', '', 'Achado: ' + (plan.finding.summary || plan.finding.title || 'Análise registrada.')));
+              }
+              if (plan.architecture && typeof plan.architecture === 'object') {
+                card.append(element('p', '', 'Arquitetura: ' + (plan.architecture.recommendation || plan.architecture.summary || plan.architecture.notes || 'Avaliação registrada.')));
+              }
+              const appendVersionList = (label, items) => {
+                if (!Array.isArray(items) || !items.length) return;
+                card.append(element('p', '', label));
+                const list = element('ul');
+                for (const item of items.slice(0, 8)) {
+                  if (typeof item === 'string') list.append(element('li', '', item));
+                }
+                card.append(list);
+              };
+              appendVersionList('Etapas sugeridas', plan.steps);
+              appendVersionList('Validação sugerida', plan.validation);
+              if (plan.rollback) card.append(element('p', '', 'Reversão: ' + plan.rollback));
+              const trace = Array.isArray(version.agentTrace) ? version.agentTrace
+                : Array.isArray(plan.agentTrace) ? plan.agentTrace : [];
+              if (trace.length) {
+                const traceItems = trace.slice(0, 8).map(item => {
+                  if (!item || typeof item !== 'object') return null;
+                  return (item.agent || item.name || 'Agente') + ': ' + (item.summary || item.output || item.status || 'Etapa registrada');
+                }).filter(Boolean);
+                appendVersionList('Agentes envolvidos', traceItems);
+              }
+              card.append(element('p', '', 'Execução de código desabilitada nesta etapa; aprovação humana continua obrigatória.'));
+              root.append(card);
+            }
+          }
+        } catch (error) {
+          root.replaceChildren(element('p', 'triage-history', error.message || 'Falha ao carregar histórico.'));
+        } finally {
+          historyButton.disabled = false;
+          historyButton.textContent = 'Atualizar histórico';
+        }
+        return;
+      }
+      const reanalyzeButton = event.target.closest('button[data-reanalyze-task-id]');
+      if (reanalyzeButton) {
+        const taskId = reanalyzeButton.dataset.reanalyzeTaskId;
+        reanalyzeButton.disabled = true;
+        reanalyzeButton.textContent = 'Solicitando análise…';
+        try {
+          const token = byId('apiToken').value.trim() || sessionStorage.getItem('norteAgentsToken') || '';
+          if (!token) throw new Error('Informe o token de acesso da API.');
+          const response = await fetch(apiBase() + '/api/tasks/' + encodeURIComponent(taskId) + '/reanalyze', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+            cache: 'no-store'
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const messages = {
+              task_not_reanalyzable: 'A tarefa não está elegível para reanálise ou possui aprovação de execução.',
+              task_not_found: 'A tarefa não foi encontrada.',
+              orchestrator_not_configured: 'O token do LangGraph não está configurado no Control API.',
+              orchestrator_unavailable: 'O serviço LangGraph não está disponível. Confira se está rodando na porta 4320.',
+              orchestrator_request_failed: 'O LangGraph recusou a reanálise.',
+              invalid_orchestrator_response: 'O LangGraph retornou uma resposta fora do formato esperado.'
+            };
+            throw new Error(messages[result.error] || 'Não foi possível solicitar a reanálise (HTTP ' + response.status + ').');
+          }
+          showNotice('Nova análise registrada como versão ' + String(result.analysisVersion || 'adicional') + '. Nenhuma alteração de código foi executada.');
+          await loadTasks();
+        } catch (error) {
+          showNotice(error.message || 'Falha ao solicitar nova análise.', true);
+          reanalyzeButton.disabled = false;
+          reanalyzeButton.textContent = 'Tentar nova análise';
         }
         return;
       }
